@@ -47,7 +47,7 @@ public abstract class AWS4SignerBase {
     /**
      * Create a new AWS V4 signer.
      * 
-     * @param endpointUri
+     * @param endpointUrl
      *            The service endpoint, including the path to any resource.
      * @param httpMethod
      *            The HTTP verb for the request, e.g. GET.
@@ -118,7 +118,7 @@ public abstract class AWS4SignerBase {
     /**
      * Returns the canonical request string to go into the signer process; this 
        consists of several canonical sub-parts.
-     * @return
+     * @return canonical request string
      */
     protected static String getCanonicalRequest(URL endpoint, 
                                          String httpMethod,
