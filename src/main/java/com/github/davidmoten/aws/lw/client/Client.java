@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+
 public final class Client {
 
     private final String serviceName;
@@ -34,9 +36,43 @@ public final class Client {
         return Requester.clientAndUrl(this, url);
     }
 
-    public Requester.Builder path(String path) {
+    public Requester.Builder pathAndQuery(String pathAndQuery) {
         return Requester.clientAndUrl(this, "https://" + serviceName + "." + regionName
-                + ".amazonaws.com/" + removeLeadingSlash(path));
+                + ".amazonaws.com/" + removeLeadingSlash(pathAndQuery));
+    }
+
+    public QueryBuilder path(String path) {
+        return new QueryBuilder(this, path);
+    }
+    
+    public QueryBuilder query(String name, String value) {
+        return new QueryBuilder(this, "").query(name, value);
+    }
+
+    public static final class QueryBuilder {
+
+        private final Client client;
+        private String path;
+
+        public QueryBuilder(Client client, String path) {
+            this.client = client;
+            this.path = path;
+        }
+        
+        public QueryBuilder query(String name, String value) {
+            if (!path.contains("?")) {
+                path += "?";
+            }
+            if (!path.endsWith("?")) {
+                path += "&";
+            }
+            path += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
+            return this;
+        }
+
+        public com.github.davidmoten.aws.lw.client.Requester.Builder2 method(HttpMethod method) {
+            return client.pathAndQuery(path).method(method);
+        }
     }
 
     private static String removeLeadingSlash(String s) {
@@ -49,6 +85,14 @@ public final class Client {
 
     public static Builder service(String serviceName) {
         return new Builder(serviceName);
+    }
+
+    public static Builder s3() {
+        return new Builder("s3");
+    }
+
+    public static Builder sqs() {
+        return new Builder("sqs");
     }
 
     public static final class Builder {
