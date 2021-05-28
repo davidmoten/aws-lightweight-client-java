@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -10,6 +12,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
 import com.amazonaws.services.s3.sample.auth.AWS4SignerBase;
 import com.amazonaws.services.s3.sample.auth.AWS4SignerForAuthorizationHeader;
@@ -86,9 +95,18 @@ final class Requester {
         public void executeUtf8(Consumer<String> consumer) {
             consumer.accept(executeUtf8());
         }
+
+        public Document executeDocument() {
+            try {
+                DocumentBuilder f = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+                return f.parse(new ByteArrayInputStream(execute()));
+            } catch (ParserConfigurationException | SAXException | IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
     }
 
-    private static byte[] request(String url, String httpMethod, Map<String, String> headers,
+    private static byte[] request(String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, String accessKey,
             String secretKey) {
 
@@ -117,14 +135,14 @@ final class Requester {
                 .collect(Collectors.toMap(p -> p.name, p -> p.value));
 
         AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(endpointUrl,
-                httpMethod, serviceName, regionName);
+                method, serviceName, regionName);
         String authorization = signer.computeSignature(h, q, contentHashString, accessKey,
                 secretKey);
 
         // place the computed signature into a formatted 'Authorization' header
         // and call S3
         h.put("Authorization", authorization);
-        return HttpUtils.invokeHttpRequest2(endpointUrl, "GET", h, requestBody);
+        return HttpUtils.invokeHttpRequest2(endpointUrl, method, h, requestBody);
     }
 
     private static List<Parameter> extractQueryParameters(URL endpointUrl) {

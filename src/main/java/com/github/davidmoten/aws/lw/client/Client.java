@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
+import org.w3c.dom.Document;
+
 public final class Client {
 
     private final String serviceName;
@@ -96,11 +98,11 @@ public final class Client {
             Client sqs = Client.service("sqs") //
                     .regionName(regionName) //
                     .credentials(credentials);
-
             String url = "https://sqs." + regionName
                     + ".amazonaws.com/?Action=GetQueueUrl&QueueName=amsa-xml-in&Version=2012-11-05";
-
-            sqs.url(url).method(HttpMethod.GET).executeUtf8(System.out::println);
+            Document doc = sqs.url(url).method(HttpMethod.GET).executeDocument();
+            System.out.println("queueUrl = " + doc.getDocumentElement().getFirstChild().getFirstChild().getTextContent());
+            System.exit(0);
         }
         {
             Client s3 = Client.service("s3") //
