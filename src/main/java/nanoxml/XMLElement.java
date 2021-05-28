@@ -887,14 +887,27 @@ public class XMLElement {
     public XMLElement firstChild() {
         return this.children.get(0);
     }
-    
-    public XMLElement child(String name) {
-        for (XMLElement child: children) {
-            if (child.getName().equals(name)) {
-                return child;
+
+    public XMLElement child(String... names) {
+        XMLElement x = this;
+        XMLElement y = null;
+        for (String name : names) {
+            for (XMLElement child : x.children) {
+                if (child.getName().equals(name)) {
+                    y = child;
+                }
+            }
+            if (y == null) {
+                throw new IllegalArgumentException("child not found with name: " + name);
+            } else {
+                x = y;
             }
         }
-        throw new IllegalArgumentException("child not found with name: " + name);
+        return y;
+    }
+    
+    public String content(String... names) {
+        return child(names).getContent();
     }
 
     /**
