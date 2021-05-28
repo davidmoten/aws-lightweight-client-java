@@ -1,4 +1,4 @@
-package com.amazonaws.services.s3.sample;
+package com.github.davidmoten.aws.lw.client;
 
 public interface Credentials {
     
