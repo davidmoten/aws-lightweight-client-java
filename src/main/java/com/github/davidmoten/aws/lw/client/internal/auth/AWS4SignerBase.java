@@ -1,4 +1,4 @@
-package com.amazonaws.services.s3.sample.auth;
+package com.github.davidmoten.aws.lw.client.internal.auth;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
@@ -16,8 +16,8 @@ import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.amazonaws.services.s3.sample.util.HttpUtils;
-import com.amazonaws.services.s3.sample.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 
 /**

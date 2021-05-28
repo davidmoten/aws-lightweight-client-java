@@ -8,9 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.s3.sample.auth.AWS4SignerBase;
-import com.amazonaws.services.s3.sample.auth.AWS4SignerForAuthorizationHeader;
-import com.amazonaws.services.s3.sample.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 
 /**

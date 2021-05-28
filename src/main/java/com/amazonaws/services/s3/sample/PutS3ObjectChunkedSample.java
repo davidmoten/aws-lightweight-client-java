@@ -8,9 +8,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-
-import com.amazonaws.services.s3.sample.auth.AWS4SignerForChunkedUpload;
-import com.amazonaws.services.s3.sample.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForChunkedUpload;
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
  * Sample code showing how to PUT objects to Amazon S3 using chunked uploading

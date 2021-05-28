@@ -5,10 +5,9 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-
-import com.amazonaws.services.s3.sample.auth.AWS4SignerBase;
-import com.amazonaws.services.s3.sample.auth.AWS4SignerForAuthorizationHeader;
-import com.amazonaws.services.s3.sample.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
  * Samples showing how to GET an object from Amazon S3 using Signature V4

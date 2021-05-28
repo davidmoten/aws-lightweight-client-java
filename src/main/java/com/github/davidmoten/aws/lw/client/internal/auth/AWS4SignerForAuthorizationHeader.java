@@ -1,10 +1,10 @@
-package com.amazonaws.services.s3.sample.auth;
+package com.github.davidmoten.aws.lw.client.internal.auth;
 
 import java.net.URL;
 import java.util.Date;
 import java.util.Map;
 
-import com.amazonaws.services.s3.sample.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
 
 /**
  * Sample AWS4 signer demonstrating how to sign requests to Amazon S3 using an

@@ -5,11 +5,10 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-
-import com.amazonaws.services.s3.sample.auth.AWS4SignerBase;
-import com.amazonaws.services.s3.sample.auth.AWS4SignerForAuthorizationHeader;
-import com.amazonaws.services.s3.sample.util.BinaryUtils;
-import com.amazonaws.services.s3.sample.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
  * Sample code showing how to PUT objects to Amazon S3 with Signature V4
@@ -41,7 +40,7 @@ public class PutS3ObjectSample {
             if (regionName.equals("us-east-1")) {
                 endpointUrl = new URL("https://s3.amazonaws.com/" + bucketName + "/ExampleObject.txt");
             } else {
-                endpointUrl = new URL("https://s3-" + regionName + ".amazonaws.com/" + bucketName + "/ExampleObject.txt");
+                endpointUrl = new URL("https://s3." + regionName + ".amazonaws.com/" + bucketName + "/ExampleObject.txt");
             }
         } catch (MalformedURLException e) {
             throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());

@@ -11,10 +11,10 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.s3.sample.auth.AWS4SignerBase;
-import com.amazonaws.services.s3.sample.auth.AWS4SignerForAuthorizationHeader;
-import com.amazonaws.services.s3.sample.util.BinaryUtils;
-import com.amazonaws.services.s3.sample.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 import nanoxml.XMLElement;
 
@@ -67,6 +67,11 @@ final class Requester {
 
         public Builder2 requestBody(byte[] requestBody) {
             b.requestBody = requestBody;
+            return this;
+        }
+        
+        public Builder2 requestBody(String requestBody) {
+            b.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
             return this;
         }
 

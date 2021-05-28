@@ -1,4 +1,4 @@
-package com.amazonaws.services.s3.sample.util;
+package com.github.davidmoten.aws.lw.client.internal.util;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
@@ -11,7 +11,10 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+
+import com.github.davidmoten.aws.lw.client.ServiceException;
 
 /**
  * Various Http helper routines
@@ -52,20 +55,40 @@ public class HttpUtils {
             throw new RuntimeException("Request failed. " + e.getMessage(), e);
         }
         try {
+            boolean ok = isOk(connection.getResponseCode());
             InputStream is;
-            try {
+            if (ok) {
                 is = connection.getInputStream();
-            } catch (IOException e) {
+            } else {
                 is = connection.getErrorStream();
             }
-            return readBytes(is);
+            final byte[] bytes;
+            if (is == null) {
+                bytes = new byte[0];
+            } else {
+                bytes = readBytes(is);
+            }
+            if (ok) {
+                return bytes;
+            } else {
+                throw new ServiceException(connection.getResponseCode(),
+                        new String(bytes, StandardCharsets.UTF_8));
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Request failed. " + e.getMessage(), e);
+            if (e instanceof ServiceException) {
+                throw (ServiceException) e;
+            } else {
+                throw new RuntimeException("Request failed. " + e.getMessage(), e);
+            }
         } finally {
             if (connection != null) {
                 connection.disconnect();
             }
         }
+    }
+
+    private static boolean isOk(int responseCode) {
+        return responseCode >= 200 && responseCode <= 299;
     }
 
     private static byte[] readBytes(InputStream in) throws IOException {

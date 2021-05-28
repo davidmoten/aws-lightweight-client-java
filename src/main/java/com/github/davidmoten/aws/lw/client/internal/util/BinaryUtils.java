@@ -1,4 +1,4 @@
-package com.amazonaws.services.s3.sample.util;
+package com.github.davidmoten.aws.lw.client.internal.util;
 
 import java.util.Locale;
 
