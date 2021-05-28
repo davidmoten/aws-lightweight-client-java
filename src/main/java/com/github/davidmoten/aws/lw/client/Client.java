@@ -101,7 +101,7 @@ public final class Client {
             String url = "https://sqs." + regionName
                     + ".amazonaws.com/?Action=GetQueueUrl&QueueName=amsa-xml-in&Version=2012-11-05";
             XMLElement xml = sqs.url(url).method(HttpMethod.GET).executeXml();
-            System.out.println(xml.firstChild().firstChild().getContent());
+            System.out.println(xml.child("GetQueueUrlResult").child("QueueUrl").getContent());
             System.exit(0);
         }
         {

@@ -887,6 +887,15 @@ public class XMLElement {
     public XMLElement firstChild() {
         return this.children.get(0);
     }
+    
+    public XMLElement child(String name) {
+        for (XMLElement child: children) {
+            if (child.getName().equals(name)) {
+                return child;
+            }
+        }
+        throw new IllegalArgumentException("child not found with name: " + name);
+    }
 
     /**
      * Returns the PCDATA content of the object. If there is no such content,
