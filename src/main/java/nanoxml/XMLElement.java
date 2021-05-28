@@ -36,6 +36,7 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1761,16 +1762,13 @@ public class XMLElement {
      * @see nanoxml.XMLElement#write(java.io.Writer) write(Writer)
      */
     public String toString() {
-        try {
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            OutputStreamWriter writer = new OutputStreamWriter(out);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
             this.write(writer);
-            writer.flush();
-            return new String(out.toByteArray());
         } catch (IOException e) {
-            // Java exception handling suxx
-            return super.toString();
+            throw new UncheckedIOException(e);
         }
+        return new String(out.toByteArray());
     }
 
     /**
@@ -1938,7 +1936,7 @@ public class XMLElement {
      *               </dl>
      *               <dl>
      */
-    protected void scanIdentifier(StringBuffer result) throws IOException {
+    protected void scanIdentifier(StringBuilder result) throws IOException {
         for (;;) {
             char ch = this.readChar();
             if (((ch < 'A') || (ch > 'Z')) && ((ch < 'a') || (ch > 'z'))
@@ -1987,7 +1985,7 @@ public class XMLElement {
      *         </dd>
      *         </dl>
      */
-    protected char scanWhitespace(StringBuffer result) throws IOException {
+    protected char scanWhitespace(StringBuilder result) throws IOException {
         for (;;) {
             char ch = this.readChar();
             switch (ch) {
@@ -2018,7 +2016,7 @@ public class XMLElement {
      * </dd>
      * </dl>
      */
-    protected void scanString(StringBuffer string) throws IOException {
+    protected void scanString(StringBuilder string) throws IOException {
         char delimiter = this.readChar();
         if ((delimiter != '\'') && (delimiter != '"')) {
             throw this.expectedInput("' or \"");
@@ -2049,7 +2047,7 @@ public class XMLElement {
      * </dd>
      * </dl>
      */
-    protected void scanPCData(StringBuffer data) throws IOException {
+    protected void scanPCData(StringBuilder data) throws IOException {
         for (;;) {
             char ch = this.readChar();
             if (ch == '<') {
@@ -2083,7 +2081,7 @@ public class XMLElement {
      * </dd>
      * </dl>
      */
-    protected boolean checkCDATA(StringBuffer buf) throws IOException {
+    protected boolean checkCDATA(StringBuilder buf) throws IOException {
         char ch = this.readChar();
         if (ch != '[') {
             this.unreadChar(ch);
@@ -2282,7 +2280,7 @@ public class XMLElement {
      *            </dl>
      */
     protected void scanElement(XMLElement elt) throws IOException {
-        StringBuffer buf = new StringBuffer();
+        StringBuilder buf = new StringBuilder();
         this.scanIdentifier(buf);
         String name = buf.toString();
         elt.setName(name);
@@ -2402,9 +2400,9 @@ public class XMLElement {
      *            </dd>
      *            </dl>
      */
-    protected void resolveEntity(StringBuffer buf) throws IOException {
+    protected void resolveEntity(StringBuilder buf) throws IOException {
         char ch = '\0';
-        StringBuffer keyBuf = new StringBuffer();
+        StringBuilder keyBuf = new StringBuilder();
         for (;;) {
             ch = this.readChar();
             if (ch == ';') {
