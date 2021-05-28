@@ -34,6 +34,19 @@ public final class Client {
         return Requester.clientAndUrl(this, url);
     }
 
+    public Requester.Builder path(String path) {
+        return Requester.clientAndUrl(this, "https://" + serviceName + "." + regionName
+                + ".amazonaws.com/" + removeLeadingSlash(path));
+    }
+
+    private static String removeLeadingSlash(String s) {
+        if (s.startsWith("/")) {
+            return s.substring(1);
+        } else {
+            return s;
+        }
+    }
+
     public static Builder service(String serviceName) {
         return new Builder(serviceName);
     }
