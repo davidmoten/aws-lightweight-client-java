@@ -1,6 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
-import org.w3c.dom.Document;
+import nanoxml.XMLElement;
 
 public final class Client {
 
@@ -100,8 +100,8 @@ public final class Client {
                     .credentials(credentials);
             String url = "https://sqs." + regionName
                     + ".amazonaws.com/?Action=GetQueueUrl&QueueName=amsa-xml-in&Version=2012-11-05";
-            Document doc = sqs.url(url).method(HttpMethod.GET).executeDocument();
-            System.out.println("queueUrl = " + doc.getDocumentElement().getFirstChild().getFirstChild().getTextContent());
+            XMLElement xml = sqs.url(url).method(HttpMethod.GET).executeXml();
+            System.out.println(xml.firstChild().firstChild().getContent());
             System.exit(0);
         }
         {

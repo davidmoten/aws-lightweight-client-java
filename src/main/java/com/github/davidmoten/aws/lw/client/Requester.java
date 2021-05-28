@@ -1,7 +1,5 @@
 package com.github.davidmoten.aws.lw.client;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -13,17 +11,12 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-
-import org.w3c.dom.Document;
-import org.xml.sax.SAXException;
-
 import com.amazonaws.services.s3.sample.auth.AWS4SignerBase;
 import com.amazonaws.services.s3.sample.auth.AWS4SignerForAuthorizationHeader;
 import com.amazonaws.services.s3.sample.util.BinaryUtils;
 import com.amazonaws.services.s3.sample.util.HttpUtils;
+
+import nanoxml.XMLElement;
 
 final class Requester {
 
@@ -91,19 +84,17 @@ final class Requester {
         public String executeUtf8() {
             return new String(execute(), StandardCharsets.UTF_8);
         }
+        
+        public XMLElement executeXml() {
+            XMLElement x = new XMLElement();
+            x.parseString(executeUtf8());
+            return x;
+        }
 
         public void executeUtf8(Consumer<String> consumer) {
             consumer.accept(executeUtf8());
         }
 
-        public Document executeDocument() {
-            try {
-                DocumentBuilder f = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-                return f.parse(new ByteArrayInputStream(execute()));
-            } catch (ParserConfigurationException | SAXException | IOException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 
     private static byte[] request(String url, String method, Map<String, String> headers,
