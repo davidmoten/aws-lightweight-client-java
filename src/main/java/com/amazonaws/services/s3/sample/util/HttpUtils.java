@@ -1,10 +1,12 @@
 package com.amazonaws.services.s3.sample.util;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -19,6 +21,7 @@ public class HttpUtils {
     /**
      * Makes a http request to the specified endpoint
      */
+    // TODO chuck this method
     public static String invokeHttpRequest(URL endpointUrl, String httpMethod,
             Map<String, String> headers, String requestBody) {
         HttpURLConnection connection = createHttpConnection(endpointUrl, httpMethod, headers);
@@ -33,6 +36,46 @@ public class HttpUtils {
             throw new RuntimeException("Request failed. " + e.getMessage(), e);
         }
         return executeHttpRequest(connection);
+    }
+
+    //TODO return status code as well
+    public static byte[] invokeHttpRequest2(URL endpointUrl, String httpMethod,
+            Map<String, String> headers, byte[] requestBody) {
+        HttpURLConnection connection = createHttpConnection(endpointUrl, httpMethod, headers);
+        try {
+            if (requestBody != null) {
+                OutputStream out = connection.getOutputStream();
+                out.write(requestBody);
+                out.flush();
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Request failed. " + e.getMessage(), e);
+        }
+        try {
+            InputStream is;
+            try {
+                is = connection.getInputStream();
+            } catch (IOException e) {
+                is = connection.getErrorStream();
+            }
+            return readBytes(is);
+        } catch (Exception e) {
+            throw new RuntimeException("Request failed. " + e.getMessage(), e);
+        } finally {
+            if (connection != null) {
+                connection.disconnect();
+            }
+        }
+    }
+
+    private static byte[] readBytes(InputStream in) throws IOException {
+        byte[] buffer = new byte[8192];
+        int n;
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        while ((n = in.read(buffer)) != -1) {
+            bytes.write(buffer, 0, n);
+        }
+        return bytes.toByteArray();
     }
 
     public static String executeHttpRequest(HttpURLConnection connection) {

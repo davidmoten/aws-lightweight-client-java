@@ -1,5 +1,6 @@
 package com.amazonaws.services.s3.sample.auth;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.security.MessageDigest;
 import java.text.SimpleDateFormat;
@@ -214,10 +215,8 @@ public abstract class AWS4SignerBase {
      */
     public static byte[] hash(String text) {
         try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(text.getBytes("UTF-8"));
-            return md.digest();
-        } catch (Exception e) {
+            return hash(text.getBytes("UTF-8"));
+        } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("Unable to compute hash while signing request: " + e.getMessage(), e);
         }
     }
