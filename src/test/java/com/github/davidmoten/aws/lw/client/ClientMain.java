@@ -1,6 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
-public class ClientMain {
+public final class ClientMain {
 
     public static void main(String[] args) {
         String regionName = "ap-southeast-2";
@@ -18,7 +18,7 @@ public class ClientMain {
                     .query("Action", "GetQueueUrl") //
                     .query("QueueName", "amsa-xml-in") //
                     .method(HttpMethod.GET) //
-                    .executeXml() //
+                    .responseAsXml() //
                     .content("GetQueueUrlResult", "QueueUrl");
             System.out.println(queueUrl);
         }
@@ -31,7 +31,7 @@ public class ClientMain {
             s3 //
                     .path(bucketName + "/ExampleObject.txt") //
                     .method(HttpMethod.GET) //
-                    .executeUtf8(x -> System.out.println(x.length() + " chars read"));
+                    .responseAsUtf8(x -> System.out.println(x.length() + " chars read"));
 
             // put data into bucket object
             s3 //

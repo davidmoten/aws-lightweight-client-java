@@ -79,6 +79,10 @@ final class Requester {
             b.regionName = regionName;
             return this;
         }
+        
+        public byte[] responseAsBytes() {
+            return execute();
+        }
 
         public byte[] execute() {
             return request(b.url, b.method.toString(), b.headers, b.requestBody,
@@ -86,18 +90,18 @@ final class Requester {
                     b.client.secretKey());
         }
 
-        public String executeUtf8() {
+        public String responseAsUtf8() {
             return new String(execute(), StandardCharsets.UTF_8);
         }
         
-        public XMLElement executeXml() {
+        public XMLElement responseAsXml() {
             XMLElement x = new XMLElement();
-            x.parseString(executeUtf8());
+            x.parseString(responseAsUtf8());
             return x;
         }
 
-        public void executeUtf8(Consumer<String> consumer) {
-            consumer.accept(executeUtf8());
+        public void responseAsUtf8(Consumer<String> consumer) {
+            consumer.accept(responseAsUtf8());
         }
 
     }

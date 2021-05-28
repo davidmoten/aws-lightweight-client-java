@@ -1,4 +1,6 @@
-package com.github.davidmoten.aws.lw.client;
+package com.github.davidmoten.aws.lw.client.internal;
+
+import com.github.davidmoten.aws.lw.client.Credentials;
 
 public final class CredentialsImpl implements Credentials {
 
@@ -12,7 +14,6 @@ public final class CredentialsImpl implements Credentials {
     
     @Override
     public String accessKey() {
-        // TODO Auto-generated method stub
         return accessKey;
     }
 

@@ -12,6 +12,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.ServiceException;
@@ -55,6 +56,7 @@ public class HttpUtils {
             throw new RuntimeException("Request failed. " + e.getMessage(), e);
         }
         try {
+            Map<String, List<String>> responseHeaders = connection.getHeaderFields();
             boolean ok = isOk(connection.getResponseCode());
             InputStream is;
             if (ok) {

@@ -82,7 +82,7 @@ public final class Client {
             return s;
         }
     }
-
+    
     public static Builder service(String serviceName) {
         return new Builder(serviceName);
     }
@@ -104,6 +104,14 @@ public final class Client {
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
+        }
+        
+        public Client defaultClient() {
+            return regionFromEnvironment().credentials(Credentials.fromEnvironment());
+        }
+        
+        public Builder2 regionFromEnvironment() {
+            return regionName(System.getenv("AWS_REGION"));
         }
 
         public Builder2 regionName(String regionName) {
