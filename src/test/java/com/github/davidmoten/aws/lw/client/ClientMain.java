@@ -43,7 +43,7 @@ public final class ClientMain {
                     .requestBody("hi there") //
                     .response() //
                     .headers();
-            System.out.println("put object completed, headers=" );
+            System.out.println("put object completed, headers:" );
             h.entrySet().stream().forEach(x -> System.out.println("  " + x));
         }
     }
