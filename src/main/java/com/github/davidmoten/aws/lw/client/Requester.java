@@ -69,7 +69,7 @@ final class Requester {
             b.requestBody = requestBody;
             return this;
         }
-        
+
         public Builder2 requestBody(String requestBody) {
             b.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
             return this;
@@ -79,21 +79,31 @@ final class Requester {
             b.regionName = regionName;
             return this;
         }
-        
+
         public byte[] responseAsBytes() {
-            return execute();
+            Response r = response();
+            if (r.statusCode() >= 200 && r.statusCode() <= 299) {
+                return r.content();
+            } else {
+                throw new ServiceException(r.statusCode(),
+                        new String(r.content(), StandardCharsets.UTF_8));
+            }
         }
 
-        public byte[] execute() {
+        public Response response() {
             return request(b.url, b.method.toString(), b.headers, b.requestBody,
                     b.client.serviceName(), b.regionName, b.client.accessKey(),
                     b.client.secretKey());
         }
-
-        public String responseAsUtf8() {
-            return new String(execute(), StandardCharsets.UTF_8);
+        
+        public void execute() {
+            responseAsBytes();
         }
         
+        public String responseAsUtf8() {
+            return new String(responseAsBytes(), StandardCharsets.UTF_8);
+        }
+
         public XMLElement responseAsXml() {
             XMLElement x = new XMLElement();
             x.parseString(responseAsUtf8());
@@ -106,7 +116,7 @@ final class Requester {
 
     }
 
-    private static byte[] request(String url, String method, Map<String, String> headers,
+    private static Response request(String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, String accessKey,
             String secretKey) {
 

@@ -41,6 +41,5 @@ public final class ClientMain {
                     .execute();
             System.out.println("put object completed");
         }
-
     }
 }

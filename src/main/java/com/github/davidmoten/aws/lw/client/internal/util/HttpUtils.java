@@ -11,16 +11,19 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.Response;
 import com.github.davidmoten.aws.lw.client.ServiceException;
 
 /**
  * Various Http helper routines
  */
 public class HttpUtils {
+
+    private static final int CONNECT_TIMEOUT_MS = 30000;
+    private static final int READ_TIMEOUT_MS = 5*60000;
 
     /**
      * Makes a http request to the specified endpoint
@@ -43,7 +46,7 @@ public class HttpUtils {
     }
 
     // TODO return status code as well
-    public static byte[] invokeHttpRequest2(URL endpointUrl, String httpMethod,
+    public static Response invokeHttpRequest2(URL endpointUrl, String httpMethod,
             Map<String, String> headers, byte[] requestBody) {
         HttpURLConnection connection = createHttpConnection(endpointUrl, httpMethod, headers);
         try {
@@ -57,7 +60,8 @@ public class HttpUtils {
         }
         try {
             Map<String, List<String>> responseHeaders = connection.getHeaderFields();
-            boolean ok = isOk(connection.getResponseCode());
+            int responseCode = connection.getResponseCode();
+            boolean ok = isOk(responseCode);
             InputStream is;
             if (ok) {
                 is = connection.getInputStream();
@@ -70,12 +74,7 @@ public class HttpUtils {
             } else {
                 bytes = readBytes(is);
             }
-            if (ok) {
-                return bytes;
-            } else {
-                throw new ServiceException(connection.getResponseCode(),
-                        new String(bytes, StandardCharsets.UTF_8));
-            }
+            return new Response(responseHeaders,bytes,responseCode);
         } catch (Exception e) {
             if (e instanceof ServiceException) {
                 throw (ServiceException) e;
@@ -138,9 +137,7 @@ public class HttpUtils {
             connection.setRequestMethod(httpMethod);
 
             if (headers != null) {
-//                System.out.println("--------- Request headers ---------");
                 for (String headerKey : headers.keySet()) {
-//                    System.out.println(headerKey + ": " + headers.get(headerKey));
                     connection.setRequestProperty(headerKey, headers.get(headerKey));
                 }
             }
@@ -148,6 +145,8 @@ public class HttpUtils {
             connection.setUseCaches(false);
             connection.setDoInput(true);
             connection.setDoOutput(true);
+            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
+            connection.setReadTimeout(READ_TIMEOUT_MS);
             return connection;
         } catch (Exception e) {
             throw new RuntimeException("Cannot create connection. " + e.getMessage(), e);
