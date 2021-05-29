@@ -1,5 +1,8 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.util.List;
+import java.util.Map;
+
 public final class ClientMain {
 
     public static void main(String[] args) {
@@ -34,12 +37,14 @@ public final class ClientMain {
                     .responseAsUtf8(x -> System.out.println(x.length() + " chars read"));
 
             // put data into bucket object
-            s3 //
+            Map<String, List<String>> h = s3 //
                     .path(bucketName + "/ExampleObject.txt") //
                     .method(HttpMethod.PUT) //
                     .requestBody("hi there") //
-                    .execute();
-            System.out.println("put object completed");
+                    .response() //
+                    .headers();
+            System.out.println("put object completed, headers=" );
+            h.entrySet().stream().forEach(x -> System.out.println("  " + x));
         }
     }
 }
