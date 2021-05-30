@@ -241,24 +241,6 @@ public final class XMLElement {
         return Collections.enumeration(this.attributes.keySet());
     }
 
-    /**
-     * Enumerates the child elements.
-     *
-     * <dl>
-     * <dt><b>Postconditions:</b></dt>
-     * <dd>
-     * <ul>
-     * <li><code>result != null</code>
-     * </ul>
-     * </dd>
-     * </dl>
-     *
-     * @see nanoxml.XMLElement#addChild(nanoxml.XMLElement) addChild(XMLElement)
-     * @see nanoxml.XMLElement#countChildren()
-     * @see nanoxml.XMLElement#children()
-     * @see nanoxml.XMLElement#removeChild(nanoxml.XMLElement)
-     *      removeChild(XMLElement)
-     */
     public Enumeration<XMLElement> enumerateChildren() {
         return Collections.enumeration(children);
     }
@@ -296,8 +278,6 @@ public final class XMLElement {
     /**
      * Returns the PCDATA content of the object. If there is no such content,
      * <CODE>null</CODE> is returned.
-     *
-     * @see nanoxml.XMLElement#setContent(java.lang.String) setContent(String)
      */
     public String getContent() {
         return this.contents;
@@ -329,6 +309,7 @@ public final class XMLElement {
      * @param defaultValue Key to use if the attribute is missing.
      */
     public String getAttribute(String name, String defaultValue) {
+        Preconditions.checkNotNull(name);
         return this.attributes.getOrDefault(name, defaultValue);
     }
 
@@ -376,6 +357,7 @@ public final class XMLElement {
      *                                   data.
      */
     public void parseFromReader(Reader reader) throws IOException, XMLParseException {
+        Preconditions.checkNotNull(reader);
         this.parseFromReader(reader, /* startingLineNr */ 1);
     }
 
@@ -414,8 +396,10 @@ public final class XMLElement {
      * @throws nanoxml.XMLParseException If an error occured while parsing the read
      *                                   data.
      */
-    public void parseFromReader(Reader reader, int startingLineNr)
+    private void parseFromReader(Reader reader, int startingLineNr)
             throws IOException, XMLParseException {
+        Preconditions.checkNotNull(reader);
+        Preconditions.checkArgument(startingLineNr >=1);
         this.name = null;
         this.contents = "";
         this.attributes = new HashMap<>();
@@ -474,10 +458,11 @@ public final class XMLElement {
      *                                   string.
      */
     public void parseString(String string) throws XMLParseException {
+        Preconditions.checkNotNull(string);
         try {
             this.parseFromReader(new StringReader(string), /* startingLineNr */ 1);
         } catch (IOException e) {
-            // Java exception handling suxx
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -519,6 +504,7 @@ public final class XMLElement {
      */
     public void parseString(String string, int offset, int end, int startingLineNr)
             throws XMLParseException {
+        Preconditions.checkNotNull(string);
         string = string.substring(offset, end);
         try {
             this.parseFromReader(new StringReader(string), startingLineNr);
@@ -612,107 +598,13 @@ public final class XMLElement {
         }
     }
 
-    /**
-     * Removes a child element.
-     *
-     * @param child The child element to remove.
-     *
-     *              </dl>
-     *              <dl>
-     *              <dt><b>Preconditions:</b></dt>
-     *              <dd>
-     *              <ul>
-     *              <li><code>child != null</code>
-     *              <li><code>child</code> is a child element of the receiver
-     *              </ul>
-     *              </dd>
-     *              </dl>
-     *
-     *              <dl>
-     *              <dt><b>Postconditions:</b></dt>
-     *              <dd>
-     *              <ul>
-     *              <li>countChildren() => old.countChildren() - 1
-     *              <li>enumerateChildren() => old.enumerateChildren() - child
-     *              <li>getChildren() => old.enumerateChildren() - child
-     *              </ul>
-     *              </dd>
-     *              </dl>
-     *              <dl>
-     *
-     * @see nanoxml.XMLElement#addChild(nanoxml.XMLElement) addChild(XMLElement)
-     * @see nanoxml.XMLElement#countChildren()
-     * @see nanoxml.XMLElement#enumerateChildren()
-     * @see nanoxml.XMLElement#children()
-     */
     public void removeChild(XMLElement child) {
+        Preconditions.checkNotNull(child);
         this.children.remove(child);
     }
 
-    /**
-     * Removes an attribute.
-     *
-     * @param name The name of the attribute.
-     *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             <li><code>name</code> is a valid XML identifier
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     *
-     *             <dl>
-     *             <dt><b>Postconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li>enumerateAttributeNames() => old.enumerateAttributeNames() -
-     *             name
-     *             <li>getAttribute(name) => <code>null</code>
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     *             <dl>
-     *
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#setDoubleAttribute(java.lang.String, double)
-     *      setDoubleAttribute(String, double)
-     * @see nanoxml.XMLElement#setIntAttribute(java.lang.String, int)
-     *      setIntAttribute(String, int)
-     * @see nanoxml.XMLElement#setAttribute(java.lang.String, java.lang.Object)
-     *      setAttribute(String, Object)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String) getAttribute(String)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
-     *      getAttribute(String, Object)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.util.Hashtable,
-     *      java.lang.String, boolean) getAttribute(String, Hashtable, String,
-     *      boolean)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
-     *      getStringAttribute(String)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.lang.String) getStringAttribute(String, String)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getStringAttribute(String, Hashtable, String, boolean)
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String)
-     *      getIntAttribute(String)
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
-     *      getIntAttribute(String, int)
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String)
-     *      getDoubleAttribute(String)
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
-     *      getDoubleAttribute(String, double)
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getDoubleAttribute(String, Hashtable, String, boolean)
-     * @see nanoxml.XMLElement#getBooleanAttribute(java.lang.String,
-     *      java.lang.String, java.lang.String, boolean) getBooleanAttribute(String,
-     *      String, String, boolean)
-     */
     public void removeAttribute(String name) {
+        Preconditions.checkNotNull(name);
         this.attributes.remove(name);
     }
 
@@ -752,6 +644,7 @@ public final class XMLElement {
      *
      * @see nanoxml.XMLElement#getName()
      */
+    // Nullable
     public void setName(String name) {
         this.name = name;
     }
@@ -771,27 +664,8 @@ public final class XMLElement {
         return new String(out.toByteArray());
     }
 
-    /**
-     * Writes the XML element to a writer.
-     *
-     * @param writer The writer to write the XML data to.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>writer != null</code>
-     *               <li><code>writer</code> is not closed
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     * @throws java.io.IOException If the data could not be written to the writer.
-     *
-     * @see nanoxml.XMLElement#toString()
-     */
     public void write(Writer writer) throws IOException {
+        Preconditions.checkNotNull(writer);
         if (this.name == null) {
             this.writeEncoded(writer, this.contents);
             return;
@@ -1546,23 +1420,7 @@ public final class XMLElement {
         String msg = "Expected: " + charSet;
         return new XMLParseException(this.getName(), this.parserLineNr, msg);
     }
-
-    /**
-     * Creates a parse exception for when an entity could not be resolved.
-     *
-     * @param name The name of the entity.
-     *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             <li><code>name.length() &gt; 0</code>
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     */
+    
     protected XMLParseException createExceptionUnknownEntity(String name) {
         String msg = "Unknown or invalid entity: &" + name + ";";
         return new XMLParseException(this.getName(), this.parserLineNr, msg);
