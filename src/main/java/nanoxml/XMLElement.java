@@ -44,6 +44,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * XMLElement is a representation of an XML object. The object is able to parse
@@ -112,32 +113,7 @@ import java.util.Map;
  *         &lt;<A href="mailto:cyberelf@mac.com">cyberelf@mac.com</A>&gt;
  * @version $Name: RELEASE_2_2_1 $, $Revision: 1.4 $
  */
-public class XMLElement {
-
-    /**
-     * Serialization serial version ID.
-     */
-    static final long serialVersionUID = 6685035139346394777L;
-
-    /**
-     * Major version of NanoXML. Classes with the same major and minor version are
-     * binary compatible. Classes with the same major version are source compatible.
-     * If the major version is different, you may need to modify the client source
-     * code.
-     *
-     * @see nanoxml.XMLElement#NANOXML_MINOR_VERSION
-     */
-    public static final int NANOXML_MAJOR_VERSION = 2;
-
-    /**
-     * Minor version of NanoXML. Classes with the same major and minor version are
-     * binary compatible. Classes with the same major version are source compatible.
-     * If the major version is different, you may need to modify the client source
-     * code.
-     *
-     * @see nanoxml.XMLElement#NANOXML_MAJOR_VERSION
-     */
-    public static final int NANOXML_MINOR_VERSION = 2;
+public final class XMLElement {
 
     /**
      * The attributes given to the element.
@@ -287,213 +263,8 @@ public class XMLElement {
      */
     private int parserLineNr;
 
-    /**
-     * Creates and initializes a new XML element. Calling the construction is
-     * equivalent to:
-     * <ul>
-     * <code>new XMLElement(new Hashtable(), false, true)
-     * </code>
-     * </ul>
-     *
-     * <dl>
-     * <dt><b>Postconditions:</b></dt>
-     * <dd>
-     * <ul>
-     * <li>countChildren() => 0
-     * <li>enumerateChildren() => empty enumeration
-     * <li>enumeratePropertyNames() => empty enumeration
-     * <li>getChildren() => empty vector
-     * <li>getContent() => ""
-     * <li>getLineNr() => 0
-     * <li>getName() => null
-     * </ul>
-     * </dd>
-     * </dl>
-     *
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable) XMLElement(Hashtable)
-     * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *      XMLElement(Hashtable, boolean)
-     */
     public XMLElement() {
         this(new HashMap<>(), false, true, true);
-    }
-
-    /**
-     * Creates and initializes a new XML element. Calling the construction is
-     * equivalent to:
-     * <ul>
-     * <code>new XMLElement(entities, false, true)
-     * </code>
-     * </ul>
-     *
-     * @param entities The entity conversion table.
-     *
-     *                 </dl>
-     *                 <dl>
-     *                 <dt><b>Preconditions:</b></dt>
-     *                 <dd>
-     *                 <ul>
-     *                 <li><code>entities != null</code>
-     *                 </ul>
-     *                 </dd>
-     *                 </dl>
-     *
-     *                 <dl>
-     *                 <dt><b>Postconditions:</b></dt>
-     *                 <dd>
-     *                 <ul>
-     *                 <li>countChildren() => 0
-     *                 <li>enumerateChildren() => empty enumeration
-     *                 <li>enumeratePropertyNames() => empty enumeration
-     *                 <li>getChildren() => empty vector
-     *                 <li>getContent() => ""
-     *                 <li>getLineNr() => 0
-     *                 <li>getName() => null
-     *                 </ul>
-     *                 </dd>
-     *                 </dl>
-     *                 <dl>
-     *
-     * @see nanoxml.XMLElement#XMLElement()
-     * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *      XMLElement(Hashtable, boolean)
-     */
-    public XMLElement(HashMap<String, char[]> entities) {
-        this(entities, false, true, true);
-    }
-
-    /**
-     * Creates and initializes a new XML element. Calling the construction is
-     * equivalent to:
-     * <ul>
-     * <code>new XMLElement(new Hashtable(), skipLeadingWhitespace, true)
-     * </code>
-     * </ul>
-     *
-     * @param skipLeadingWhitespace <code>true</code> if leading and trailing
-     *                              whitespace in PCDATA content has to be removed.
-     *
-     *                              </dl>
-     *                              <dl>
-     *                              <dt><b>Postconditions:</b></dt>
-     *                              <dd>
-     *                              <ul>
-     *                              <li>countChildren() => 0
-     *                              <li>enumerateChildren() => empty enumeration
-     *                              <li>enumeratePropertyNames() => empty
-     *                              enumeration
-     *                              <li>getChildren() => empty vector
-     *                              <li>getContent() => ""
-     *                              <li>getLineNr() => 0
-     *                              <li>getName() => null
-     *                              </ul>
-     *                              </dd>
-     *                              </dl>
-     *                              <dl>
-     *
-     * @see nanoxml.XMLElement#XMLElement()
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable) XMLElement(Hashtable)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *      XMLElement(Hashtable, boolean)
-     */
-    public XMLElement(boolean skipLeadingWhitespace) {
-        this(new HashMap<>(), skipLeadingWhitespace, true, true);
-    }
-
-    /**
-     * Creates and initializes a new XML element. Calling the construction is
-     * equivalent to:
-     * <ul>
-     * <code>new XMLElement(entities, skipLeadingWhitespace, true)
-     * </code>
-     * </ul>
-     *
-     * @param entities              The entity conversion table.
-     * @param skipLeadingWhitespace <code>true</code> if leading and trailing
-     *                              whitespace in PCDATA content has to be removed.
-     *
-     *                              </dl>
-     *                              <dl>
-     *                              <dt><b>Preconditions:</b></dt>
-     *                              <dd>
-     *                              <ul>
-     *                              <li><code>entities != null</code>
-     *                              </ul>
-     *                              </dd>
-     *                              </dl>
-     *
-     *                              <dl>
-     *                              <dt><b>Postconditions:</b></dt>
-     *                              <dd>
-     *                              <ul>
-     *                              <li>countChildren() => 0
-     *                              <li>enumerateChildren() => empty enumeration
-     *                              <li>enumeratePropertyNames() => empty
-     *                              enumeration
-     *                              <li>getChildren() => empty vector
-     *                              <li>getContent() => ""
-     *                              <li>getLineNr() => 0
-     *                              <li>getName() => null
-     *                              </ul>
-     *                              </dd>
-     *                              </dl>
-     *                              <dl>
-     *
-     * @see nanoxml.XMLElement#XMLElement()
-     * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable) XMLElement(Hashtable)
-     */
-    public XMLElement(Map<String, char[]> entities, boolean skipLeadingWhitespace) {
-        this(entities, skipLeadingWhitespace, true, true);
-    }
-
-    /**
-     * Creates and initializes a new XML element.
-     *
-     * @param entities              The entity conversion table.
-     * @param skipLeadingWhitespace <code>true</code> if leading and trailing
-     *                              whitespace in PCDATA content has to be removed.
-     * @param ignoreCase            <code>true</code> if the case of element and
-     *                              attribute names have to be ignored.
-     *
-     *                              </dl>
-     *                              <dl>
-     *                              <dt><b>Preconditions:</b></dt>
-     *                              <dd>
-     *                              <ul>
-     *                              <li><code>entities != null</code>
-     *                              </ul>
-     *                              </dd>
-     *                              </dl>
-     *
-     *                              <dl>
-     *                              <dt><b>Postconditions:</b></dt>
-     *                              <dd>
-     *                              <ul>
-     *                              <li>countChildren() => 0
-     *                              <li>enumerateChildren() => empty enumeration
-     *                              <li>enumeratePropertyNames() => empty
-     *                              enumeration
-     *                              <li>getChildren() => empty vector
-     *                              <li>getContent() => ""
-     *                              <li>getLineNr() => 0
-     *                              <li>getName() => null
-     *                              </ul>
-     *                              </dd>
-     *                              </dl>
-     *                              <dl>
-     *
-     * @see nanoxml.XMLElement#XMLElement()
-     * @see nanoxml.XMLElement#XMLElement(boolean)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable) XMLElement(Hashtable)
-     * @see nanoxml.XMLElement#XMLElement(java.util.Hashtable,boolean)
-     *      XMLElement(Hashtable, boolean)
-     */
-    public XMLElement(Map<String, char[]> entities, boolean skipLeadingWhitespace,
-            boolean ignoreCase) {
-        this(entities, skipLeadingWhitespace, true, ignoreCase);
     }
 
     /**
@@ -643,16 +414,10 @@ public class XMLElement {
      * @see nanoxml.XMLElement#getAttribute(java.lang.String) getAttribute(String)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *      getAttribute(String, Object)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.util.Hashtable,
-     *      java.lang.String, boolean) getAttribute(String, Hashtable, String,
-     *      boolean)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
      *      getStringAttribute(String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
      *      java.lang.String) getStringAttribute(String, String)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getStringAttribute(String, Hashtable, String, boolean)
      */
     public void setAttribute(String name, Object value) {
         if (this.ignoreCase) {
@@ -701,9 +466,6 @@ public class XMLElement {
      *      getIntAttribute(String)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *      getIntAttribute(String, int)
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean) getIntAttribute(String,
-     *      Hashtable, String, boolean)
      */
     public void setIntAttribute(String name, int value) {
         if (this.ignoreCase) {
@@ -752,9 +514,6 @@ public class XMLElement {
      *      getDoubleAttribute(String)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
      *      getDoubleAttribute(String, double)
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getDoubleAttribute(String, Hashtable, String, boolean)
      */
     public void setDoubleAttribute(String name, double value) {
         if (this.ignoreCase) {
@@ -808,23 +567,14 @@ public class XMLElement {
      * @see nanoxml.XMLElement#getAttribute(java.lang.String) getAttribute(String)
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *      getAttribute(String, String)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.util.Hashtable,
-     *      java.lang.String, boolean) getAttribute(String, Hashtable, String,
-     *      boolean)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
      *      getStringAttribute(String)
      * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
      *      java.lang.String) getStringAttribute(String, String)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getStringAttribute(String, Hashtable, String, boolean)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String)
      *      getIntAttribute(String)
      * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
      *      getIntAttribute(String, int)
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean) getIntAttribute(String,
-     *      Hashtable, String, boolean)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String)
      *      getDoubleAttribute(String)
      * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
@@ -898,7 +648,7 @@ public class XMLElement {
                 }
             }
             if (y == null) {
-                throw new IllegalArgumentException("child not found with name: " + name);
+                throw new NoSuchElementException("child not found with name: " + name);
             } else {
                 x = y;
             }
@@ -962,9 +712,6 @@ public class XMLElement {
      * @see nanoxml.XMLElement#enumerateAttributeNames()
      * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.lang.Object)
      *      getAttribute(String, Object)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.util.Hashtable,
-     *      java.lang.String, boolean) getAttribute(String, Hashtable, String,
-     *      boolean)
      */
     public String getAttribute(String name) {
         return this.getAttribute(name, null);
@@ -994,283 +741,12 @@ public class XMLElement {
      * @see nanoxml.XMLElement#removeAttribute(java.lang.String)
      *      removeAttribute(String)
      * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String) getAttribute(String)
-     * @see nanoxml.XMLElement#getAttribute(java.lang.String, java.util.Hashtable,
-     *      java.lang.String, boolean) getAttribute(String, Hashtable, String,
-     *      boolean)
      */
     public String getAttribute(String name, String defaultValue) {
         if (this.ignoreCase) {
             name = name.toUpperCase();
         }
         return this.attributes.getOrDefault(name, defaultValue);
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>null</code> is returned.
-     *
-     * @param name The name of the attribute.
-     *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             <li><code>name</code> is a valid XML identifier
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     *             <dl>
-     *
-     * @see nanoxml.XMLElement#setAttribute(java.lang.String, java.lang.Object)
-     *      setAttribute(String, Object)
-     * @see nanoxml.XMLElement#removeAttribute(java.lang.String)
-     *      removeAttribute(String)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.lang.String) getStringAttribute(String, String)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getStringAttribute(String, Hashtable, String, boolean)
-     */
-    public String getStringAttribute(String name) {
-        return this.getStringAttribute(name, null);
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>defaultValue</code> is returned.
-     *
-     * @param name         The name of the attribute.
-     * @param defaultValue Key to use if the attribute is missing.
-     *
-     *                     </dl>
-     *                     <dl>
-     *                     <dt><b>Preconditions:</b></dt>
-     *                     <dd>
-     *                     <ul>
-     *                     <li><code>name != null</code>
-     *                     <li><code>name</code> is a valid XML identifier
-     *                     </ul>
-     *                     </dd>
-     *                     </dl>
-     *                     <dl>
-     *
-     * @see nanoxml.XMLElement#setAttribute(java.lang.String, java.lang.Object)
-     *      setAttribute(String, Object)
-     * @see nanoxml.XMLElement#removeAttribute(java.lang.String)
-     *      removeAttribute(String)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String)
-     *      getStringAttribute(String)
-     * @see nanoxml.XMLElement#getStringAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getStringAttribute(String, Hashtable, String, boolean)
-     */
-    public String getStringAttribute(String name, String defaultValue) {
-        return (String) this.getAttribute(name, defaultValue);
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>0</code> is returned.
-     *
-     * @param name The name of the attribute.
-     *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             <li><code>name</code> is a valid XML identifier
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     *             <dl>
-     *
-     * @see nanoxml.XMLElement#setIntAttribute(java.lang.String, int)
-     *      setIntAttribute(String, int)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String, int)
-     *      getIntAttribute(String, int)
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean) getIntAttribute(String,
-     *      Hashtable, String, boolean)
-     */
-    public int getIntAttribute(String name) {
-        return this.getIntAttribute(name, 0);
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>defaultValue</code> is returned.
-     *
-     * @param name         The name of the attribute.
-     * @param defaultValue Key to use if the attribute is missing.
-     *
-     *                     </dl>
-     *                     <dl>
-     *                     <dt><b>Preconditions:</b></dt>
-     *                     <dd>
-     *                     <ul>
-     *                     <li><code>name != null</code>
-     *                     <li><code>name</code> is a valid XML identifier
-     *                     </ul>
-     *                     </dd>
-     *                     </dl>
-     *                     <dl>
-     *
-     * @see nanoxml.XMLElement#setIntAttribute(java.lang.String, int)
-     *      setIntAttribute(String, int)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String)
-     *      getIntAttribute(String)
-     * @see nanoxml.XMLElement#getIntAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean) getIntAttribute(String,
-     *      Hashtable, String, boolean)
-     */
-    public int getIntAttribute(String name, int defaultValue) {
-        if (this.ignoreCase) {
-            name = name.toUpperCase();
-        }
-        String value = (String) this.attributes.get(name);
-        if (value == null) {
-            return defaultValue;
-        } else {
-            try {
-                return Integer.parseInt(value);
-            } catch (NumberFormatException e) {
-                throw this.invalidValue(name, value);
-            }
-        }
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>0.0</code> is returned.
-     *
-     * @param name The name of the attribute.
-     *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             <li><code>name</code> is a valid XML identifier
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     *             <dl>
-     *
-     * @see nanoxml.XMLElement#setDoubleAttribute(java.lang.String, double)
-     *      setDoubleAttribute(String, double)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String, double)
-     *      getDoubleAttribute(String, double)
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getDoubleAttribute(String, Hashtable, String, boolean)
-     */
-    public double getDoubleAttribute(String name) {
-        return this.getDoubleAttribute(name, 0.);
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>defaultValue</code> is returned.
-     *
-     * @param name         The name of the attribute.
-     * @param defaultValue Key to use if the attribute is missing.
-     *
-     *                     </dl>
-     *                     <dl>
-     *                     <dt><b>Preconditions:</b></dt>
-     *                     <dd>
-     *                     <ul>
-     *                     <li><code>name != null</code>
-     *                     <li><code>name</code> is a valid XML identifier
-     *                     </ul>
-     *                     </dd>
-     *                     </dl>
-     *                     <dl>
-     *
-     * @see nanoxml.XMLElement#setDoubleAttribute(java.lang.String, double)
-     *      setDoubleAttribute(String, double)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String)
-     *      getDoubleAttribute(String)
-     * @see nanoxml.XMLElement#getDoubleAttribute(java.lang.String,
-     *      java.util.Hashtable, java.lang.String, boolean)
-     *      getDoubleAttribute(String, Hashtable, String, boolean)
-     */
-    public double getDoubleAttribute(String name, double defaultValue) {
-        if (this.ignoreCase) {
-            name = name.toUpperCase();
-        }
-        String value = (String) this.attributes.get(name);
-        if (value == null) {
-            return defaultValue;
-        } else {
-            try {
-                return Double.valueOf(value).doubleValue();
-            } catch (NumberFormatException e) {
-                throw this.invalidValue(name, value);
-            }
-        }
-    }
-
-    /**
-     * Returns an attribute of the element. If the attribute doesn't exist,
-     * <code>defaultValue</code> is returned. If the value of the attribute is equal
-     * to <code>trueValue</code>, <code>true</code> is returned. If the value of the
-     * attribute is equal to <code>falseValue</code>, <code>false</code> is
-     * returned. If the value doesn't match <code>trueValue</code> or
-     * <code>falseValue</code>, an exception is thrown.
-     *
-     * @param name         The name of the attribute.
-     * @param trueValue    The value associated with <code>true</code>.
-     * @param falseValue   The value associated with <code>true</code>.
-     * @param defaultValue Value to use if the attribute is missing.
-     *
-     *                     </dl>
-     *                     <dl>
-     *                     <dt><b>Preconditions:</b></dt>
-     *                     <dd>
-     *                     <ul>
-     *                     <li><code>name != null</code>
-     *                     <li><code>name</code> is a valid XML identifier
-     *                     <li><code>trueValue</code> and <code>falseValue</code>
-     *                     are different strings.
-     *                     </ul>
-     *                     </dd>
-     *                     </dl>
-     *                     <dl>
-     *
-     * @see nanoxml.XMLElement#setAttribute(java.lang.String, java.lang.Object)
-     *      setAttribute(String, Object)
-     * @see nanoxml.XMLElement#removeAttribute(java.lang.String)
-     *      removeAttribute(String)
-     * @see nanoxml.XMLElement#enumerateAttributeNames()
-     */
-    public boolean getBooleanAttribute(String name, String trueValue, String falseValue,
-            boolean defaultValue) {
-        if (this.ignoreCase) {
-            name = name.toUpperCase();
-        }
-        Object value = this.attributes.get(name);
-        if (value == null) {
-            return defaultValue;
-        } else if (value.equals(trueValue)) {
-            return true;
-        } else if (value.equals(falseValue)) {
-            return false;
-        } else {
-            throw this.invalidValue(name, (String) value);
-        }
     }
 
     /**
@@ -1369,7 +845,7 @@ public class XMLElement {
             char ch = this.scanWhitespace();
 
             if (ch != '<') {
-                throw this.expectedInput("<");
+                throw this.createUnexpectedInputException("<");
             }
 
             ch = this.readChar();
@@ -1421,82 +897,7 @@ public class XMLElement {
             // Java exception handling suxx
         }
     }
-
-    /**
-     * Reads one XML element from a String and parses it.
-     *
-     * @param reader The reader from which to retrieve the XML data.
-     * @param offset The first character in <code>string</code> to scan.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>string != null</code>
-     *               <li><code>offset &lt; string.length()</code>
-     *               <li><code>offset &gt;= 0</code>
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     *               <dl>
-     *               <dt><b>Postconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li>the state of the receiver is updated to reflect the XML
-     *               element parsed from the reader
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *               <dl>
-     *
-     * @throws nanoxml.XMLParseException If an error occured while parsing the
-     *                                   string.
-     */
-    public void parseString(String string, int offset) throws XMLParseException {
-        this.parseString(string.substring(offset));
-    }
-
-    /**
-     * Reads one XML element from a String and parses it.
-     *
-     * @param reader The reader from which to retrieve the XML data.
-     * @param offset The first character in <code>string</code> to scan.
-     * @param end    The character where to stop scanning. This character is not
-     *               scanned.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>string != null</code>
-     *               <li><code>end &lt;= string.length()</code>
-     *               <li><code>offset &lt; end</code>
-     *               <li><code>offset &gt;= 0</code>
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     *               <dl>
-     *               <dt><b>Postconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li>the state of the receiver is updated to reflect the XML
-     *               element parsed from the reader
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *               <dl>
-     *
-     * @throws nanoxml.XMLParseException If an error occured while parsing the
-     *                                   string.
-     */
-    public void parseString(String string, int offset, int end) throws XMLParseException {
-        this.parseString(string.substring(offset, end));
-    }
-
+   
     /**
      * Reads one XML element from a String and parses it.
      *
@@ -2041,7 +1442,7 @@ public class XMLElement {
     protected void scanString(StringBuilder string) throws IOException {
         char delimiter = this.readChar();
         if ((delimiter != '\'') && (delimiter != '"')) {
-            throw this.expectedInput("' or \"");
+            throw this.createUnexpectedInputException("' or \"");
         }
         for (;;) {
             char ch = this.readChar();
@@ -2173,7 +1574,7 @@ public class XMLElement {
             }
         }
         if (this.readChar() != '>') {
-            throw this.expectedInput(">");
+            throw this.createUnexpectedInputException(">");
         }
     }
 
@@ -2314,7 +1715,7 @@ public class XMLElement {
             String key = buf.toString();
             ch = this.scanWhitespace();
             if (ch != '=') {
-                throw this.expectedInput("=");
+                throw this.createUnexpectedInputException("=");
             }
             this.unreadChar(this.scanWhitespace());
             buf.setLength(0);
@@ -2325,7 +1726,7 @@ public class XMLElement {
         if (ch == '/') {
             ch = this.readChar();
             if (ch != '>') {
-                throw this.expectedInput(">");
+                throw this.createUnexpectedInputException(">");
             }
             return;
         }
@@ -2365,11 +1766,11 @@ public class XMLElement {
                 if (ch == '!') {
                     ch = this.readChar();
                     if (ch != '-') {
-                        throw this.expectedInput("Comment or Element");
+                        throw this.createUnexpectedInputException("Comment or Element");
                     }
                     ch = this.readChar();
                     if (ch != '-') {
-                        throw this.expectedInput("Comment or Element");
+                        throw this.createUnexpectedInputException("Comment or Element");
                     }
                     this.skipComment();
                 } else {
@@ -2380,7 +1781,7 @@ public class XMLElement {
                 }
                 ch = this.scanWhitespace();
                 if (ch != '<') {
-                    throw this.expectedInput("<");
+                    throw this.createUnexpectedInputException("<");
                 }
                 ch = this.readChar();
             }
@@ -2394,14 +1795,14 @@ public class XMLElement {
         }
         ch = this.readChar();
         if (ch != '/') {
-            throw this.expectedInput("/");
+            throw this.createUnexpectedInputException("/");
         }
         this.unreadChar(this.scanWhitespace());
         if (!this.checkLiteral(name)) {
-            throw this.expectedInput(name);
+            throw this.createUnexpectedInputException(name);
         }
         if (this.scanWhitespace() != '>') {
-            throw this.expectedInput(">");
+            throw this.createUnexpectedInputException(">");
         }
     }
 
@@ -2564,7 +1965,7 @@ public class XMLElement {
      *                </dd>
      *                </dl>
      */
-    protected XMLParseException expectedInput(String charSet) {
+    protected XMLParseException createUnexpectedInputException(String charSet) {
         String msg = "Expected: " + charSet;
         return new XMLParseException(this.getName(), this.parserLineNr, msg);
     }
