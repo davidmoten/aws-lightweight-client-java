@@ -5,7 +5,7 @@
 
     <modelVersion>4.0.0</modelVersion>
 
-    <groupId>au.gov.amsa</groupId>
+    <groupId>com.github.davidmoten</groupId>
     <artifactId>aws-lightweight-client-java</artifactId>
     <version>0.1-SNAPSHOT</version>
 
