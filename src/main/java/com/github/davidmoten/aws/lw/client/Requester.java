@@ -32,7 +32,7 @@ final class Requester {
         private String regionName;
         private String url;
         private HttpMethod method;
-        private final Map<String, String> headers = new HashMap<>();
+        private final Map<String, List<String>> headers = new HashMap<>();
         private byte[] requestBody;
 
         private Builder(Client client, String url) {
@@ -55,15 +55,10 @@ final class Requester {
         }
 
         public Builder2 header(String name, String value) {
-            b.headers.put(name, value);
+            put(b.headers, name, value);
             return this;
         }
-
-        public Builder2 headers(Map<String, String> headers) {
-            b.headers.putAll(headers);
-            return this;
-        }
-
+        
         public Builder2 requestBody(byte[] requestBody) {
             b.requestBody = requestBody;
             return this;
@@ -90,15 +85,16 @@ final class Requester {
         }
 
         public Response response() {
-            return request(b.url, b.method.toString(), b.headers, b.requestBody,
+
+            return request(b.url, b.method.toString(), combineHeaders(b.headers), b.requestBody,
                     b.client.serviceName(), b.regionName, b.client.accessKey(),
                     b.client.secretKey());
         }
-        
+
         public void execute() {
             responseAsBytes();
         }
-        
+
         public String responseAsUtf8() {
             return new String(responseAsBytes(), StandardCharsets.UTF_8);
         }
@@ -114,6 +110,20 @@ final class Requester {
         }
 
     }
+    
+    private static void put(Map<String, List<String>> map, String name, String value) {
+        List<String> list = map.get(name);
+        if (list == null) {
+            list = new ArrayList<>();
+            map.put(name, list);
+        }
+        list.add(value);
+    }
+
+    private static Map<String, String> combineHeaders(Map<String, List<String>> headers) {
+        return headers.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(),
+                x -> x.getValue().stream().collect(Collectors.joining(","))));
+    }
 
     private static Response request(String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, String accessKey,
@@ -127,7 +137,7 @@ final class Requester {
             throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
         }
 
-        Map<String, String> h = new HashMap<String, String>(headers);
+        Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
         if (requestBody == null || requestBody.length == 0) {
             contentHashString = AWS4SignerBase.EMPTY_BODY_SHA256;

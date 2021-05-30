@@ -23,7 +23,7 @@ import com.github.davidmoten.aws.lw.client.ServiceException;
 public class HttpUtils {
 
     private static final int CONNECT_TIMEOUT_MS = 30000;
-    private static final int READ_TIMEOUT_MS = 5*60000;
+    private static final int READ_TIMEOUT_MS = 5 * 60000;
 
     /**
      * Makes a http request to the specified endpoint
@@ -74,7 +74,7 @@ public class HttpUtils {
             } else {
                 bytes = readBytes(is);
             }
-            return new Response(responseHeaders,bytes,responseCode);
+            return new Response(responseHeaders, bytes, responseCode);
         } catch (Exception e) {
             if (e instanceof ServiceException) {
                 throw (ServiceException) e;

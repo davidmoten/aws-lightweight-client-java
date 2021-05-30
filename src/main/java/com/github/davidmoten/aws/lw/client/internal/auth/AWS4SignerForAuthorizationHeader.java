@@ -39,7 +39,7 @@ public class AWS4SignerForAuthorizationHeader extends AWS4SignerBase {
      *         needs to be set as the header 'Authorization' on the subsequent
      *         HTTP request.
      */
-    public String computeSignature(Map<String, String> headers,
+    public String computeSignature(Map<String,  String> headers,
                                    Map<String, String> queryParameters,
                                    String bodyHash,
                                    String awsAccessKey,
