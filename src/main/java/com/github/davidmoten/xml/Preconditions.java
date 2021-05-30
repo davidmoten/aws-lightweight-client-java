@@ -1,4 +1,4 @@
-package nanoxml;
+package com.github.davidmoten.xml;
 
 public final class Preconditions {
 

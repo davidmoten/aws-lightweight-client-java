@@ -15,8 +15,7 @@ import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
-
-import nanoxml.XMLElement;
+import com.github.davidmoten.xml.XmlElement;
 
 final class Requester {
 
@@ -104,8 +103,8 @@ final class Requester {
             return new String(responseAsBytes(), StandardCharsets.UTF_8);
         }
 
-        public XMLElement responseAsXml() {
-            XMLElement x = new XMLElement();
+        public XmlElement responseAsXml() {
+            XmlElement x = new XmlElement();
             x.parseString(responseAsUtf8());
             return x;
         }

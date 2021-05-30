@@ -27,8 +27,7 @@
  *****************************************************************************/
 
 
-package nanoxml;
-
+package com.github.davidmoten.xml;
 
 /**
  * An XMLParseException is thrown when an error occures while parsing an XML
@@ -37,12 +36,12 @@ package nanoxml;
  * $Revision: 1.4 $<BR>
  * $Date: 2002/03/24 10:27:59 $<P>
  *
- * @see nanoxml.XMLElement
+ * @see com.github.davidmoten.xml.XmlElement
  *
  * @author Marc De Scheemaecker
  * @version $Name: RELEASE_2_2_1 $, $Revision: 1.4 $
  */
-public class XMLParseException
+public class XmlParseException
     extends RuntimeException
 {
 
@@ -83,14 +82,14 @@ public class XMLParseException
      * <ul><li>getLineNr() => NO_LINE
      * </ul></dd></dl><dl>
      */
-    public XMLParseException(String name,
+    public XmlParseException(String name,
                              String message)
     {
         super("XML Parse Exception during parsing of "
               + ((name == null) ? "the XML definition"
                                 : ("a " + name + " element"))
               + ": " + message);
-        this.lineNr = XMLParseException.NO_LINE;
+        this.lineNr = XmlParseException.NO_LINE;
     }
 
 
@@ -110,7 +109,7 @@ public class XMLParseException
      * <ul><li>getLineNr() => lineNr
      * </ul></dd></dl><dl>
      */
-    public XMLParseException(String name,
+    public XmlParseException(String name,
                              int    lineNr,
                              String message)
     {
@@ -126,7 +125,7 @@ public class XMLParseException
      * Where the error occurred, or <code>NO_LINE</code> if the line number is
      * unknown.
      *
-     * @see nanoxml.XMLParseException#NO_LINE
+     * @see com.github.davidmoten.xml.XmlParseException#NO_LINE
      */
     public int getLineNr()
     {

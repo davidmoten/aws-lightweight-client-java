@@ -28,7 +28,7 @@
 
 // ALTERED greatly by Dave Moten May 2021
 
-package nanoxml;
+package com.github.davidmoten.xml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.CharArrayReader;
@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+
+import nanoxml.XMLParseException;
 
 /**
  * XMLElement is a representation of an XML object. The object is able to parse
@@ -108,10 +110,10 @@ import java.util.NoSuchElementException;
  * <P>
  *
  */
-public final class XMLElement {
+public final class XmlElement {
 
     private Map<String, String> attributes;
-    private List<XMLElement> children;
+    private List<XmlElement> children;
     private String name;
 
     /**
@@ -187,7 +189,7 @@ public final class XMLElement {
      */
     private int parserLineNr;
 
-    public XMLElement() {
+    public XmlElement() {
         this(new HashMap<>(), false, true);
     }
 
@@ -205,9 +207,9 @@ public final class XMLElement {
      * @param fillBasicConversionTable <code>true</code> if the basic entities need
      *                                 to be added to the entity list.
      *
-     * @see nanoxml.XMLElement#createAnotherElement()
+     * @see com.github.davidmoten.xml.XmlElement#createAnotherElement()
      */
-    protected XMLElement(Map<String, char[]> entities, boolean skipLeadingWhitespace,
+    protected XmlElement(Map<String, char[]> entities, boolean skipLeadingWhitespace,
             boolean fillBasicConversionTable) {
         this.ignoreWhitespace = skipLeadingWhitespace;
         this.name = null;
@@ -225,7 +227,7 @@ public final class XMLElement {
         }
     }
 
-    public void addChild(XMLElement child) {
+    public void addChild(XmlElement child) {
         this.children.add(child);
     }
 
@@ -241,23 +243,23 @@ public final class XMLElement {
         return Collections.enumeration(this.attributes.keySet());
     }
 
-    public Enumeration<XMLElement> enumerateChildren() {
+    public Enumeration<XmlElement> enumerateChildren() {
         return Collections.enumeration(children);
     }
 
-    public List<XMLElement> children() {
+    public List<XmlElement> children() {
         return new ArrayList<>(this.children);
     }
 
-    public XMLElement firstChild() {
+    public XmlElement firstChild() {
         return this.children.get(0);
     }
 
-    public XMLElement child(String... names) {
-        XMLElement x = this;
-        XMLElement y = null;
+    public XmlElement child(String... names) {
+        XmlElement x = this;
+        XmlElement y = null;
         for (String name : names) {
-            for (XMLElement child : x.children) {
+            for (XmlElement child : x.children) {
                 if (child.getName().equals(name)) {
                     y = child;
                 }
@@ -316,7 +318,7 @@ public final class XMLElement {
     /**
      * Returns the name of the element.
      *
-     * @see nanoxml.XMLElement#setName(java.lang.String) setName(String)
+     * @see com.github.davidmoten.xml.XmlElement#setName(java.lang.String) setName(String)
      */
     public String getName() {
         return this.name;
@@ -353,7 +355,7 @@ public final class XMLElement {
      *
      * @throws java.io.IOException       If an error occured while reading the
      *                                   input.
-     * @throws nanoxml.XMLParseException If an error occured while parsing the read
+     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the read
      *                                   data.
      */
     public void parseFromReader(Reader reader) throws IOException, XMLParseException {
@@ -393,7 +395,7 @@ public final class XMLElement {
      *
      * @throws java.io.IOException       If an error occured while reading the
      *                                   input.
-     * @throws nanoxml.XMLParseException If an error occured while parsing the read
+     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the read
      *                                   data.
      */
     private void parseFromReader(Reader reader, int startingLineNr)
@@ -454,7 +456,7 @@ public final class XMLElement {
      *               </dl>
      *               <dl>
      *
-     * @throws nanoxml.XMLParseException If an error occured while parsing the
+     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
      *                                   string.
      */
     public void parseString(String string) throws XMLParseException {
@@ -499,7 +501,7 @@ public final class XMLElement {
      *                       </dl>
      *                       <dl>
      *
-     * @throws nanoxml.XMLParseException If an error occured while parsing the
+     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
      *                                   string.
      */
     public void parseString(String string, int offset, int end, int startingLineNr)
@@ -545,7 +547,7 @@ public final class XMLElement {
      *               </dl>
      *               <dl>
      *
-     * @throws nanoxml.XMLParseException If an error occured while parsing the
+     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
      *                                   string.
      */
     public void parseCharArray(char[] input, int offset, int end) throws XMLParseException {
@@ -585,7 +587,7 @@ public final class XMLElement {
      *                       </dl>
      *                       <dl>
      *
-     * @throws nanoxml.XMLParseException If an error occured while parsing the
+     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
      *                                   string.
      */
     public void parseCharArray(char[] input, int offset, int end, int startingLineNr)
@@ -598,7 +600,7 @@ public final class XMLElement {
         }
     }
 
-    public void removeChild(XMLElement child) {
+    public void removeChild(XmlElement child) {
         Preconditions.checkNotNull(child);
         this.children.remove(child);
     }
@@ -613,8 +615,8 @@ public final class XMLElement {
      * <P>
      * You should override this method when subclassing XMLElement.
      */
-    protected XMLElement createAnotherElement() {
-        return new XMLElement(this.entities, this.ignoreWhitespace, false);
+    protected XmlElement createAnotherElement() {
+        return new XmlElement(this.entities, this.ignoreWhitespace, false);
     }
 
     /**
@@ -642,7 +644,7 @@ public final class XMLElement {
      *             </dd>
      *             </dl>
      *
-     * @see nanoxml.XMLElement#getName()
+     * @see com.github.davidmoten.xml.XmlElement#getName()
      */
     // Nullable
     public void setName(String name) {
@@ -652,7 +654,7 @@ public final class XMLElement {
     /**
      * Writes the XML element to a string.
      *
-     * @see nanoxml.XMLElement#write(java.io.Writer) write(Writer)
+     * @see com.github.davidmoten.xml.XmlElement#write(java.io.Writer) write(Writer)
      */
     public String toString() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -699,7 +701,7 @@ public final class XMLElement {
             writer.write('>');
             Enumeration<?> en = this.enumerateChildren();
             while (en.hasMoreElements()) {
-                XMLElement child = (XMLElement) en.nextElement();
+                XmlElement child = (XmlElement) en.nextElement();
                 child.write(writer);
             }
             writer.write('<');
@@ -1153,7 +1155,7 @@ public final class XMLElement {
      *            </dd>
      *            </dl>
      */
-    protected void scanElement(XMLElement elt) throws IOException {
+    protected void scanElement(XmlElement elt) throws IOException {
         StringBuilder buf = new StringBuilder();
         this.scanIdentifier(buf);
         String name = buf.toString();
@@ -1226,7 +1228,7 @@ public final class XMLElement {
                     this.skipComment();
                 } else {
                     this.unreadChar(ch);
-                    XMLElement child = this.createAnotherElement();
+                    XmlElement child = this.createAnotherElement();
                     this.scanElement(child);
                     elt.addChild(child);
                 }
