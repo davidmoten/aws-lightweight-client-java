@@ -6,14 +6,12 @@ public final class Client {
 
     private final String serviceName;
     private final String regionName;
-    private final String accessKey;
-    private final String secretKey;
+    private final Credentials credentials;
 
-    private Client(String serviceName, String regionName, String accessKey, String secretKey) {
+    private Client(String serviceName, String regionName, Credentials credentials) {
         this.serviceName = serviceName;
         this.regionName = regionName;
-        this.accessKey = accessKey;
-        this.secretKey = secretKey;
+        this.credentials = credentials;
     }
 
     String serviceName() {
@@ -24,12 +22,8 @@ public final class Client {
         return regionName;
     }
 
-    String accessKey() {
-        return accessKey;
-    }
-
-    String secretKey() {
-        return secretKey;
+    public Credentials credentials() {
+        return credentials;
     }
 
     public Requester.Builder url(String url) {
@@ -44,7 +38,7 @@ public final class Client {
     public QueryBuilder path(String path) {
         return new QueryBuilder(this, path);
     }
-    
+
     public QueryBuilder query(String name, String value) {
         return new QueryBuilder(this, "").query(name, value);
     }
@@ -58,7 +52,7 @@ public final class Client {
             this.client = client;
             this.path = path;
         }
-        
+
         public QueryBuilder query(String name, String value) {
             if (!path.contains("?")) {
                 path += "?";
@@ -82,7 +76,7 @@ public final class Client {
             return s;
         }
     }
-    
+
     public static Builder service(String serviceName) {
         return new Builder(serviceName);
     }
@@ -100,16 +94,16 @@ public final class Client {
         private final String serviceName;
         private String regionName;
         private String accessKey;
-        private String secretKey;
+        public Credentials credentials;
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
         }
-        
+
         public Client defaultClient() {
             return regionFromEnvironment().credentials(Credentials.fromEnvironment());
         }
-        
+
         public Builder2 regionFromEnvironment() {
             return regionName(System.getenv("AWS_REGION"));
         }
@@ -133,7 +127,7 @@ public final class Client {
         }
 
         public Client credentials(Credentials credentials) {
-            return accessKey(credentials.accessKey()).secretKey(credentials.secretKey());
+            return new Client(b.serviceName, b.regionName, credentials);
         }
     }
 
@@ -145,8 +139,8 @@ public final class Client {
         }
 
         public Client secretKey(String secretKey) {
-            b.secretKey = secretKey;
-            return new Client(b.serviceName, b.regionName, b.accessKey, b.secretKey);
+            Credentials c = Credentials.of(b.accessKey, secretKey);
+            return new Client(b.serviceName, b.regionName, c);
         }
     }
 }

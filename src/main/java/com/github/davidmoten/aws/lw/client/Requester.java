@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.CredentialsImpl;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
@@ -58,7 +59,7 @@ final class Requester {
             put(b.headers, name, value);
             return this;
         }
-        
+
         public Builder2 requestBody(byte[] requestBody) {
             b.requestBody = requestBody;
             return this;
@@ -87,8 +88,7 @@ final class Requester {
         public Response response() {
 
             return request(b.url, b.method.toString(), combineHeaders(b.headers), b.requestBody,
-                    b.client.serviceName(), b.regionName, b.client.accessKey(),
-                    b.client.secretKey());
+                    b.client.serviceName(), b.regionName, b.client.credentials());
         }
 
         public void execute() {
@@ -110,7 +110,7 @@ final class Requester {
         }
 
     }
-    
+
     private static void put(Map<String, List<String>> map, String name, String value) {
         List<String> list = map.get(name);
         if (list == null) {
@@ -126,8 +126,7 @@ final class Requester {
     }
 
     private static Response request(String url, String method, Map<String, String> headers,
-            byte[] requestBody, String serviceName, String regionName, String accessKey,
-            String secretKey) {
+            byte[] requestBody, String serviceName, String regionName, Credentials credentials) {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl;
@@ -148,6 +147,9 @@ final class Requester {
             h.put("content-length", "" + requestBody.length);
         }
         h.put("x-amz-content-sha256", contentHashString);
+        if (credentials.sessionToken().isPresent()) {
+            h.put("x-amz-security-token", credentials.sessionToken().get());
+        }
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
@@ -155,8 +157,8 @@ final class Requester {
 
         AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(endpointUrl,
                 method, serviceName, regionName);
-        String authorization = signer.computeSignature(h, q, contentHashString, accessKey,
-                secretKey);
+        String authorization = signer.computeSignature(h, q, contentHashString,
+                credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header
         // and call S3

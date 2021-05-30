@@ -46,8 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-import nanoxml.XMLParseException;
-
 /**
  * XMLElement is a representation of an XML object. The object is able to parse
  * XML code.
@@ -358,7 +356,7 @@ public final class XmlElement {
      * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the read
      *                                   data.
      */
-    public void parseFromReader(Reader reader) throws IOException, XMLParseException {
+    public void parseFromReader(Reader reader) throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
         this.parseFromReader(reader, /* startingLineNr */ 1);
     }
@@ -399,7 +397,7 @@ public final class XmlElement {
      *                                   data.
      */
     private void parseFromReader(Reader reader, int startingLineNr)
-            throws IOException, XMLParseException {
+            throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
         Preconditions.checkArgument(startingLineNr >=1);
         this.name = null;
@@ -459,7 +457,7 @@ public final class XmlElement {
      * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
      *                                   string.
      */
-    public void parseString(String string) throws XMLParseException {
+    public void parseString(String string) throws XmlParseException {
         Preconditions.checkNotNull(string);
         try {
             this.parseFromReader(new StringReader(string), /* startingLineNr */ 1);
@@ -505,7 +503,7 @@ public final class XmlElement {
      *                                   string.
      */
     public void parseString(String string, int offset, int end, int startingLineNr)
-            throws XMLParseException {
+            throws XmlParseException {
         Preconditions.checkNotNull(string);
         string = string.substring(offset, end);
         try {
@@ -550,7 +548,7 @@ public final class XmlElement {
      * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
      *                                   string.
      */
-    public void parseCharArray(char[] input, int offset, int end) throws XMLParseException {
+    public void parseCharArray(char[] input, int offset, int end) throws XmlParseException {
         this.parseCharArray(input, offset, end, /* startingLineNr */ 1);
     }
 
@@ -591,7 +589,7 @@ public final class XmlElement {
      *                                   string.
      */
     public void parseCharArray(char[] input, int offset, int end, int startingLineNr)
-            throws XMLParseException {
+            throws XmlParseException {
         try {
             Reader reader = new CharArrayReader(input, offset, end);
             this.parseFromReader(reader, startingLineNr);
@@ -1342,9 +1340,9 @@ public final class XmlElement {
      *             </dd>
      *             </dl>
      */
-    protected XMLParseException invalidValueSet(String name) {
+    protected XmlParseException invalidValueSet(String name) {
         String msg = "Invalid value set (entity name = \"" + name + "\")";
-        return new XMLParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
     /**
@@ -1364,19 +1362,19 @@ public final class XmlElement {
      *              </dd>
      *              </dl>
      */
-    protected XMLParseException invalidValue(String name, String value) {
+    protected XmlParseException invalidValue(String name, String value) {
         String msg = "Attribute \"" + name + "\" does not contain a valid " + "value (\"" + value
                 + "\")";
-        return new XMLParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
     /**
      * Creates a parse exception for when the end of the data input has been
      * reached.
      */
-    protected XMLParseException createExceptionUnexpectedEndOfData() {
+    protected XmlParseException createExceptionUnexpectedEndOfData() {
         String msg = "Unexpected end of data reached";
-        return new XMLParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
     /**
@@ -1395,9 +1393,9 @@ public final class XmlElement {
      *                </dd>
      *                </dl>
      */
-    protected XMLParseException syntaxError(String context) {
+    protected XmlParseException syntaxError(String context) {
         String msg = "Syntax error while parsing " + context;
-        return new XMLParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
     /**
@@ -1418,14 +1416,14 @@ public final class XmlElement {
      *                </dd>
      *                </dl>
      */
-    protected XMLParseException createUnexpectedInputException(String charSet) {
+    protected XmlParseException createUnexpectedInputException(String charSet) {
         String msg = "Expected: " + charSet;
-        return new XMLParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
     
-    protected XMLParseException createExceptionUnknownEntity(String name) {
+    protected XmlParseException createExceptionUnknownEntity(String name) {
         String msg = "Unknown or invalid entity: &" + name + ";";
-        return new XMLParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
 }

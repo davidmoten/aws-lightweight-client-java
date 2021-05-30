@@ -131,12 +131,6 @@
             <scope>test</scope>
         </dependency>
 
-        <dependency>
-            <groupId>be.cyberelf.nanoxml</groupId>
-            <artifactId>lite</artifactId>
-            <version>2.2.3</version>
-        </dependency>
-
     </dependencies>
 
     <build>
