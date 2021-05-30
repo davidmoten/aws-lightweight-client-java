@@ -1,5 +1,5 @@
 # aws-lightweight-client-java
-This is a really lightweight artifact that performs authentication and helps you build requests against the AWS API. It includes nice concise builders, an inbuilt xml parser (to parse responses), and useful convenience methods. 
+This is a really lightweight artifact that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, an inbuilt xml parser (to parse responses), and useful convenience methods. 
 
 For example with a 50K standalone artifact you can do:
 
