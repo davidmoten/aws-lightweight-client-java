@@ -30,7 +30,7 @@ public class XmlElementTest {
     
     @Test
     public void testHasContentAndWhiteSpaceTrimmed() {
-        XmlElement x = XmlElement.parse("<a> hi there -&gt; 1 </a>");
+        XmlElement x = XmlElement.parse("<a>\t\n hi there -&gt; 1 \n\t</a>");
         assertEquals("a", x.getName());
         assertFalse(x.hasChildren());
         assertFalse(x.enumerateAttributeNames().hasMoreElements());
