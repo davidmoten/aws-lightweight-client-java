@@ -24,8 +24,8 @@ public final class Client {
         return credentials;
     }
 
-    public Requester.Request url(String url) {
-        return Requester.clientAndUrl(this, url);
+    public Request url(String url) {
+        return Request.clientAndUrl(this, url);
     }
 
     /**
@@ -34,12 +34,12 @@ public final class Client {
      * @param path can include query parts as well (stuff after ?)
      * @return builder
      */
-    public Requester.Request path(String path) {
+    public Request path(String path) {
         return url("https://" + serviceName + "." + regionName + ".amazonaws.com/"
                 + removeLeadingSlash(path));
     }
 
-    public Requester.Request query(String name, String value) {
+    public Request query(String name, String value) {
         return path("").query(name, value);
     }
 

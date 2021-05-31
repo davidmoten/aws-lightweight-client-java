@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class Response {
@@ -20,7 +21,7 @@ public final class Response {
         return headers;
     }
 
-    public Map<String, String> metadata() {
+    public Map<String, List<String>> metadata() {
         return headers //
                 .entrySet() //
                 .stream() //
@@ -28,9 +29,18 @@ public final class Response {
                 .filter(x -> x.getKey().startsWith("x-amz-meta-")) //
                 .collect(Collectors.toMap( //
                         x -> x.getKey().substring(11), //
-                        x -> x.getValue().get(0)));
+                        x -> x.getValue()));
     }
-
+    
+    public Optional<String> metadataFirst(String name) {
+        List<String> list = metadata().get(name);
+        if (list == null || list.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(list.get(0));
+        }
+    }
+    
     public byte[] content() {
         return content;
     }

@@ -4,119 +4,25 @@ import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
-import com.github.davidmoten.xml.XmlElement;
 
-final class Requester {
+final class RequestHelper {
 
-    private Requester() {
+    private RequestHelper() {
         // prevent instantiation
     }
 
-    static Request clientAndUrl(Client client, String url) {
-        return new Request(client, url);
-    }
-
-    public static final class Request {
-        private final Client client;
-        private String regionName;
-        private String url;
-        private HttpMethod method = HttpMethod.GET;
-        private final Map<String, List<String>> headers = new HashMap<>();
-        private byte[] requestBody;
-
-        private Request(Client client, String url) {
-            this.client = client;
-            this.url = url;
-            this.regionName = client.regionName();
-        }
-
-        public Request method(HttpMethod method) {
-            this.method = method;
-            return this;
-        }
-
-        public Request query(String name, String value) {
-            if (!url.contains("?")) {
-                url += "?";
-            }
-            if (!url.endsWith("?")) {
-                url += "&";
-            }
-            url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
-            return this;
-        }
-
-        public Request header(String name, String value) {
-            put(headers, name, value);
-            return this;
-        }
-
-        public Request metadata(String name, String value) {
-            return header("x-amz-meta-" + name, value);
-        }
-
-        public Request requestBody(byte[] requestBody) {
-            this.requestBody = requestBody;
-            return this;
-        }
-
-        public Request requestBody(String requestBody) {
-            this.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
-            return this;
-        }
-
-        public Request regionName(String regionName) {
-            this.regionName = regionName;
-            return this;
-        }
-
-        public byte[] responseAsBytes() {
-            Response r = response();
-            if (r.statusCode() >= 200 && r.statusCode() <= 299) {
-                return r.content();
-            } else {
-                throw new ServiceException(r.statusCode(),
-                        new String(r.content(), StandardCharsets.UTF_8));
-            }
-        }
-
-        public Response response() {
-            return request(url, method.toString(), combineHeaders(headers), requestBody,
-                    client.serviceName(), regionName, client.credentials());
-        }
-
-        public void execute() {
-            responseAsBytes();
-        }
-
-        public String responseAsUtf8() {
-            return new String(responseAsBytes(), StandardCharsets.UTF_8);
-        }
-
-        public XmlElement responseAsXml() {
-            return XmlElement.parse(responseAsUtf8());
-        }
-
-        public void responseAsUtf8(Consumer<String> consumer) {
-            consumer.accept(responseAsUtf8());
-        }
-
-    }
-
-    private static void put(Map<String, List<String>> map, String name, String value) {
+    static void put(Map<String, List<String>> map, String name, String value) {
         List<String> list = map.get(name);
         if (list == null) {
             list = new ArrayList<>();
@@ -125,12 +31,12 @@ final class Requester {
         list.add(value);
     }
 
-    private static Map<String, String> combineHeaders(Map<String, List<String>> headers) {
+    static Map<String, String> combineHeaders(Map<String, List<String>> headers) {
         return headers.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(),
                 x -> x.getValue().stream().collect(Collectors.joining(","))));
     }
 
-    private static Response request(String url, String method, Map<String, String> headers,
+    static Response request(String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, Credentials credentials) {
 
         // the region-specific endpoint to the target object expressed in path style

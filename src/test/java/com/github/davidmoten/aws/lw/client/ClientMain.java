@@ -3,7 +3,6 @@ package com.github.davidmoten.aws.lw.client;
 import java.util.List;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.Requester.Request;
 import com.github.davidmoten.xml.XmlElement;
 
 public final class ClientMain {
@@ -51,6 +50,8 @@ public final class ClientMain {
                     .metadata() //
                     .entrySet() //
                     .forEach(System.out::println);
+            
+            System.out.println("category[0]=" + r.metadataFirst("category").orElse(""));
 
             // delete object
             s3.path(bucketName + "/" + objectName) //
@@ -62,6 +63,8 @@ public final class ClientMain {
                     .method(HttpMethod.DELETE) //
                     .execute();
             System.out.println("bucket deleted");
+            
+            System.out.println("all actions complete on s3");
         }
 
         {
