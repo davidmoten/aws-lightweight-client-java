@@ -38,6 +38,12 @@ public class XmlElementTest {
     }
 
     @Test
+    public void testWithPreamble() {
+        XmlElement x = XmlElement.parse("<?xml>\n<a/>");
+        assertEquals("a", x.name());
+    }
+
+    @Test
     public void testEmptyContent() {
         XmlElement x = XmlElement.parse("<a></a>");
         assertEquals("a", x.name());

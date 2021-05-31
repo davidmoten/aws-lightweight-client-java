@@ -259,16 +259,6 @@ public final class XmlElement {
         }
     }
 
-    public void removeChild(XmlElement child) {
-        Preconditions.checkNotNull(child);
-        children.remove(child);
-    }
-
-    public void removeAttribute(String name) {
-        Preconditions.checkNotNull(name);
-        this.attributes.remove(name);
-    }
-
     private XmlElement createAnotherElement() {
         return new XmlElement(this.entities, this.ignoreLeadingAndTrailingWhitespace, false);
     }
@@ -288,8 +278,8 @@ public final class XmlElement {
      * @param name The new name.
      *
      **/
-    // Nullable
     public void setName(String name) {
+        Preconditions.checkNotNull(name);
         this.name = name;
     }
 
