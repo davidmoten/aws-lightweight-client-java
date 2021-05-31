@@ -73,12 +73,12 @@ public class XmlElementTest {
 
     @Test
     public void testHasTwoChildren() {
-        String xml = "<a><b>boo</b><c step=\"large\">bingo</c></a>";
+        String xml = "<a><b>boo</b><c step=\"large\">bingo</c><d>&amp;&gt;&lt;&quot;&apos;&#x7;zz</d></a>";
         XmlElement x = XmlElement.parse(xml);
         assertEquals("a", x.name());
         assertTrue(x.hasChildren());
-        assertEquals(2, x.countChildren());
-        assertEquals(2, x.children().size());
+        assertEquals(3, x.countChildren());
+        assertEquals(3, x.children().size());
         assertEquals("bingo", x.content("c"));
         assertTrue(x.attributeNames().isEmpty());
         assertEquals("b", x.firstChild().name());
@@ -86,7 +86,7 @@ public class XmlElementTest {
         assertEquals("c", x.child("c").name());
         assertEquals("bingo", x.child(1).content());
         assertEquals("large", x.child("c").attribute("step"));
-        assertEquals("<a><b>boo</b><c step=\"large\">bingo</c></a>", x.toString());
+        assertEquals("<a><b>boo</b><c step=\"large\">bingo</c><d>&amp;&gt;&lt;&quot;&apos;&#x7;zz</d></a>", x.toString());
         assertEquals(0, x.lineNumber());
     }
 
