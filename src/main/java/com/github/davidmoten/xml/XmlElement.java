@@ -55,7 +55,7 @@ public final class XmlElement {
     /**
      * The #PCDATA content of the object. null if no #PCDATA, can be empty string
      */
-    private String contents;
+    private String content;
 
     private Map<String, char[]> entities;
 
@@ -96,7 +96,7 @@ public final class XmlElement {
             boolean fillBasicConversionTable) {
         this.ignoreLeadingAndTrailingWhitespace = ignoreLeadingAndTrailingWhitespace;
         this.name = null;
-        this.contents = "";
+        this.content = "";
         this.attributes = new HashMap<>();
         this.children = new ArrayList<>();
         this.entities = entities;
@@ -112,10 +112,6 @@ public final class XmlElement {
 
     public void addChild(XmlElement child) {
         children.add(child);
-    }
-
-    public void setAttribute(String name, String value) {
-        this.attributes.put(name, value);
     }
 
     public int countChildren() {
@@ -169,7 +165,7 @@ public final class XmlElement {
      * <CODE>null</CODE> is returned.
      */
     public String content() {
-        return this.contents;
+        return this.content;
     }
 
     /**
@@ -204,9 +200,6 @@ public final class XmlElement {
 
     /**
      * Returns the name of the element.
-     *
-     * @see com.github.davidmoten.xml.XmlElement#setName(java.lang.String)
-     *      setName(String)
      */
     public String name() {
         return this.name;
@@ -224,7 +217,7 @@ public final class XmlElement {
         Preconditions.checkNotNull(reader);
         Preconditions.checkArgument(startingLineNr >= 1);
         this.name = null;
-        this.contents = "";
+        this.content = "";
         this.attributes = new HashMap<>();
         this.children = new ArrayList<>();
         this.charReadTooMuch = '\0';
@@ -263,26 +256,6 @@ public final class XmlElement {
         return new XmlElement(this.entities, this.ignoreLeadingAndTrailingWhitespace, false);
     }
 
-    /**
-     * Changes the content string.
-     *
-     * @param content The new content string.
-     */
-    public void setContent(String content) {
-        this.contents = content;
-    }
-
-    /**
-     * Changes the name of the element.
-     *
-     * @param name The new name.
-     *
-     **/
-    public void setName(String name) {
-        Preconditions.checkNotNull(name);
-        this.name = name;
-    }
-
     public String toString() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
@@ -296,7 +269,7 @@ public final class XmlElement {
     public void write(Writer writer) throws IOException {
         Preconditions.checkNotNull(writer);
         if (this.name == null) {
-            writeEncoded(writer, this.contents);
+            writeEncoded(writer, this.content);
             return;
         }
         writer.write('<');
@@ -314,9 +287,9 @@ public final class XmlElement {
                 writer.write('"');
             }
         }
-        if ((this.contents != null) && (this.contents.length() > 0)) {
+        if ((this.content != null) && (this.content.length() > 0)) {
             writer.write('>');
-            writeEncoded(writer, this.contents);
+            writeEncoded(writer, this.content);
             writer.write('<');
             writer.write('/');
             writer.write(this.name);
@@ -654,7 +627,7 @@ public final class XmlElement {
         StringBuilder buf = new StringBuilder();
         this.scanIdentifier(buf);
         String name = buf.toString();
-        elt.setName(name);
+        elt.name = name;
         char ch = this.scanWhitespace();
         while ((ch != '>') && (ch != '/')) {
             buf.setLength(0);
@@ -668,7 +641,7 @@ public final class XmlElement {
             this.unreadChar(this.scanWhitespace());
             buf.setLength(0);
             this.scanString(buf);
-            elt.setAttribute(key, buf.toString());
+            elt.attributes.put(key, buf.toString());
             ch = this.scanWhitespace();
         }
         if (ch == '/') {
@@ -736,9 +709,9 @@ public final class XmlElement {
             this.unreadChar(ch);
         } else {
             if (this.ignoreLeadingAndTrailingWhitespace) {
-                elt.setContent(buf.toString().trim());
+                elt.content = buf.toString().trim();
             } else {
-                elt.setContent(buf.toString());
+                elt.content = buf.toString();
             }
         }
         ch = this.readChar();
