@@ -7,8 +7,24 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 
 import com.github.davidmoten.xml.XmlElement;
+import com.github.davidmoten.xml.XmlParseException;
 
 public class XmlElementTest {
+    
+    @Test(expected=XmlParseException.class)
+    public void testBlank() {
+        XmlElement.parse("");
+    }
+    
+    @Test(expected=XmlParseException.class)
+    public void testNotClosed() {
+        XmlElement.parse("<a>hello");
+    }
+    
+    @Test(expected=XmlParseException.class)
+    public void testNoStartTag() {
+        XmlElement.parse("a");
+    }
 
     @Test
     public void testNoContent() {
@@ -56,8 +72,9 @@ public class XmlElementTest {
         assertTrue(x.attributeNames().isEmpty());
         assertEquals("b", x.firstChild().name());
         assertEquals("boo", x.firstChild().content());
-        assertEquals("c", x.child(1).name());
-        assertEquals("bingo", x.child(1).content());
-        assertEquals("large", x.child(1).attribute("step"));
+        assertEquals("c", x.child("c").name());
+        assertEquals("bingo", x.child("c").content());
+        assertEquals("large", x.child("c").attribute("step"));
+        assertEquals("<a><b>boo</b><c step=\"large\">bingo</c></a>", x.toString());
     }
 }
