@@ -68,13 +68,13 @@ do {
         .children();
 
     list.forEach(x -> {
-    String msg = x.child("Body").content();
-    System.out.println(msg);
-    // mark message as read
-    sqs.url(queueUrl) //
-            .query("Action", "DeleteMessage") //
-            .query("ReceiptHandle", x.child("ReceiptHandle").content()) //
-            .execute();
+	    String msg = x.child("Body").content();
+	    System.out.println(msg);
+	    // mark message as read
+	    sqs.url(queueUrl) //
+	            .query("Action", "DeleteMessage") //
+	            .query("ReceiptHandle", x.child("ReceiptHandle").content()) //
+	            .execute();
     });
 } while (!list.isEmpty());
 
