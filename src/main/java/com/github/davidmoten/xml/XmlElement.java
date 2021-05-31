@@ -68,7 +68,7 @@ public final class XmlElement {
      * <code>true</code> if the leading and trailing whitespace of #PCDATA sections
      * have to be ignored.
      */
-    private boolean ignoreWhitespace;
+    private boolean ignoreLeadingAndTrailingWhitespace;
 
     /**
      * Character read too much. This character provides push-back functionality to
@@ -88,12 +88,12 @@ public final class XmlElement {
     private int parserLineNr;
 
     public XmlElement() {
-        this(new HashMap<>(), false, true);
+        this(new HashMap<>(), true, true);
     }
 
-    private XmlElement(Map<String, char[]> entities, boolean skipLeadingWhitespaceInContent,
+    private XmlElement(Map<String, char[]> entities, boolean ignoreLeadingAndTrailingWhitespace,
             boolean fillBasicConversionTable) {
-        this.ignoreWhitespace = skipLeadingWhitespaceInContent;
+        this.ignoreLeadingAndTrailingWhitespace = ignoreLeadingAndTrailingWhitespace;
         this.name = null;
         this.contents = "";
         this.attributes = new HashMap<>();
@@ -269,7 +269,7 @@ public final class XmlElement {
     }
 
     private XmlElement createAnotherElement() {
-        return new XmlElement(this.entities, this.ignoreWhitespace, false);
+        return new XmlElement(this.entities, this.ignoreLeadingAndTrailingWhitespace, false);
     }
 
     /**
@@ -710,7 +710,7 @@ public final class XmlElement {
                         }
                     }
                 } else {
-                    if ((ch != '/') || this.ignoreWhitespace) {
+                    if ((ch != '/') || this.ignoreLeadingAndTrailingWhitespace) {
                         buf.setLength(0);
                     }
                     if (ch == '/') {
@@ -746,7 +746,7 @@ public final class XmlElement {
             }
             this.unreadChar(ch);
         } else {
-            if (this.ignoreWhitespace) {
+            if (this.ignoreLeadingAndTrailingWhitespace) {
                 elt.setContent(buf.toString().trim());
             } else {
                 elt.setContent(buf.toString());
