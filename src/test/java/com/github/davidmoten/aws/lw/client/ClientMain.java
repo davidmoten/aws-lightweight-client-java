@@ -2,7 +2,6 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 public final class ClientMain {
 
@@ -21,7 +20,6 @@ public final class ClientMain {
             String queueUrl = sqs //
                     .query("Action", "GetQueueUrl") //
                     .query("QueueName", "amsa-xml-in") //
-                    .method(HttpMethod.GET) //
                     .responseAsXml() //
                     .content("GetQueueUrlResult", "QueueUrl");
             System.out.println(queueUrl);
@@ -32,7 +30,6 @@ public final class ClientMain {
             String bucketName = "amsa-xml-in";
             s3 //
                     .path(bucketName + "/ExampleObject.txt") //
-                    .method(HttpMethod.GET) //
                     .responseAsUtf8(x -> System.out.println(x.length() + " chars read"));
 
             // put data into bucket object
@@ -52,25 +49,21 @@ public final class ClientMain {
 
             sqs.query("Action", "CreateQueue") //
                     .query("QueueName", queueName) //
-                    .method(HttpMethod.GET) //
                     .execute();
 
             String queueUrl = sqs //
                     .query("Action", "GetQueueUrl") //
                     .query("QueueName", queueName) //
-                    .method(HttpMethod.GET) //
                     .responseAsXml() //
                     .content("GetQueueUrlResult", "QueueUrl");
 
             sqs.url(queueUrl) //
-               .query("Action", "SendMessage") //
-               .query("MessageBody", "hi there")
-               .method(HttpMethod.GET) //
-               .execute();
-            
+                    .query("Action", "SendMessage") //
+                    .query("MessageBody", "hi there") //
+                    .execute();
+
             sqs.url(queueUrl) //
                     .query("Action", "DeleteQueue") //
-                    .method(HttpMethod.GET) //
                     .execute();
 
             System.out.println("all actions complete on " + queueUrl);

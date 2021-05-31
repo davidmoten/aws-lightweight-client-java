@@ -1,7 +1,9 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -11,7 +13,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.github.davidmoten.aws.lw.client.internal.CredentialsImpl;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
@@ -32,7 +33,7 @@ final class Requester {
         private final Client client;
         private String regionName;
         private String url;
-        private HttpMethod method;
+        private HttpMethod method = HttpMethod.GET;
         private final Map<String, List<String>> headers = new HashMap<>();
         private byte[] requestBody;
 
@@ -40,6 +41,11 @@ final class Requester {
             this.client = client;
             this.url = url;
             this.regionName = client.regionName();
+        }
+
+        public Builder method(HttpMethod method) {
+            this.method = method;
+            return this;
         }
 
         public Builder query(String name, String value) {
@@ -50,40 +56,26 @@ final class Requester {
                 url += "&";
             }
             url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
-            System.out.println(url);
             return this;
         }
 
-        public Builder2 method(HttpMethod method) {
-            this.method = method;
-            return new Builder2(this);
-        }
-    }
-
-    public static final class Builder2 {
-        private final Builder b;
-
-        private Builder2(Builder b) {
-            this.b = b;
-        }
-
-        public Builder2 header(String name, String value) {
-            put(b.headers, name, value);
+        public Builder header(String name, String value) {
+            put(headers, name, value);
             return this;
         }
 
-        public Builder2 requestBody(byte[] requestBody) {
-            b.requestBody = requestBody;
+        public Builder requestBody(byte[] requestBody) {
+            this.requestBody = requestBody;
             return this;
         }
 
-        public Builder2 requestBody(String requestBody) {
-            b.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
+        public Builder requestBody(String requestBody) {
+            this.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
             return this;
         }
 
-        public Builder2 regionName(String regionName) {
-            b.regionName = regionName;
+        public Builder regionName(String regionName) {
+            this.regionName = regionName;
             return this;
         }
 
@@ -99,8 +91,8 @@ final class Requester {
 
         public Response response() {
 
-            return request(b.url, b.method.toString(), combineHeaders(b.headers), b.requestBody,
-                    b.client.serviceName(), b.regionName, b.client.credentials());
+            return request(url, method.toString(), combineHeaders(headers), requestBody,
+                    client.serviceName(), regionName, client.credentials());
         }
 
         public void execute() {
@@ -166,7 +158,6 @@ final class Requester {
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
                 .collect(Collectors.toMap(p -> p.name, p -> p.value));
-
         AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(endpointUrl,
                 method, serviceName, regionName);
         String authorization = signer.computeSignature(h, q, contentHashString,
@@ -231,8 +222,12 @@ final class Requester {
 
                 index = parameterSeparatorIndex + 1;
             }
-
-            results.add(new Parameter(name, value));
+            try {
+                results.add(new Parameter(URLDecoder.decode(name, "UTF-8"),
+                        URLDecoder.decode(value, "UTF-8")));
+            } catch (UnsupportedEncodingException e) {
+                throw new RuntimeException(e);
+            }
         }
         return results;
     }
@@ -244,6 +239,17 @@ final class Requester {
         Parameter(String name, String value) {
             this.name = name;
             this.value = value;
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder b = new StringBuilder();
+            b.append("Parameter [name=");
+            b.append(name);
+            b.append(", value=");
+            b.append(value);
+            b.append("]");
+            return b.toString();
         }
     }
 

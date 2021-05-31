@@ -156,7 +156,7 @@ public class HttpUtils {
     public static String urlEncode(String url, boolean keepPathSlash) {
         String encoded;
         try {
-            encoded = URLEncoder.encode(url, "UTF-8");
+            encoded = URLEncoder.encode(url, "UTF-8").replace("+", "%20");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException("UTF-8 encoding is not supported.", e);
         }
