@@ -20,30 +20,51 @@ public final class ClientMain {
                 .credentials(credentials);
         Client s3 = Client.s3().from(sqs);
         {
-            String queueUrl = sqs //
-                    .query("Action", "GetQueueUrl") //
-                    .query("QueueName", "amsa-xml-in") //
-                    .responseAsXml() //
-                    .content("GetQueueUrlResult", "QueueUrl");
-            System.out.println(queueUrl);
-        }
-        {
-            // read bucket object
+            // create bucket
+            String bucketName = "temp-bucket-" + System.currentTimeMillis();
+            String createXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                    + "<CreateBucketConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
+                    + "   <LocationConstraint>" + regionName + "</LocationConstraint>\n"
+                    + "</CreateBucketConfiguration>";
+            s3.path(bucketName) //
+                    .method(HttpMethod.PUT) //
+                    .requestBody(createXml) //
+                    .execute();
 
-            String bucketName = "amsa-xml-in";
-            s3 //
-                    .path(bucketName + "/ExampleObject.txt") //
-                    .responseAsUtf8(x -> System.out.println(x.length() + " chars read"));
-
-            // put object
+            String objectName = "ExampleObject.txt";
             Map<String, List<String>> h = s3 //
-                    .path(bucketName + "/ExampleObject.txt") //
+                    .path(bucketName + "/" + objectName) //
                     .method(HttpMethod.PUT) //
                     .requestBody("hi there") //
+                    .header("x-amz-meta-category", "something") //
                     .response() //
                     .headers();
             System.out.println("put object completed, headers:");
             h.entrySet().stream().forEach(x -> System.out.println("  " + x));
+
+            // read bucket object
+            Response r = s3 //
+                    .path(bucketName + "/" + objectName) //
+                    .response();
+            System.out.println(r.content().length + " chars read");
+            r.headers() //
+                    .entrySet() //
+                    .stream() //
+                    .filter(entry -> entry.getKey() != null
+                            && entry.getKey().startsWith("x-amz-meta-"))
+                    .map(entry -> entry.getKey().substring(11) + "=" + entry.getValue().get(0)) //
+                    .forEach(System.out::println);
+
+            // delete object
+            s3.path(bucketName + "/" + objectName) //
+                    .method(HttpMethod.DELETE) //
+                    .execute();
+
+            // delete bucket
+            s3.path(bucketName) //
+                    .method(HttpMethod.DELETE) //
+                    .execute();
+            System.out.println("bucket deleted");
         }
 
         {
