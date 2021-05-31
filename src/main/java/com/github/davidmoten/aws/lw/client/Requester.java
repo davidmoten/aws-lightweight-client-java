@@ -25,11 +25,11 @@ final class Requester {
         // prevent instantiation
     }
 
-    static Builder clientAndUrl(Client client, String url) {
-        return new Builder(client, url);
+    static Request clientAndUrl(Client client, String url) {
+        return new Request(client, url);
     }
 
-    public static final class Builder {
+    public static final class Request {
         private final Client client;
         private String regionName;
         private String url;
@@ -37,18 +37,18 @@ final class Requester {
         private final Map<String, List<String>> headers = new HashMap<>();
         private byte[] requestBody;
 
-        private Builder(Client client, String url) {
+        private Request(Client client, String url) {
             this.client = client;
             this.url = url;
             this.regionName = client.regionName();
         }
 
-        public Builder method(HttpMethod method) {
+        public Request method(HttpMethod method) {
             this.method = method;
             return this;
         }
 
-        public Builder query(String name, String value) {
+        public Request query(String name, String value) {
             if (!url.contains("?")) {
                 url += "?";
             }
@@ -59,22 +59,22 @@ final class Requester {
             return this;
         }
 
-        public Builder header(String name, String value) {
+        public Request header(String name, String value) {
             put(headers, name, value);
             return this;
         }
 
-        public Builder requestBody(byte[] requestBody) {
+        public Request requestBody(byte[] requestBody) {
             this.requestBody = requestBody;
             return this;
         }
 
-        public Builder requestBody(String requestBody) {
+        public Request requestBody(String requestBody) {
             this.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
             return this;
         }
 
-        public Builder regionName(String regionName) {
+        public Request regionName(String regionName) {
             this.regionName = regionName;
             return this;
         }

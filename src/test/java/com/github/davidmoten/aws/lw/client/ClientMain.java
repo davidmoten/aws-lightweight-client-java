@@ -3,6 +3,7 @@ package com.github.davidmoten.aws.lw.client;
 import java.util.List;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.Requester.Request;
 import com.github.davidmoten.xml.XmlElement;
 
 public final class ClientMain {
@@ -34,7 +35,7 @@ public final class ClientMain {
                     .path(bucketName + "/ExampleObject.txt") //
                     .responseAsUtf8(x -> System.out.println(x.length() + " chars read"));
 
-            // put data into bucket object
+            // put object
             Map<String, List<String>> h = s3 //
                     .path(bucketName + "/ExampleObject.txt") //
                     .method(HttpMethod.PUT) //
@@ -67,9 +68,10 @@ public final class ClientMain {
 
             // read all messages, print to console and delete them
             List<XmlElement> list;
+            Request request = sqs.url(queueUrl) //
+                    .query("Action", "ReceiveMessage");
             do {
-                list = sqs.url(queueUrl) //
-                        .query("Action", "ReceiveMessage") //
+                list = request //
                         .responseAsXml() //
                         .child("ReceiveMessageResult") //
                         .children();
