@@ -14,7 +14,7 @@ public class XmlElementTest {
     @Test
     public void testNoContent() {
         XmlElement x = XmlElement.parse("<a/>");
-        assertEquals("a", x.getName());
+        assertEquals("a", x.name());
         assertFalse(x.hasChildren());
         assertFalse(x.enumerateAttributeNames().hasMoreElements());
         assertEquals("", x.content());
@@ -23,7 +23,7 @@ public class XmlElementTest {
     @Test
     public void testEmptyContent() {
         XmlElement x = XmlElement.parse("<a></a>");
-        assertEquals("a", x.getName());
+        assertEquals("a", x.name());
         assertFalse(x.hasChildren());
         assertFalse(x.enumerateAttributeNames().hasMoreElements());
         assertEquals("", x.content());
@@ -32,7 +32,7 @@ public class XmlElementTest {
     @Test
     public void testHasContentAndWhiteSpaceTrimmed() {
         XmlElement x = XmlElement.parse("<a>\t\n hi there -&gt; 1 \n\t</a>");
-        assertEquals("a", x.getName());
+        assertEquals("a", x.name());
         assertFalse(x.hasChildren());
         assertFalse(x.enumerateAttributeNames().hasMoreElements());
         assertEquals("hi there -> 1", x.content());
@@ -41,22 +41,24 @@ public class XmlElementTest {
     @Test
     public void testHasChild() {
         XmlElement x = XmlElement.parse("<a><b/></a>");
-        assertEquals("a", x.getName());
+        assertEquals("a", x.name());
         assertTrue(x.hasChildren());
         assertFalse(x.enumerateAttributeNames().hasMoreElements());
-        assertEquals("b", x.firstChild().getName());
+        assertEquals("b", x.firstChild().name());
         assertEquals("", x.firstChild().content());
     }
     
     @Test
     public void testHasTwoChildren() {
-        XmlElement x = XmlElement.parse("<a><b>boo</b><c>bingo</c></a>");
-        assertEquals("a", x.getName());
+        String xml = "<a><b>boo</b><c step=\"large\">bingo</c></a>";
+        XmlElement x = XmlElement.parse(xml);
+        assertEquals("a", x.name());
         assertTrue(x.hasChildren());
         assertFalse(x.enumerateAttributeNames().hasMoreElements());
-        assertEquals("b", x.firstChild().getName());
+        assertEquals("b", x.firstChild().name());
         assertEquals("boo", x.firstChild().content());
-        assertEquals("c", x.child(1).getName());
+        assertEquals("c", x.child(1).name());
         assertEquals("bingo", x.child(1).content());
+        assertEquals("large", x.child(1).attribute("step"));
     }
 }

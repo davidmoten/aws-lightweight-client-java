@@ -150,7 +150,7 @@ public final class XmlElement {
         XmlElement y = null;
         for (String name : names) {
             for (XmlElement child : x.children) {
-                if (child.getName().equals(name)) {
+                if (child.name().equals(name)) {
                     y = child;
                 }
             }
@@ -179,7 +179,7 @@ public final class XmlElement {
      * Returns the line nr in the source data on which the element is found. This
      * method returns <code>0</code> there is no associated source data.
      */
-    public int getLineNr() {
+    public int lineNumber() {
         return this.lineNr;
     }
 
@@ -189,8 +189,8 @@ public final class XmlElement {
      *
      * @param name The name of the attribute.
      */
-    public String getAttribute(String name) {
-        return this.getAttribute(name, null);
+    public String attribute(String name) {
+        return this.attribute(name, null);
     }
 
     /**
@@ -200,7 +200,7 @@ public final class XmlElement {
      * @param name         The name of the attribute.
      * @param defaultValue Key to use if the attribute is missing.
      */
-    public String getAttribute(String name, String defaultValue) {
+    public String attribute(String name, String defaultValue) {
         Preconditions.checkNotNull(name);
         return this.attributes.getOrDefault(name, defaultValue);
     }
@@ -211,7 +211,7 @@ public final class XmlElement {
      * @see com.github.davidmoten.xml.XmlElement#setName(java.lang.String)
      *      setName(String)
      */
-    public String getName() {
+    public String name() {
         return this.name;
     }
 
@@ -821,7 +821,7 @@ public final class XmlElement {
      */
     private XmlParseException createExceptionUnexpectedEndOfData() {
         String msg = "Unexpected end of data reached";
-        return new XmlParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.name(), this.parserLineNr, msg);
     }
 
     /**
@@ -833,12 +833,12 @@ public final class XmlElement {
      */
     private XmlParseException createUnexpectedInputException(String charSet) {
         String msg = "Expected: " + charSet;
-        return new XmlParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.name(), this.parserLineNr, msg);
     }
 
     private XmlParseException createExceptionUnknownEntity(String name) {
         String msg = "Unknown or invalid entity: &" + name + ";";
-        return new XmlParseException(this.getName(), this.parserLineNr, msg);
+        return new XmlParseException(this.name(), this.parserLineNr, msg);
     }
 
 }
