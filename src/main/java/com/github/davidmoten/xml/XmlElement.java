@@ -47,8 +47,8 @@ import java.util.NoSuchElementException;
 
 public final class XmlElement {
 
-    private Map<String, String> attributes;
     private List<XmlElement> children;
+    private Map<String, String> attributes;
     private String name;
 
     /**
@@ -139,6 +139,10 @@ public final class XmlElement {
 
     public XmlElement firstChild() {
         return this.children.get(0);
+    }
+    
+    public XmlElement child(int index) {
+        return children.get(index);
     }
 
     public XmlElement child(String... names) {
