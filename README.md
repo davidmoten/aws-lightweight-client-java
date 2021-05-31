@@ -37,6 +37,8 @@ Let's try some other tasks. Here are some SQS tasks:
 * read all messages of the queue and mark them as read
 * delete the sqs queue
 
+You'll note that most of the interactions with sqs involve using the url of the queue rather than the base service endpoint (`http://sqs.amazonaws.com`).
+
 ```java
 String queueName = "MyQueue-" + System.currentTimeMillis();
 
