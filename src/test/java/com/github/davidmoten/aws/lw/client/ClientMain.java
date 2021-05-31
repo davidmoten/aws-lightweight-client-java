@@ -2,21 +2,22 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public final class ClientMain {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         String regionName = "ap-southeast-2";
         String accessKey = System.getProperty("accessKey");
         String secretKey = System.getProperty("secretKey");
 
         Credentials credentials = Credentials.of(accessKey, secretKey);
+        Client sqs = Client //
+                .sqs() //
+                .regionName(regionName) //
+                .credentials(credentials);
+        Client s3 = Client.s3().from(sqs);
         {
-            Client sqs = Client //
-                    .sqs() //
-                    .regionName(regionName) //
-                    .credentials(credentials);
-
             String queueUrl = sqs //
                     .query("Action", "GetQueueUrl") //
                     .query("QueueName", "amsa-xml-in") //
@@ -27,9 +28,7 @@ public final class ClientMain {
         }
         {
             // read bucket object
-            Client s3 = Client.s3() //
-                    .regionName(regionName) //
-                    .credentials(credentials);
+
             String bucketName = "amsa-xml-in";
             s3 //
                     .path(bucketName + "/ExampleObject.txt") //
@@ -43,8 +42,38 @@ public final class ClientMain {
                     .requestBody("hi there") //
                     .response() //
                     .headers();
-            System.out.println("put object completed, headers:" );
+            System.out.println("put object completed, headers:");
             h.entrySet().stream().forEach(x -> System.out.println("  " + x));
+        }
+
+        {
+
+            String queueName = "MyQueue-" + System.currentTimeMillis();
+
+            sqs.query("Action", "CreateQueue") //
+                    .query("QueueName", queueName) //
+                    .method(HttpMethod.GET) //
+                    .execute();
+
+            String queueUrl = sqs //
+                    .query("Action", "GetQueueUrl") //
+                    .query("QueueName", queueName) //
+                    .method(HttpMethod.GET) //
+                    .responseAsXml() //
+                    .content("GetQueueUrlResult", "QueueUrl");
+
+            sqs.url(queueUrl) //
+               .query("Action", "SendMessage") //
+               .query("MessageBody", "hi there")
+               .method(HttpMethod.GET) //
+               .execute();
+            
+            sqs.url(queueUrl) //
+                    .query("Action", "DeleteQueue") //
+                    .method(HttpMethod.GET) //
+                    .execute();
+
+            System.out.println("all actions complete on " + queueUrl);
         }
     }
 }

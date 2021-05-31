@@ -42,6 +42,18 @@ final class Requester {
             this.regionName = client.regionName();
         }
 
+        public Builder query(String name, String value) {
+            if (!url.contains("?")) {
+                url += "?";
+            }
+            if (!url.endsWith("?")) {
+                url += "&";
+            }
+            url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
+            System.out.println(url);
+            return this;
+        }
+
         public Builder2 method(HttpMethod method) {
             this.method = method;
             return new Builder2(this);

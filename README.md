@@ -1,5 +1,5 @@
 # aws-lightweight-client-java
-This is a really lightweight artifact that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, an lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
+This is a really lightweight artifact that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
 For example with a 50K standalone artifact you can do:
 
@@ -28,4 +28,14 @@ Add this dependency to your pom.xml:
 ## Usage
 
 To perform actions against the API you do need to know what methods exist and the parameters for those methods. This library is lightweight because it doesn't include a mass of generated classes from the API so you'll need to check the AWS API documentation to get that information. For example the API docs for S3 is [here](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
+
+Let's try some other tasks. Here are some SQS tasks:
+
+* create an sqs queue
+* place two messages on the queue
+* read the messages of the queue and mark them as read
+* delete the sqs queue
+
+
+
 

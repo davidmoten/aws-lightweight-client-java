@@ -103,6 +103,10 @@ public final class Client {
         public Client defaultClient() {
             return regionFromEnvironment().credentials(Credentials.fromEnvironment());
         }
+        
+        public Client from(Client client) {
+            return regionName(client.regionName()).credentials(client.credentials());
+        }
 
         public Builder2 regionFromEnvironment() {
             return regionName(System.getenv("AWS_REGION"));
