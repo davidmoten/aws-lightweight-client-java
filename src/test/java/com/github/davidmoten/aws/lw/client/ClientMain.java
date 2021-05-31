@@ -68,7 +68,8 @@ public final class ClientMain {
 
             // read all messages, print to console and delete them
             List<XmlElement> list;
-            Request request = sqs.url(queueUrl) //
+            Request request = sqs //
+                    .url(queueUrl) //
                     .query("Action", "ReceiveMessage");
             do {
                 list = request //
