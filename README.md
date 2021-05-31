@@ -36,6 +36,51 @@ Let's try some other tasks. Here are some SQS tasks:
 * read the messages of the queue and mark them as read
 * delete the sqs queue
 
+```java
+String queueName = "MyQueue-" + System.currentTimeMillis();
 
+// create queue
+sqs.query("Action", "CreateQueue") 
+    .query("QueueName", queueName) 
+    .execute();
+
+// get queue url
+String queueUrl = sqs 
+    .query("Action", "GetQueueUrl") 
+    .query("QueueName", queueName) 
+    .responseAsXml() 
+    .content("GetQueueUrlResult", "QueueUrl");
+
+// send a message
+sqs.url(queueUrl) 
+    .query("Action", "SendMessage") 
+    .query("MessageBody", "hi there") 
+    .execute();
+
+// read all messages, print to console and delete them
+List<XmlElement> list;
+do {
+list = sqs.url(queueUrl) //
+        .query("Action", "ReceiveMessage") //
+        .responseAsXml() //
+        .child("ReceiveMessageResult") //
+        .children();
+
+list.forEach(x -> {
+    String msg = x.child("Body").content();
+    System.out.println(msg);
+    // mark message as read
+    sqs.url(queueUrl) //
+            .query("Action", "DeleteMessage") //
+            .query("ReceiptHandle", x.child("ReceiptHandle").content()) //
+            .execute();
+});
+} while (!list.isEmpty());
+
+// delete queue
+sqs.url(queueUrl) 
+    .query("Action", "DeleteQueue") 
+    .execute();
+```
 
 

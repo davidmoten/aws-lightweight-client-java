@@ -3,6 +3,8 @@ package com.github.davidmoten.aws.lw.client;
 import java.util.List;
 import java.util.Map;
 
+import com.github.davidmoten.xml.XmlElement;
+
 public final class ClientMain {
 
     public static void main(String[] args) throws InterruptedException {
@@ -44,7 +46,6 @@ public final class ClientMain {
         }
 
         {
-
             String queueName = "MyQueue-" + System.currentTimeMillis();
 
             sqs.query("Action", "CreateQueue") //
@@ -57,10 +58,32 @@ public final class ClientMain {
                     .responseAsXml() //
                     .content("GetQueueUrlResult", "QueueUrl");
 
-            sqs.url(queueUrl) //
-                    .query("Action", "SendMessage") //
-                    .query("MessageBody", "hi there") //
-                    .execute();
+            for (int i = 1; i <= 2; i++) {
+                sqs.url(queueUrl) //
+                        .query("Action", "SendMessage") //
+                        .query("MessageBody", "hi there " + i) //
+                        .execute();
+            }
+
+            // read all messages, print to console and delete them
+            List<XmlElement> list;
+            do {
+                list = sqs.url(queueUrl) //
+                        .query("Action", "ReceiveMessage") //
+                        .responseAsXml() //
+                        .child("ReceiveMessageResult") //
+                        .children();
+
+                list.forEach(x -> {
+                    String msg = x.child("Body").content();
+                    System.out.println(msg);
+                    // mark message as read
+                    sqs.url(queueUrl) //
+                            .query("Action", "DeleteMessage") //
+                            .query("ReceiptHandle", x.child("ReceiptHandle").content()) //
+                            .execute();
+                });
+            } while (!list.isEmpty());
 
             sqs.url(queueUrl) //
                     .query("Action", "DeleteQueue") //

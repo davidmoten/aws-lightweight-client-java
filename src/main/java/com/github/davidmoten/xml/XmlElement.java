@@ -96,7 +96,7 @@ import java.util.NoSuchElementException;
  * &lt;title&gt;The Title&lt;/title&gt;
  * </CODE>
  * </UL>
- * you can retrieve that data using the method {@link #getContent() getContent}.
+ * you can retrieve that data using the method {@link #content() getContent}.
  * </DD>
  * </DL>
  * <DL>
@@ -272,14 +272,14 @@ public final class XmlElement {
     }
 
     public String content(String... names) {
-        return child(names).getContent();
+        return child(names).content();
     }
 
     /**
      * Returns the PCDATA content of the object. If there is no such content,
      * <CODE>null</CODE> is returned.
      */
-    public String getContent() {
+    public String content() {
         return this.contents;
     }
 
