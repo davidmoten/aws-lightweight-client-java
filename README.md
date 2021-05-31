@@ -61,13 +61,13 @@ sqs.url(queueUrl)
 // read all messages, print to console and delete them
 List<XmlElement> list;
 do {
-list = sqs.url(queueUrl) //
+    list = sqs.url(queueUrl) //
         .query("Action", "ReceiveMessage") //
         .responseAsXml() //
         .child("ReceiveMessageResult") //
         .children();
 
-list.forEach(x -> {
+    list.forEach(x -> {
     String msg = x.child("Body").content();
     System.out.println(msg);
     // mark message as read
@@ -75,7 +75,7 @@ list.forEach(x -> {
             .query("Action", "DeleteMessage") //
             .query("ReceiptHandle", x.child("ReceiptHandle").content()) //
             .execute();
-});
+    });
 } while (!list.isEmpty());
 
 // delete queue
