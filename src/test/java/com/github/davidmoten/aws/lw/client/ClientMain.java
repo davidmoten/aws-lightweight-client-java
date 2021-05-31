@@ -36,7 +36,7 @@ public final class ClientMain {
                     .path(bucketName + "/" + objectName) //
                     .method(HttpMethod.PUT) //
                     .requestBody("hi there") //
-                    .header("x-amz-meta-category", "something") //
+                    .metadata("category", "something") //
                     .response() //
                     .headers();
             System.out.println("put object completed, headers:");
@@ -47,12 +47,9 @@ public final class ClientMain {
                     .path(bucketName + "/" + objectName) //
                     .response();
             System.out.println(r.content().length + " chars read");
-            r.headers() //
+            r //
+                    .metadata() //
                     .entrySet() //
-                    .stream() //
-                    .filter(entry -> entry.getKey() != null
-                            && entry.getKey().startsWith("x-amz-meta-"))
-                    .map(entry -> entry.getKey().substring(11) + "=" + entry.getValue().get(0)) //
                     .forEach(System.out::println);
 
             // delete object

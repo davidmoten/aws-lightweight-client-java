@@ -64,6 +64,10 @@ final class Requester {
             return this;
         }
 
+        public Request metadata(String name, String value) {
+            return header("x-amz-meta-" + name, value);
+        }
+
         public Request requestBody(byte[] requestBody) {
             this.requestBody = requestBody;
             return this;
