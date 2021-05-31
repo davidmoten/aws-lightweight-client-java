@@ -120,11 +120,15 @@ public final class XmlElement {
     public int countChildren() {
         return this.children.size();
     }
+    
+    public boolean hasChildren() {
+        return !children.isEmpty();
+    }
 
     public Enumeration<String> enumerateAttributeNames() {
         return Collections.enumeration(this.attributes.keySet());
     }
-
+    
     public Enumeration<XmlElement> enumerateChildren() {
         return Collections.enumeration(children);
     }
