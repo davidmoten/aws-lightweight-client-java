@@ -58,10 +58,10 @@ public final class ClientMain {
                     .responseAsXml() //
                     .content("GetQueueUrlResult", "QueueUrl");
 
-            for (int i = 1; i <= 2; i++) {
+            for (int i = 1; i <= 3; i++) {
                 sqs.url(queueUrl) //
                         .query("Action", "SendMessage") //
-                        .query("MessageBody", "hi there " + i) //
+                        .query("MessageBody", "hi there --> " + i) //
                         .execute();
             }
 
