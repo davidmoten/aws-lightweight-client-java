@@ -32,8 +32,9 @@ To perform actions against the API you do need to know what methods exist and th
 Let's try some other tasks. Here are some SQS tasks:
 
 * create an sqs queue
+* get the queue url
 * place two messages on the queue
-* read the messages of the queue and mark them as read
+* read all messages of the queue and mark them as read
 * delete the sqs queue
 
 ```java
