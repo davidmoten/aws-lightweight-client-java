@@ -2,7 +2,6 @@ package com.github.davidmoten.aws.lw.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
@@ -16,7 +15,7 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a/>");
         assertEquals("a", x.name());
         assertFalse(x.hasChildren());
-        assertFalse(x.enumerateAttributeNames().hasMoreElements());
+        assertTrue(x.attributeNames().isEmpty());
         assertEquals("", x.content());
     }
 
@@ -25,7 +24,7 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a></a>");
         assertEquals("a", x.name());
         assertFalse(x.hasChildren());
-        assertFalse(x.enumerateAttributeNames().hasMoreElements());
+        assertTrue(x.attributeNames().isEmpty());
         assertEquals("", x.content());
     }
 
@@ -34,7 +33,7 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a>\t\n hi there -&gt; 1 \n\t</a>");
         assertEquals("a", x.name());
         assertFalse(x.hasChildren());
-        assertFalse(x.enumerateAttributeNames().hasMoreElements());
+        assertTrue(x.attributeNames().isEmpty());
         assertEquals("hi there -> 1", x.content());
     }
 
@@ -43,7 +42,7 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a><b/></a>");
         assertEquals("a", x.name());
         assertTrue(x.hasChildren());
-        assertFalse(x.enumerateAttributeNames().hasMoreElements());
+        assertTrue(x.attributeNames().isEmpty());
         assertEquals("b", x.firstChild().name());
         assertEquals("", x.firstChild().content());
     }
@@ -54,7 +53,7 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse(xml);
         assertEquals("a", x.name());
         assertTrue(x.hasChildren());
-        assertFalse(x.enumerateAttributeNames().hasMoreElements());
+        assertTrue(x.attributeNames().isEmpty());
         assertEquals("b", x.firstChild().name());
         assertEquals("boo", x.firstChild().content());
         assertEquals("c", x.child(1).name());

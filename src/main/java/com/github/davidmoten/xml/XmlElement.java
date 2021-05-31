@@ -44,6 +44,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Set;
 
 public final class XmlElement {
 
@@ -110,7 +111,7 @@ public final class XmlElement {
     }
 
     public void addChild(XmlElement child) {
-        this.children.add(child);
+        children.add(child);
     }
 
     public void setAttribute(String name, String value) {
@@ -118,29 +119,25 @@ public final class XmlElement {
     }
 
     public int countChildren() {
-        return this.children.size();
+        return children.size();
     }
-    
+
     public boolean hasChildren() {
         return !children.isEmpty();
     }
 
-    public Enumeration<String> enumerateAttributeNames() {
-        return Collections.enumeration(this.attributes.keySet());
-    }
-    
-    public Enumeration<XmlElement> enumerateChildren() {
-        return Collections.enumeration(children);
+    public Set<String> attributeNames() {
+        return attributes.keySet();
     }
 
     public List<XmlElement> children() {
-        return new ArrayList<>(this.children);
+        return new ArrayList<>(children);
     }
 
     public XmlElement firstChild() {
-        return this.children.get(0);
+        return children.get(0);
     }
-    
+
     public XmlElement child(int index) {
         return children.get(index);
     }
@@ -264,7 +261,7 @@ public final class XmlElement {
 
     public void removeChild(XmlElement child) {
         Preconditions.checkNotNull(child);
-        this.children.remove(child);
+        children.remove(child);
     }
 
     public void removeAttribute(String name) {
@@ -334,14 +331,12 @@ public final class XmlElement {
             writer.write('/');
             writer.write(this.name);
             writer.write('>');
-        } else if (this.children.isEmpty()) {
+        } else if (children.isEmpty()) {
             writer.write('/');
             writer.write('>');
         } else {
             writer.write('>');
-            Enumeration<?> en = this.enumerateChildren();
-            while (en.hasMoreElements()) {
-                XmlElement child = (XmlElement) en.nextElement();
+            for (XmlElement child : children) {
                 child.write(writer);
             }
             writer.write('<');
