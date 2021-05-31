@@ -95,4 +95,25 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a/>");
         x.child("b");
     }
+
+    @Test
+    public void testComment() {
+        XmlElement x = XmlElement.parse("<a><!-- hi there -->boo</a>");
+        assertEquals("boo", x.content());
+    }
+    
+    @Test
+    public void testCData() {
+        XmlElement x = XmlElement.parse("<a><![CDATA[\n"
+                + "Within this Character Data block I can\n"
+                + "use double dashes as much as I want (along with <, &, ', and \")\n"
+                + "*and* %MyParamEntity; will be expanded to the text\n"
+                + "\"Has been expanded\" ... however, I can't use\n"
+                + "the CEND sequence. If I need to use CEND I must escape one of the\n"
+                + "brackets or the greater-than sign using concatenated CDATA sections.\n"
+                + "]]></a>");
+        String s = x.content();
+        assertTrue(s.contains("as I want (along with <, &, '"));
+    }
+
 }
