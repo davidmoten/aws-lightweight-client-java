@@ -207,9 +207,11 @@ public final class XmlElement {
         return this.name;
     }
 
-    public void parseFromReader(Reader reader) throws IOException, XmlParseException {
+    public static XmlElement parse(Reader reader) throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
-        this.parseFromReader(reader, /* startingLineNr */ 1);
+        XmlElement x = new XmlElement();
+        x.parseFromReader(reader, /* startingLineNr */ 1);
+        return x;
     }
 
     private void parseFromReader(Reader reader, int startingLineNr)
@@ -243,10 +245,10 @@ public final class XmlElement {
         }
     }
 
-    public void parseString(String string) throws XmlParseException {
+    public static XmlElement parse(String string) throws XmlParseException {
         Preconditions.checkNotNull(string);
         try {
-            this.parseFromReader(new StringReader(string), /* startingLineNr */ 1);
+            return parse(new StringReader(string));
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -90,7 +90,6 @@ final class Requester {
         }
 
         public Response response() {
-
             return request(url, method.toString(), combineHeaders(headers), requestBody,
                     client.serviceName(), regionName, client.credentials());
         }
@@ -104,9 +103,7 @@ final class Requester {
         }
 
         public XmlElement responseAsXml() {
-            XmlElement x = new XmlElement();
-            x.parseString(responseAsUtf8());
-            return x;
+            return XmlElement.parse(responseAsUtf8());
         }
 
         public void responseAsUtf8(Consumer<String> consumer) {
