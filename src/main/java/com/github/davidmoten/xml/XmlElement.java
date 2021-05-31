@@ -131,7 +131,7 @@ public final class XmlElement {
     }
 
     public List<XmlElement> children() {
-        return new ArrayList<>(children);
+        return children;
     }
 
     public XmlElement firstChild() {
