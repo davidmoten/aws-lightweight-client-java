@@ -31,23 +31,23 @@ public class BinaryUtils {
         return sb.toString().toLowerCase(Locale.getDefault());
     }
 
-    /**
-     * Converts a Hex-encoded data string to the original byte data.
-     *
-     * @param hexData
-     *            hex-encoded data to decode.
-     * @return decoded data from the hex string.
-     */
-    public static byte[] fromHex(String hexData) {
-        byte[] result = new byte[(hexData.length() + 1) / 2];
-        String hexNumber = null;
-        int stringOffset = 0;
-        int byteOffset = 0;
-        while (stringOffset < hexData.length()) {
-            hexNumber = hexData.substring(stringOffset, stringOffset + 2);
-            stringOffset += 2;
-            result[byteOffset++] = (byte) Integer.parseInt(hexNumber, 16);
-        }
-        return result;
-    }
+//    /**
+//     * Converts a Hex-encoded data string to the original byte data.
+//     *
+//     * @param hexData
+//     *            hex-encoded data to decode.
+//     * @return decoded data from the hex string.
+//     */
+//    public static byte[] fromHex(String hexData) {
+//        byte[] result = new byte[(hexData.length() + 1) / 2];
+//        String hexNumber = null;
+//        int stringOffset = 0;
+//        int byteOffset = 0;
+//        while (stringOffset < hexData.length()) {
+//            hexNumber = hexData.substring(stringOffset, stringOffset + 2);
+//            stringOffset += 2;
+//            result[byteOffset++] = (byte) Integer.parseInt(hexNumber, 16);
+//        }
+//        return result;
+//    }
 }
