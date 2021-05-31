@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
+import com.github.davidmoten.xml.Preconditions;
+
 public final class Client {
 
     private final String serviceName;
@@ -11,6 +13,35 @@ public final class Client {
         this.regionName = regionName;
         this.credentials = credentials;
     }
+    
+    public static Builder service(String serviceName) {
+        Preconditions.checkNotNull(serviceName);
+        return new Builder(serviceName);
+    }
+
+    public static Builder s3() {
+        return new Builder("s3");
+    }
+
+    public static Builder sqs() {
+        return new Builder("sqs");
+    }
+    
+    public static Builder iam() {
+        return new Builder("iam");
+    }
+    
+    public static Builder ec2() {
+        return new Builder("ec2");
+    }
+    
+    public static Builder sns() {
+        return new Builder("sns");
+    }
+    
+    public static Builder lambda() {
+        return new Builder("lambda");
+    }
 
     String serviceName() {
         return serviceName;
@@ -20,11 +51,12 @@ public final class Client {
         return regionName;
     }
 
-    public Credentials credentials() {
+    Credentials credentials() {
         return credentials;
     }
 
     public Request url(String url) {
+        Preconditions.checkNotNull(url);
         return Request.clientAndUrl(this, url);
     }
 
@@ -51,17 +83,7 @@ public final class Client {
         }
     }
 
-    public static Builder service(String serviceName) {
-        return new Builder(serviceName);
-    }
 
-    public static Builder s3() {
-        return new Builder("s3");
-    }
-
-    public static Builder sqs() {
-        return new Builder("sqs");
-    }
 
     public static final class Builder {
 
