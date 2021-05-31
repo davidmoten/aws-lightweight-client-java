@@ -31,7 +31,6 @@
 package com.github.davidmoten.xml;
 
 import java.io.ByteArrayOutputStream;
-import java.io.CharArrayReader;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Reader;
@@ -46,68 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-/**
- * XMLElement is a representation of an XML object. The object is able to parse
- * XML code.
- * <P>
- * <DL>
- * <DT><B>Parsing XML Data</B></DT>
- * <DD>You can parse XML data using the following code:
- * <UL>
- * <CODE>
- * XMLElement xml = new XMLElement();<BR>
- * FileReader reader = new FileReader("filename.xml");<BR>
- * xml.parseFromReader(reader);
- * </CODE>
- * </UL>
- * </DD>
- * </DL>
- * <DL>
- * <DT><B>Retrieving Attributes</B></DT>
- * <DD>You can enumerate the attributes of an element using the method
- * {@link #enumerateAttributeNames() enumerateAttributeNames}. The attribute
- * values can be retrieved using the method
- * {@link #getStringAttribute(java.lang.String) getStringAttribute}. The
- * following example shows how to list the attributes of an element:
- * <UL>
- * <CODE>
- * XMLElement element = ...;<BR>
- * Enumeration enum = element.getAttributeNames();<BR>
- * while (enum.hasMoreElements()) {<BR>
- * &nbsp;&nbsp;&nbsp;&nbsp;String key = (String) enum.nextElement();<BR>
- * &nbsp;&nbsp;&nbsp;&nbsp;String value = element.getStringAttribute(key);<BR>
- * &nbsp;&nbsp;&nbsp;&nbsp;System.out.println(key + " = " + value);<BR>
- * }
- * </CODE>
- * </UL>
- * </DD>
- * </DL>
- * <DL>
- * <DT><B>Retrieving Child Elements</B></DT>
- * <DD>You can enumerate the children of an element using
- * {@link #enumerateChildren() enumerateChildren}. The number of child elements
- * can be retrieved using {@link #countChildren() countChildren}.</DD>
- * </DL>
- * <DL>
- * <DT><B>Elements Containing Character Data</B></DT>
- * <DD>If an elements contains character data, like in the following example:
- * <UL>
- * <CODE>
- * &lt;title&gt;The Title&lt;/title&gt;
- * </CODE>
- * </UL>
- * you can retrieve that data using the method {@link #content() getContent}.
- * </DD>
- * </DL>
- * <DL>
- * <DT><B>Subclassing XMLElement</B></DT>
- * <DD>When subclassing XMLElement, you need to override the method
- * {@link #createAnotherElement() createAnotherElement} which has to return a
- * new copy of the receiver.</DD>
- * </DL>
- * <P>
- *
- */
 public final class XmlElement {
 
     private Map<String, String> attributes;
@@ -119,25 +56,6 @@ public final class XmlElement {
      */
     private String contents;
 
-    /**
-     * Conversion table for &amp;...; entities. The keys are the entity names
-     * without the &amp; and ; delimiters.
-     *
-     * <dl>
-     * <dt><b>Invariants:</b></dt>
-     * <dd>
-     * <ul>
-     * <li>The field is never <code>null</code>.
-     * <li>The field always contains the following associations:
-     * "lt"&nbsp;=&gt;&nbsp;"&lt;", "gt"&nbsp;=&gt;&nbsp;"&gt;",
-     * "quot"&nbsp;=&gt;&nbsp;"\"", "apos"&nbsp;=&gt;&nbsp;"'",
-     * "amp"&nbsp;=&gt;&nbsp;"&amp;"
-     * <li>The keys are strings
-     * <li>The values are char arrays
-     * </ul>
-     * </dd>
-     * </dl>
-     */
     private Map<String, char[]> entities;
 
     /**
@@ -161,29 +79,11 @@ public final class XmlElement {
 
     /**
      * The reader provided by the caller of the parse method.
-     *
-     * <dl>
-     * <dt><b>Invariants:</b></dt>
-     * <dd>
-     * <ul>
-     * <li>The field is not <code>null</code> while the parse method is running.
-     * </ul>
-     * </dd>
-     * </dl>
      */
     private Reader reader;
 
     /**
      * The current line number in the source content.
-     *
-     * <dl>
-     * <dt><b>Invariants:</b></dt>
-     * <dd>
-     * <ul>
-     * <li>parserLineNr &gt; 0 while the parse method is running.
-     * </ul>
-     * </dd>
-     * </dl>
      */
     private int parserLineNr;
 
@@ -191,25 +91,9 @@ public final class XmlElement {
         this(new HashMap<>(), false, true);
     }
 
-    /**
-     * Creates and initializes a new XML element.
-     * <P>
-     * This constructor should <I>only</I> be called from
-     * {@link #createAnotherElement() createAnotherElement} to create child
-     * elements.
-     *
-     * @param entities                 The entity conversion table.
-     * @param skipLeadingWhitespace    <code>true</code> if leading and trailing
-     *                                 whitespace in PCDATA content has to be
-     *                                 removed.
-     * @param fillBasicConversionTable <code>true</code> if the basic entities need
-     *                                 to be added to the entity list.
-     *
-     * @see com.github.davidmoten.xml.XmlElement#createAnotherElement()
-     */
-    protected XmlElement(Map<String, char[]> entities, boolean skipLeadingWhitespace,
+    private XmlElement(Map<String, char[]> entities, boolean skipLeadingWhitespaceInContent,
             boolean fillBasicConversionTable) {
-        this.ignoreWhitespace = skipLeadingWhitespace;
+        this.ignoreWhitespace = skipLeadingWhitespaceInContent;
         this.name = null;
         this.contents = "";
         this.attributes = new HashMap<>();
@@ -316,90 +200,22 @@ public final class XmlElement {
     /**
      * Returns the name of the element.
      *
-     * @see com.github.davidmoten.xml.XmlElement#setName(java.lang.String) setName(String)
+     * @see com.github.davidmoten.xml.XmlElement#setName(java.lang.String)
+     *      setName(String)
      */
     public String getName() {
         return this.name;
     }
 
-    /**
-     * Reads one XML element from a java.io.Reader and parses it.
-     *
-     * @param reader The reader from which to retrieve the XML data.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>reader != null</code>
-     *               <li><code>reader</code> is not closed
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     *               <dl>
-     *               <dt><b>Postconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li>the state of the receiver is updated to reflect the XML
-     *               element parsed from the reader
-     *               <li>the reader points to the first character following the last
-     *               '&gt;' character of the XML element
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *               <dl>
-     *
-     * @throws java.io.IOException       If an error occured while reading the
-     *                                   input.
-     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the read
-     *                                   data.
-     */
     public void parseFromReader(Reader reader) throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
         this.parseFromReader(reader, /* startingLineNr */ 1);
     }
 
-    /**
-     * Reads one XML element from a java.io.Reader and parses it.
-     *
-     * @param reader         The reader from which to retrieve the XML data.
-     * @param startingLineNr The line number of the first line in the data.
-     *
-     *                       </dl>
-     *                       <dl>
-     *                       <dt><b>Preconditions:</b></dt>
-     *                       <dd>
-     *                       <ul>
-     *                       <li><code>reader != null</code>
-     *                       <li><code>reader</code> is not closed
-     *                       </ul>
-     *                       </dd>
-     *                       </dl>
-     *
-     *                       <dl>
-     *                       <dt><b>Postconditions:</b></dt>
-     *                       <dd>
-     *                       <ul>
-     *                       <li>the state of the receiver is updated to reflect the
-     *                       XML element parsed from the reader
-     *                       <li>the reader points to the first character following
-     *                       the last '&gt;' character of the XML element
-     *                       </ul>
-     *                       </dd>
-     *                       </dl>
-     *                       <dl>
-     *
-     * @throws java.io.IOException       If an error occured while reading the
-     *                                   input.
-     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the read
-     *                                   data.
-     */
     private void parseFromReader(Reader reader, int startingLineNr)
             throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
-        Preconditions.checkArgument(startingLineNr >=1);
+        Preconditions.checkArgument(startingLineNr >= 1);
         this.name = null;
         this.contents = "";
         this.attributes = new HashMap<>();
@@ -427,174 +243,12 @@ public final class XmlElement {
         }
     }
 
-    /**
-     * Reads one XML element from a String and parses it.
-     *
-     * @param reader The reader from which to retrieve the XML data.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>string != null</code>
-     *               <li><code>string.length() &gt; 0</code>
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     *               <dl>
-     *               <dt><b>Postconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li>the state of the receiver is updated to reflect the XML
-     *               element parsed from the reader
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *               <dl>
-     *
-     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
-     *                                   string.
-     */
     public void parseString(String string) throws XmlParseException {
         Preconditions.checkNotNull(string);
         try {
             this.parseFromReader(new StringReader(string), /* startingLineNr */ 1);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
-        }
-    }
-
-    /**
-     * Reads one XML element from a String and parses it.
-     *
-     * @param reader         The reader from which to retrieve the XML data.
-     * @param offset         The first character in <code>string</code> to scan.
-     * @param end            The character where to stop scanning. This character is
-     *                       not scanned.
-     * @param startingLineNr The line number of the first line in the data.
-     *
-     *                       </dl>
-     *                       <dl>
-     *                       <dt><b>Preconditions:</b></dt>
-     *                       <dd>
-     *                       <ul>
-     *                       <li><code>string != null</code>
-     *                       <li><code>end &lt;= string.length()</code>
-     *                       <li><code>offset &lt; end</code>
-     *                       <li><code>offset &gt;= 0</code>
-     *                       </ul>
-     *                       </dd>
-     *                       </dl>
-     *
-     *                       <dl>
-     *                       <dt><b>Postconditions:</b></dt>
-     *                       <dd>
-     *                       <ul>
-     *                       <li>the state of the receiver is updated to reflect the
-     *                       XML element parsed from the reader
-     *                       </ul>
-     *                       </dd>
-     *                       </dl>
-     *                       <dl>
-     *
-     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
-     *                                   string.
-     */
-    public void parseString(String string, int offset, int end, int startingLineNr)
-            throws XmlParseException {
-        Preconditions.checkNotNull(string);
-        string = string.substring(offset, end);
-        try {
-            this.parseFromReader(new StringReader(string), startingLineNr);
-        } catch (IOException e) {
-            // Java exception handling suxx
-        }
-    }
-
-    /**
-     * Reads one XML element from a char array and parses it.
-     *
-     * @param reader The reader from which to retrieve the XML data.
-     * @param offset The first character in <code>string</code> to scan.
-     * @param end    The character where to stop scanning. This character is not
-     *               scanned.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>input != null</code>
-     *               <li><code>end &lt;= input.length</code>
-     *               <li><code>offset &lt; end</code>
-     *               <li><code>offset &gt;= 0</code>
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     *               <dl>
-     *               <dt><b>Postconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li>the state of the receiver is updated to reflect the XML
-     *               element parsed from the reader
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *               <dl>
-     *
-     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
-     *                                   string.
-     */
-    public void parseCharArray(char[] input, int offset, int end) throws XmlParseException {
-        this.parseCharArray(input, offset, end, /* startingLineNr */ 1);
-    }
-
-    /**
-     * Reads one XML element from a char array and parses it.
-     *
-     * @param reader         The reader from which to retrieve the XML data.
-     * @param offset         The first character in <code>string</code> to scan.
-     * @param end            The character where to stop scanning. This character is
-     *                       not scanned.
-     * @param startingLineNr The line number of the first line in the data.
-     *
-     *                       </dl>
-     *                       <dl>
-     *                       <dt><b>Preconditions:</b></dt>
-     *                       <dd>
-     *                       <ul>
-     *                       <li><code>input != null</code>
-     *                       <li><code>end &lt;= input.length</code>
-     *                       <li><code>offset &lt; end</code>
-     *                       <li><code>offset &gt;= 0</code>
-     *                       </ul>
-     *                       </dd>
-     *                       </dl>
-     *
-     *                       <dl>
-     *                       <dt><b>Postconditions:</b></dt>
-     *                       <dd>
-     *                       <ul>
-     *                       <li>the state of the receiver is updated to reflect the
-     *                       XML element parsed from the reader
-     *                       </ul>
-     *                       </dd>
-     *                       </dl>
-     *                       <dl>
-     *
-     * @throws com.github.davidmoten.xml.XmlParseException If an error occured while parsing the
-     *                                   string.
-     */
-    public void parseCharArray(char[] input, int offset, int end, int startingLineNr)
-            throws XmlParseException {
-        try {
-            Reader reader = new CharArrayReader(input, offset, end);
-            this.parseFromReader(reader, startingLineNr);
-        } catch (IOException e) {
-            // This exception will never happen.
         }
     }
 
@@ -608,12 +262,7 @@ public final class XmlElement {
         this.attributes.remove(name);
     }
 
-    /**
-     * Creates a new similar XML element.
-     * <P>
-     * You should override this method when subclassing XMLElement.
-     */
-    protected XmlElement createAnotherElement() {
+    private XmlElement createAnotherElement() {
         return new XmlElement(this.entities, this.ignoreWhitespace, false);
     }
 
@@ -631,29 +280,12 @@ public final class XmlElement {
      *
      * @param name The new name.
      *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             <li><code>name</code> is a valid XML identifier
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     *
-     * @see com.github.davidmoten.xml.XmlElement#getName()
-     */
+     **/
     // Nullable
     public void setName(String name) {
         this.name = name;
     }
 
-    /**
-     * Writes the XML element to a string.
-     *
-     * @see com.github.davidmoten.xml.XmlElement#write(java.io.Writer) write(Writer)
-     */
     public String toString() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
@@ -667,7 +299,7 @@ public final class XmlElement {
     public void write(Writer writer) throws IOException {
         Preconditions.checkNotNull(writer);
         if (this.name == null) {
-            this.writeEncoded(writer, this.contents);
+            writeEncoded(writer, this.contents);
             return;
         }
         writer.write('<');
@@ -681,13 +313,13 @@ public final class XmlElement {
                 writer.write(key);
                 writer.write('=');
                 writer.write('"');
-                this.writeEncoded(writer, value);
+                writeEncoded(writer, value);
                 writer.write('"');
             }
         }
         if ((this.contents != null) && (this.contents.length() > 0)) {
             writer.write('>');
-            this.writeEncoded(writer, this.contents);
+            writeEncoded(writer, this.contents);
             writer.write('<');
             writer.write('/');
             writer.write(this.name);
@@ -709,25 +341,7 @@ public final class XmlElement {
         }
     }
 
-    /**
-     * Writes a string encoded to a writer.
-     *
-     * @param writer The writer to write the XML data to.
-     * @param str    The string to write encoded.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>writer != null</code>
-     *               <li><code>writer</code> is not closed
-     *               <li><code>str != null</code>
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     */
-    protected void writeEncoded(Writer writer, String str) throws IOException {
+    private static void writeEncoded(Writer writer, String str) throws IOException {
         for (int i = 0; i < str.length(); i += 1) {
             char ch = str.charAt(i);
             switch (ch) {
@@ -786,31 +400,8 @@ public final class XmlElement {
      * appended to <code>result</code>.
      *
      * @param result The buffer in which the scanned identifier will be put.
-     *
-     *               </dl>
-     *               <dl>
-     *               <dt><b>Preconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li><code>result != null</code>
-     *               <li>The next character read from the reader is a valid first
-     *               character of an XML identifier.
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *
-     *               <dl>
-     *               <dt><b>Postconditions:</b></dt>
-     *               <dd>
-     *               <ul>
-     *               <li>The next character read from the reader won't be an
-     *               identifier character.
-     *               </ul>
-     *               </dd>
-     *               </dl>
-     *               <dl>
      */
-    protected void scanIdentifier(StringBuilder result) throws IOException {
+    private void scanIdentifier(StringBuilder result) throws IOException {
         for (;;) {
             char ch = this.readChar();
             if (((ch < 'A') || (ch > 'Z')) && ((ch < 'a') || (ch > 'z'))
@@ -828,7 +419,7 @@ public final class XmlElement {
      *
      * @return the next character following the whitespace.
      */
-    protected char scanWhitespace() throws IOException {
+    private char scanWhitespace() throws IOException {
         for (;;) {
             char ch = this.readChar();
             switch (ch) {
@@ -848,18 +439,8 @@ public final class XmlElement {
      * whitespace is appended to <code>result</code>.
      *
      * @return the next character following the whitespace.
-     *
-     *         </dl>
-     *         <dl>
-     *         <dt><b>Preconditions:</b></dt>
-     *         <dd>
-     *         <ul>
-     *         <li><code>result != null</code>
-     *         </ul>
-     *         </dd>
-     *         </dl>
      */
-    protected char scanWhitespace(StringBuilder result) throws IOException {
+    private char scanWhitespace(StringBuilder result) throws IOException {
         for (;;) {
             char ch = this.readChar();
             switch (ch) {
@@ -878,19 +459,8 @@ public final class XmlElement {
     /**
      * This method scans a delimited string from the current reader. The scanned
      * string without delimiters is appended to <code>string</code>.
-     *
-     * </dl>
-     * <dl>
-     * <dt><b>Preconditions:</b></dt>
-     * <dd>
-     * <ul>
-     * <li><code>string != null</code>
-     * <li>the next char read is the string delimiter
-     * </ul>
-     * </dd>
-     * </dl>
      */
-    protected void scanString(StringBuilder string) throws IOException {
+    private void scanString(StringBuilder string) throws IOException {
         char delimiter = this.readChar();
         if ((delimiter != '\'') && (delimiter != '"')) {
             throw this.createUnexpectedInputException("' or \"");
@@ -910,18 +480,8 @@ public final class XmlElement {
     /**
      * Scans a #PCDATA element. CDATA sections and entities are resolved. The next
      * &lt; char is skipped. The scanned data is appended to <code>data</code>.
-     *
-     * </dl>
-     * <dl>
-     * <dt><b>Preconditions:</b></dt>
-     * <dd>
-     * <ul>
-     * <li><code>data != null</code>
-     * </ul>
-     * </dd>
-     * </dl>
      */
-    protected void scanPCData(StringBuilder data) throws IOException {
+    private void scanPCData(StringBuilder data) throws IOException {
         for (;;) {
             char ch = this.readChar();
             if (ch == '<') {
@@ -943,19 +503,8 @@ public final class XmlElement {
     /**
      * Scans a special tag and if the tag is a CDATA section, append its content to
      * <code>buf</code>.
-     *
-     * </dl>
-     * <dl>
-     * <dt><b>Preconditions:</b></dt>
-     * <dd>
-     * <ul>
-     * <li><code>buf != null</code>
-     * <li>The first &lt; has already been read.
-     * </ul>
-     * </dd>
-     * </dl>
      */
-    protected boolean checkCDATA(StringBuilder buf) throws IOException {
+    private boolean checkCDATA(StringBuilder buf) throws IOException {
         char ch = this.readChar();
         if (ch != '[') {
             this.unreadChar(ch);
@@ -1003,18 +552,8 @@ public final class XmlElement {
 
     /**
      * Skips a comment.
-     *
-     * </dl>
-     * <dl>
-     * <dt><b>Preconditions:</b></dt>
-     * <dd>
-     * <ul>
-     * <li>The first &lt;!-- has already been read.
-     * </ul>
-     * </dd>
-     * </dl>
      */
-    protected void skipComment() throws IOException {
+    private void skipComment() throws IOException {
         int dashesToRead = 2;
         while (dashesToRead > 0) {
             char ch = this.readChar();
@@ -1034,19 +573,8 @@ public final class XmlElement {
      *
      * @param bracketLevel The number of open square brackets ([) that have already
      *                     been read.
-     *
-     *                     </dl>
-     *                     <dl>
-     *                     <dt><b>Preconditions:</b></dt>
-     *                     <dd>
-     *                     <ul>
-     *                     <li>The first &lt;! has already been read.
-     *                     <li><code>bracketLevel >= 0</code>
-     *                     </ul>
-     *                     </dd>
-     *                     </dl>
      */
-    protected void skipSpecialTag(int bracketLevel) throws IOException {
+    private void skipSpecialTag(int bracketLevel) throws IOException {
         int tagLevel = 1; // <
         char stringDelimiter = '\0';
         if (bracketLevel == 0) {
@@ -1095,18 +623,8 @@ public final class XmlElement {
      * match or after the complete text has been checked, whichever comes first.
      *
      * @param literal the literal to check.
-     *
-     *                </dl>
-     *                <dl>
-     *                <dt><b>Preconditions:</b></dt>
-     *                <dd>
-     *                <ul>
-     *                <li><code>literal != null</code>
-     *                </ul>
-     *                </dd>
-     *                </dl>
      */
-    protected boolean checkLiteral(String literal) throws IOException {
+    private boolean checkLiteral(String literal) throws IOException {
         int length = literal.length();
         for (int i = 0; i < length; i += 1) {
             if (this.readChar() != literal.charAt(i)) {
@@ -1119,7 +637,7 @@ public final class XmlElement {
     /**
      * Reads a character from a reader.
      */
-    protected char readChar() throws IOException {
+    private char readChar() throws IOException {
         if (this.charReadTooMuch != '\0') {
             char ch = this.charReadTooMuch;
             this.charReadTooMuch = '\0';
@@ -1137,23 +655,7 @@ public final class XmlElement {
         }
     }
 
-    /**
-     * Scans an XML element.
-     *
-     * @param elt The element that will contain the result.
-     *
-     *            </dl>
-     *            <dl>
-     *            <dt><b>Preconditions:</b></dt>
-     *            <dd>
-     *            <ul>
-     *            <li>The first &lt; has already been read.
-     *            <li><code>elt != null</code>
-     *            </ul>
-     *            </dd>
-     *            </dl>
-     */
-    protected void scanElement(XmlElement elt) throws IOException {
+    private void scanElement(XmlElement elt) throws IOException {
         StringBuilder buf = new StringBuilder();
         this.scanIdentifier(buf);
         String name = buf.toString();
@@ -1262,19 +764,8 @@ public final class XmlElement {
      * of the entity is appended to <code>buf</code>.
      *
      * @param buf Where to put the entity value.
-     *
-     *            </dl>
-     *            <dl>
-     *            <dt><b>Preconditions:</b></dt>
-     *            <dd>
-     *            <ul>
-     *            <li>The first &amp; has already been read.
-     *            <li><code>buf != null</code>
-     *            </ul>
-     *            </dd>
-     *            </dl>
      */
-    protected void resolveEntity(StringBuilder buf) throws IOException {
+    private void resolveEntity(StringBuilder buf) throws IOException {
         char ch = '\0';
         StringBuilder keyBuf = new StringBuilder();
         for (;;) {
@@ -1309,92 +800,17 @@ public final class XmlElement {
      * Pushes a character back to the read-back buffer.
      *
      * @param ch The character to push back.
-     *
-     *           </dl>
-     *           <dl>
-     *           <dt><b>Preconditions:</b></dt>
-     *           <dd>
-     *           <ul>
-     *           <li>The read-back buffer is empty.
-     *           <li><code>ch != '\0'</code>
-     *           </ul>
-     *           </dd>
-     *           </dl>
      */
-    protected void unreadChar(char ch) {
+    private void unreadChar(char ch) {
         this.charReadTooMuch = ch;
-    }
-
-    /**
-     * Creates a parse exception for when an invalid valueset is given to a method.
-     *
-     * @param name The name of the entity.
-     *
-     *             </dl>
-     *             <dl>
-     *             <dt><b>Preconditions:</b></dt>
-     *             <dd>
-     *             <ul>
-     *             <li><code>name != null</code>
-     *             </ul>
-     *             </dd>
-     *             </dl>
-     */
-    protected XmlParseException invalidValueSet(String name) {
-        String msg = "Invalid value set (entity name = \"" + name + "\")";
-        return new XmlParseException(this.getName(), this.parserLineNr, msg);
-    }
-
-    /**
-     * Creates a parse exception for when an invalid value is given to a method.
-     *
-     * @param name  The name of the entity.
-     * @param value The value of the entity.
-     *
-     *              </dl>
-     *              <dl>
-     *              <dt><b>Preconditions:</b></dt>
-     *              <dd>
-     *              <ul>
-     *              <li><code>name != null</code>
-     *              <li><code>value != null</code>
-     *              </ul>
-     *              </dd>
-     *              </dl>
-     */
-    protected XmlParseException invalidValue(String name, String value) {
-        String msg = "Attribute \"" + name + "\" does not contain a valid " + "value (\"" + value
-                + "\")";
-        return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
     /**
      * Creates a parse exception for when the end of the data input has been
      * reached.
      */
-    protected XmlParseException createExceptionUnexpectedEndOfData() {
+    private XmlParseException createExceptionUnexpectedEndOfData() {
         String msg = "Unexpected end of data reached";
-        return new XmlParseException(this.getName(), this.parserLineNr, msg);
-    }
-
-    /**
-     * Creates a parse exception for when a syntax error occured.
-     *
-     * @param context The context in which the error occured.
-     *
-     *                </dl>
-     *                <dl>
-     *                <dt><b>Preconditions:</b></dt>
-     *                <dd>
-     *                <ul>
-     *                <li><code>context != null</code>
-     *                <li><code>context.length() &gt; 0</code>
-     *                </ul>
-     *                </dd>
-     *                </dl>
-     */
-    protected XmlParseException syntaxError(String context) {
-        String msg = "Syntax error while parsing " + context;
         return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
 
@@ -1404,24 +820,13 @@ public final class XmlElement {
      *
      * @param charSet The set of characters (in human readable form) that was
      *                expected.
-     *
-     *                </dl>
-     *                <dl>
-     *                <dt><b>Preconditions:</b></dt>
-     *                <dd>
-     *                <ul>
-     *                <li><code>charSet != null</code>
-     *                <li><code>charSet.length() &gt; 0</code>
-     *                </ul>
-     *                </dd>
-     *                </dl>
      */
-    protected XmlParseException createUnexpectedInputException(String charSet) {
+    private XmlParseException createUnexpectedInputException(String charSet) {
         String msg = "Expected: " + charSet;
         return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
-    
-    protected XmlParseException createExceptionUnknownEntity(String name) {
+
+    private XmlParseException createExceptionUnknownEntity(String name) {
         String msg = "Unknown or invalid entity: &" + name + ";";
         return new XmlParseException(this.getName(), this.parserLineNr, msg);
     }
