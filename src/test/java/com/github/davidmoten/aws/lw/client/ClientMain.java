@@ -16,7 +16,8 @@ public final class ClientMain {
         Client sqs = Client //
                 .sqs() //
                 .regionName(regionName) //
-                .credentials(credentials);
+                .credentials(credentials) //
+                .build();
         Client s3 = Client.s3().from(sqs);
         {
             // create bucket

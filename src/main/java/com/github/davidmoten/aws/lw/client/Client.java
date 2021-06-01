@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import com.github.davidmoten.aws.lw.client.internal.HttpClientDefault;
 import com.github.davidmoten.xml.Preconditions;
 
 public final class Client {
@@ -7,18 +8,20 @@ public final class Client {
     private final String serviceName;
     private final String regionName;
     private final Credentials credentials;
+    private final HttpClient httpClient;
 
-    private Client(String serviceName, String regionName, Credentials credentials) {
+    private Client(String serviceName, String regionName, Credentials credentials, HttpClient httpClient) {
         this.serviceName = serviceName;
         this.regionName = regionName;
         this.credentials = credentials;
+        this.httpClient = httpClient;
     }
-    
+
     public static Builder service(String serviceName) {
         Preconditions.checkNotNull(serviceName);
         return new Builder(serviceName);
     }
-    
+
     ///////////////////////////////////////////////////
     //
     // Convenience methods for a few common services
@@ -33,23 +36,23 @@ public final class Client {
     public static Builder sqs() {
         return new Builder("sqs");
     }
-    
+
     public static Builder iam() {
         return new Builder("iam");
     }
-    
+
     public static Builder ec2() {
         return new Builder("ec2");
     }
-    
+
     public static Builder sns() {
         return new Builder("sns");
     }
-    
+
     public static Builder lambda() {
         return new Builder("lambda");
     }
-    
+
     ///////////////////////////////////////////////////
 
     String serviceName() {
@@ -62,6 +65,10 @@ public final class Client {
 
     Credentials credentials() {
         return credentials;
+    }
+    
+    public HttpClient httpClient() {
+        return httpClient;
     }
 
     public Request url(String url) {
@@ -77,8 +84,7 @@ public final class Client {
      */
     public Request path(String path) {
         Preconditions.checkNotNull(path);
-        return url("https://" + serviceName + "." + regionName + ".amazonaws.com/"
-                + removeLeadingSlash(path));
+        return url("https://" + serviceName + "." + regionName + ".amazonaws.com/" + removeLeadingSlash(path));
     }
 
     public Request query(String name, String value) {
@@ -96,26 +102,25 @@ public final class Client {
         }
     }
 
-
-
     public static final class Builder {
 
         private final String serviceName;
         private String regionName;
         private String accessKey;
         public Credentials credentials;
+        public HttpClient httpClient = HttpClientDefault.INSTANCE;
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
         }
 
         public Client defaultClient() {
-            return regionFromEnvironment().credentials(Credentials.fromEnvironment());
+            return regionFromEnvironment().credentials(Credentials.fromEnvironment()).build();
         }
 
         public Client from(Client client) {
             Preconditions.checkNotNull(client);
-            return regionName(client.regionName()).credentials(client.credentials());
+            return regionName(client.regionName()).credentials(client.credentials()).build();
         }
 
         public Builder2 regionFromEnvironment() {
@@ -142,9 +147,10 @@ public final class Client {
             return new Builder3(b);
         }
 
-        public Client credentials(Credentials credentials) {
+        public Builder4 credentials(Credentials credentials) {
             Preconditions.checkNotNull(credentials);
-            return new Client(b.serviceName, b.regionName, credentials);
+            b.credentials = credentials;
+            return new Builder4(b);
         }
     }
 
@@ -155,10 +161,22 @@ public final class Client {
             this.b = b;
         }
 
-        public Client secretKey(String secretKey) {
+        public Builder4 secretKey(String secretKey) {
             Preconditions.checkNotNull(secretKey);
-            Credentials c = Credentials.of(b.accessKey, secretKey);
-            return new Client(b.serviceName, b.regionName, c);
+            b.credentials = Credentials.of(b.accessKey, secretKey);
+            return new Builder4(b);
+        }
+    }
+
+    public static final class Builder4 {
+        private final Builder b;
+
+        private Builder4(Builder b) {
+            this.b = b;
+        }
+        
+        public Client build() {
+            return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient);
         }
     }
 }

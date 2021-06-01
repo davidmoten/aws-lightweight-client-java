@@ -45,62 +45,7 @@ public class HttpUtils {
         return executeHttpRequest(connection);
     }
 
-    // TODO return status code as well
-    public static Response invokeHttpRequest2(URL endpointUrl, String httpMethod,
-            Map<String, String> headers, byte[] requestBody) {
-        HttpURLConnection connection = createHttpConnection(endpointUrl, httpMethod, headers);
-        try {
-            if (requestBody != null) {
-                OutputStream out = connection.getOutputStream();
-                out.write(requestBody);
-                out.flush();
-            }
-        } catch (Exception e) {
-            throw new RuntimeException("Request failed. " + e.getMessage(), e);
-        }
-        try {
-            Map<String, List<String>> responseHeaders = connection.getHeaderFields();
-            int responseCode = connection.getResponseCode();
-            boolean ok = isOk(responseCode);
-            InputStream is;
-            if (ok) {
-                is = connection.getInputStream();
-            } else {
-                is = connection.getErrorStream();
-            }
-            final byte[] bytes;
-            if (is == null) {
-                bytes = new byte[0];
-            } else {
-                bytes = readBytes(is);
-            }
-            return new Response(responseHeaders, bytes, responseCode);
-        } catch (Exception e) {
-            if (e instanceof ServiceException) {
-                throw (ServiceException) e;
-            } else {
-                throw new RuntimeException("Request failed. " + e.getMessage(), e);
-            }
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
-        }
-    }
-
-    private static boolean isOk(int responseCode) {
-        return responseCode >= 200 && responseCode <= 299;
-    }
-
-    private static byte[] readBytes(InputStream in) throws IOException {
-        byte[] buffer = new byte[8192];
-        int n;
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        while ((n = in.read(buffer)) != -1) {
-            bytes.write(buffer, 0, n);
-        }
-        return bytes.toByteArray();
-    }
+    
 
     public static String executeHttpRequest(HttpURLConnection connection) {
         try {
@@ -129,9 +74,14 @@ public class HttpUtils {
             }
         }
     }
-
+    
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
             Map<String, String> headers) {
+        return createHttpConnection(endpointUrl, httpMethod, headers, CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+    }
+
+    public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
+            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) {
         try {
             HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
             connection.setRequestMethod(httpMethod);
@@ -145,8 +95,8 @@ public class HttpUtils {
             connection.setUseCaches(false);
             connection.setDoInput(true);
             connection.setDoOutput(true);
-            connection.setConnectTimeout(CONNECT_TIMEOUT_MS);
-            connection.setReadTimeout(READ_TIMEOUT_MS);
+            connection.setConnectTimeout(connectTimeoutMs);
+            connection.setReadTimeout(readTimeoutMs);
             return connection;
         } catch (Exception e) {
             throw new RuntimeException("Cannot create connection. " + e.getMessage(), e);

@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -17,6 +18,8 @@ public final class Request {
     private HttpMethod method = HttpMethod.GET;
     private final Map<String, List<String>> headers = new HashMap<>();
     private byte[] requestBody;
+    private int connectTimeoutMs = (int) TimeUnit.SECONDS.toMillis(30);
+    private int readTimeoutMs = (int) TimeUnit.MINUTES.toMillis(5);
 
     Request(Client client, String url) {
         this.client = client;
@@ -78,17 +81,29 @@ public final class Request {
         return this;
     }
 
+    public Request connectTimeoutMs(int connectTimeoutMs) {
+        Preconditions.checkArgument(connectTimeoutMs >= 0);
+        this.connectTimeoutMs = connectTimeoutMs;
+        return this;
+    }
+
+    public Request readTimeoutMs(int readTimeoutMs) {
+        Preconditions.checkArgument(readTimeoutMs >= 0);
+        this.readTimeoutMs = readTimeoutMs;
+        return this;
+    }
+
     /**
-     * Opens a connection and makes the request. This method returns all the response
-     * information including headers, status code, request body. If an error status
-     * code is encountered (outside 200-299) then an exception is <b>not</b> thrown
-     * (unlike the other methods .response*).
+     * Opens a connection and makes the request. This method returns all the
+     * response information including headers, status code, request body. If an
+     * error status code is encountered (outside 200-299) then an exception is
+     * <b>not</b> thrown (unlike the other methods .response*).
      * 
      * @return all response information
      */
     public Response response() {
-        return RequestHelper.request(url, method.toString(), RequestHelper.combineHeaders(headers), requestBody,
-                client.serviceName(), regionName, client.credentials());
+        return RequestHelper.request(client.httpClient(), url, method.toString(), RequestHelper.combineHeaders(headers),
+                requestBody, client.serviceName(), regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
     }
 
     public byte[] responseAsBytes() {

@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
-import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 import com.github.davidmoten.xml.Preconditions;
 
 final class RequestHelper {
@@ -41,8 +40,8 @@ final class RequestHelper {
                 x -> x.getValue().stream().collect(Collectors.joining(","))));
     }
 
-    static Response request(String url, String method, Map<String, String> headers,
-            byte[] requestBody, String serviceName, String regionName, Credentials credentials) {
+    static Response request(HttpClient httpClient, String url, String method, Map<String, String> headers,
+            byte[] requestBody, String serviceName, String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs) {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl;
@@ -78,7 +77,7 @@ final class RequestHelper {
         // place the computed signature into a formatted 'Authorization' header
         // and call S3
         h.put("Authorization", authorization);
-        return HttpUtils.invokeHttpRequest2(endpointUrl, method, h, requestBody);
+        return httpClient.request(endpointUrl, method, h, requestBody, connectTimeoutMs, readTimeoutMs);
     }
 
     private static List<Parameter> extractQueryParameters(URL endpointUrl) {
