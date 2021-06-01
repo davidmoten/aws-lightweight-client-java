@@ -7,7 +7,7 @@ For example with a 50K standalone artifact you can do:
 String content = Client
   .s3() 
   .defaultClient() 
-  .path("myBucket/myObject.txt") //
+  .path("myBucket/myObject.txt")
   .responseAsUtf8();
 ```
 
@@ -28,7 +28,87 @@ Add this dependency to your pom.xml:
 
 To perform actions against the API you do need to know what methods exist and the parameters for those methods. This library is lightweight because it doesn't include a mass of generated classes from the API so you'll need to check the AWS API documentation to get that information. For example the API docs for S3 is [here](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
-Let's try some other tasks. Here are some SQS tasks:
+### S3
+The code below demonstrates the following:
+* create bucket
+* put object with metadata
+* read object and metadata
+* list objects in bucket
+* delete object
+* delete bucket
+
+```java
+// we'll create a random bucket name
+String bucketName = "temp-bucket-" + System.currentTimeMillis();
+
+///////////////////////
+// create bucket
+///////////////////////
+
+String createXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+        + "<CreateBucketConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
+        + "   <LocationConstraint>" + regionName + "</LocationConstraint>\n"
+        + "</CreateBucketConfiguration>";
+s3.path(bucketName)
+    .method(HttpMethod.PUT)
+    .requestBody(createXml)
+    .execute();
+
+////////////////////////////
+// put object with metadata
+///////////////////////////
+
+String objectName = "ExampleObject.txt";
+s3
+    .path(bucketName + "/" + objectName)
+    .method(HttpMethod.PUT)
+    .requestBody("hi there")
+    .metadata("category", "something")
+    .execute();
+
+///////////////////////////////////
+// read object including metadata
+///////////////////////////////////
+
+Response r = s3
+    .path(bucketName + "/" + objectName)
+    .response();
+System.out.println(r.content().length + " chars read");
+System.out.println("category=" + r.metadata("category").orElse(""));
+
+///////////////////////////////////
+// list bucket objects 
+///////////////////////////////////
+
+List<String> keys = s3
+    .url("https://" + bucketName + ".s3." + regionName + ".amazonaws.com")
+    .query("list-type", "2")
+    .responseAsXml()
+    .childrenWithName("Contents")
+    .stream()
+    .map(x -> x.content("Key"))
+    .collect(Collectors.toList());
+System.out.println(keys);
+
+///////////////////////////////////
+// delete object 
+///////////////////////////////////
+
+s3.path(bucketName + "/" + objectName) 
+    .method(HttpMethod.DELETE) 
+    .execute();
+        
+///////////////////////////////////
+// delete bucket 
+///////////////////////////////////
+
+s3.path(bucketName) 
+	.method(HttpMethod.DELETE) 
+	.execute();
+```
+
+### SQS
+Here are some SQS tasks:
 
 * create an sqs queue
 * get the queue url
@@ -62,19 +142,19 @@ sqs.url(queueUrl)
 // read all messages, print to console and delete them
 List<XmlElement> list;
 do {
-    list = sqs.url(queueUrl) //
-        .query("Action", "ReceiveMessage") //
-        .responseAsXml() //
-        .child("ReceiveMessageResult") //
+    list = sqs.url(queueUrl)
+        .query("Action", "ReceiveMessage")
+        .responseAsXml()
+        .child("ReceiveMessageResult")
         .children();
 
     list.forEach(x -> {
 	    String msg = x.child("Body").content();
 	    System.out.println(msg);
 	    // mark message as read
-	    sqs.url(queueUrl) //
-	            .query("Action", "DeleteMessage") //
-	            .query("ReceiptHandle", x.child("ReceiptHandle").content()) //
+	    sqs.url(queueUrl)
+	            .query("Action", "DeleteMessage")
+	            .query("ReceiptHandle", x.child("ReceiptHandle").content())
 	            .execute();
     });
 } while (!list.isEmpty());
@@ -84,5 +164,8 @@ sqs.url(queueUrl)
     .query("Action", "DeleteQueue") 
     .execute();
 ```
+
+### Error handling
+Let's look at a simple one, reading an object in an S3 bucket.
 
 
