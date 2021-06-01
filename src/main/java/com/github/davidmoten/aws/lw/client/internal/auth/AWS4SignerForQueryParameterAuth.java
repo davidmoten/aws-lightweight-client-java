@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Sample AWS4 signer demonstrating how to sign requests to Amazon S3 using
@@ -110,7 +110,7 @@ public class AWS4SignerForQueryParameterAuth extends AWS4SignerBase {
         authString.append("&X-Amz-Date=" + queryParameters.get("X-Amz-Date"));
         authString.append("&X-Amz-Expires=" + queryParameters.get("X-Amz-Expires"));
         authString.append("&X-Amz-SignedHeaders=" + queryParameters.get("X-Amz-SignedHeaders"));
-        authString.append("&X-Amz-Signature=" + BinaryUtils.toHex(signature));
+        authString.append("&X-Amz-Signature=" + Util.toHex(signature));
 
         return authString.toString();
     }

@@ -51,9 +51,11 @@ public final class ClientMain {
             r //
                     .metadata() //
                     .entrySet() //
+                    .stream() //
+                    .map(x -> x.getKey() + "=" + x.getValue()) //
                     .forEach(System.out::println);
 
-            System.out.println("category[0]=" + r.metadataFirst("category").orElse(""));
+            System.out.println("category[0]=" + r.metadata("category").orElse(""));
 
             List<String> keys = s3 //
                     .url("https://" + bucketName + ".s3." + regionName + ".amazonaws.com") //

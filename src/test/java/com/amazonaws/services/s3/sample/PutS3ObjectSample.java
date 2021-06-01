@@ -7,7 +7,7 @@ import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
-import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
@@ -48,7 +48,7 @@ public class PutS3ObjectSample {
         
         // precompute hash of the body content
         byte[] contentHash = AWS4SignerBase.hash(objectContent);
-        String contentHashString = BinaryUtils.toHex(contentHash);
+        String contentHashString = Util.toHex(contentHash);
         
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("x-amz-content-sha256", contentHashString);

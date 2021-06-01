@@ -4,7 +4,7 @@ import java.net.URL;
 import java.util.Date;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Sample AWS4 signer demonstrating how to sign requests to Amazon S3 using an
@@ -96,7 +96,7 @@ public class AWS4SignerForAuthorizationHeader extends AWS4SignerBase {
         String signedHeadersAuthorizationHeader =
                 "SignedHeaders=" + canonicalizedHeaderNames;
         String signatureAuthorizationHeader =
-                "Signature=" + BinaryUtils.toHex(signature);
+                "Signature=" + Util.toHex(signature);
 
         String authorizationHeader = SCHEME + "-" + ALGORITHM + " "
                 + credentialsAuthorizationHeader + ", "

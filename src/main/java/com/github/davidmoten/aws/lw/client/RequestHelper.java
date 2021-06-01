@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
-import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.xml.Preconditions;
 
 final class RequestHelper {
@@ -58,7 +58,7 @@ final class RequestHelper {
         } else {
             // compute hash of the body content
             byte[] contentHash = AWS4SignerBase.hash(requestBody);
-            contentHashString = BinaryUtils.toHex(contentHash);
+            contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
         }
         h.put("x-amz-content-sha256", contentHashString);

@@ -16,7 +16,7 @@ import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
@@ -193,7 +193,7 @@ public abstract class AWS4SignerBase {
     protected static String getStringToSign(String scheme, String algorithm, String dateTime,
             String scope, String canonicalRequest) {
         String stringToSign = scheme + "-" + algorithm + "\n" + dateTime + "\n" + scope + "\n"
-                + BinaryUtils.toHex(hash(canonicalRequest));
+                + Util.toHex(hash(canonicalRequest));
         return stringToSign;
     }
 

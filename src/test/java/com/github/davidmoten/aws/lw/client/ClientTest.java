@@ -3,8 +3,6 @@ package com.github.davidmoten.aws.lw.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.util.Map.Entry;
-
 import org.junit.Test;
 
 public class ClientTest {

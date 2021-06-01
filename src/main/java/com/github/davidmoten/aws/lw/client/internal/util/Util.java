@@ -5,17 +5,27 @@ import java.util.Locale;
 /**
  * Utilities for encoding and decoding binary data to and from different forms.
  */
-public final class BinaryUtils {
+public final class Util {
 
-    private BinaryUtils() {
+    private Util() {
         // prevent instantiation
     }
-    
+
+    public static String canonicalMetadataKey(String meta) {
+        StringBuilder b = new StringBuilder();
+        String s = meta.toLowerCase(Locale.ENGLISH);
+        for (int ch : s.toCharArray()) {
+            if (Character.isDigit(ch) || Character.isAlphabetic(ch)) {
+                b.append((char) ch);
+            }
+        }
+        return b.toString();
+    }
+
     /**
      * Converts byte data to a Hex-encoded string.
      *
-     * @param data
-     *            data to hex encode.
+     * @param data data to hex encode.
      *
      * @return hex-encoded string.
      */

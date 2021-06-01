@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.xml.Preconditions;
 import com.github.davidmoten.xml.XmlElement;
 
@@ -53,7 +54,7 @@ public final class Request {
         url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
         return this;
     }
-    
+
     public Request attributePrefix(String attributePrefix) {
         this.attributePrefix = attributePrefix;
         this.attributeNumber = 1;
@@ -74,10 +75,19 @@ public final class Request {
         return this;
     }
 
-    public Request metadata(String name, String value) {
-        Preconditions.checkNotNull(name);
+    /**
+     * Adds the header {@code x-amz-meta-KEY:value}. {@code KEY} is obtained from
+     * {@code key} by converting to lower-case (headers are case-insensitive) and
+     * only retaining alphabetical and digit characters.
+     * 
+     * @param key   metadata key
+     * @param value metadata value
+     * @return request builder
+     */
+    public Request metadata(String key, String value) {
+        Preconditions.checkNotNull(key);
         Preconditions.checkNotNull(value);
-        return header("x-amz-meta-" + name, value);
+        return header("x-amz-meta-" + Util.canonicalMetadataKey(key), value);
     }
 
     public Request requestBody(byte[] requestBody) {

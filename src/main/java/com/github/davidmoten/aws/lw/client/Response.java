@@ -27,28 +27,22 @@ public final class Response {
      * Returns those headers that start with {@code x-amz-meta-} (and removes that
      * prefix).
      * 
-     * @return headers that start with {@code x-amz-meta-} (and removes that
-     *         prefix)
+     * @return headers that start with {@code x-amz-meta-} (and removes that prefix)
      */
-    public Map<String, List<String>> metadata() {
-        return headers //
+    public Metadata metadata() {
+        return new Metadata(headers //
                 .entrySet() //
                 .stream() //
                 .filter(x -> x.getKey() != null) //
                 .filter(x -> x.getKey().startsWith("x-amz-meta-")) //
                 .collect(Collectors.toMap( //
                         x -> x.getKey().substring(11), //
-                        x -> x.getValue()));
+                        x -> x.getValue().get(0))));
     }
 
-    public Optional<String> metadataFirst(String name) {
+    public Optional<String> metadata(String name) {
         Preconditions.checkNotNull(name);
-        List<String> list = metadata().get(name);
-        if (list == null || list.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(list.get(0));
-        }
+        return metadata().value(name);
     }
 
     public byte[] content() {
