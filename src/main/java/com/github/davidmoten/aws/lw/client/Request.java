@@ -21,6 +21,7 @@ public final class Request {
     private int connectTimeoutMs;
     private int readTimeoutMs;
     private int attributeNumber = 1;
+    private String attributePrefix;
 
     Request(Client client, String url) {
         this.client = client;
@@ -52,12 +53,18 @@ public final class Request {
         url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
         return this;
     }
+    
+    public Request attributePrefix(String attributePrefix) {
+        this.attributePrefix = attributePrefix;
+        this.attributeNumber = 1;
+        return this;
+    }
 
     public Request attribute(String name, String value) {
         int i = attributeNumber;
         attributeNumber++;
-        return query("Attribute." + i + ".Name", name) //
-                .query("Attribute." + i + ".Value", value);
+        return query(attributePrefix + "." + i + ".Name", name) //
+                .query(attributePrefix + "." + i + ".Value", value);
     }
 
     public Request header(String name, String value) {

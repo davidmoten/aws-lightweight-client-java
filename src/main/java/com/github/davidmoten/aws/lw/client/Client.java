@@ -106,6 +106,10 @@ public final class Client {
         return path("").query(name, value);
     }
     
+    public Request attributePrefix(String attributePrefix) {
+        return path("").attributePrefix(attributePrefix);
+    }
+    
     public Request attribute(String name, String value) {
         Preconditions.checkNotNull(name);
         Preconditions.checkNotNull(value);
