@@ -11,7 +11,7 @@ import com.github.davidmoten.xml.Preconditions;
 import com.github.davidmoten.xml.XmlElement;
 
 public final class Request {
-    
+
     private final Client client;
     private String regionName;
     private String url;
@@ -20,6 +20,7 @@ public final class Request {
     private byte[] requestBody;
     private int connectTimeoutMs;
     private int readTimeoutMs;
+    private int attributeNumber = 1;
 
     Request(Client client, String url) {
         this.client = client;
@@ -50,6 +51,13 @@ public final class Request {
         }
         url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
         return this;
+    }
+
+    public Request attribute(String name, String value) {
+        int i = attributeNumber;
+        attributeNumber++;
+        return query("Attribute." + i + ".Name", name) //
+                .query("Attribute." + i + ".Value", value);
     }
 
     public Request header(String name, String value) {
@@ -104,8 +112,9 @@ public final class Request {
      * @return all response information
      */
     public Response response() {
-        return RequestHelper.request(client.httpClient(), url, method.toString(), RequestHelper.combineHeaders(headers),
-                requestBody, client.serviceName(), regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+        return RequestHelper.request(client.httpClient(), url, method.toString(),
+                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
+                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
     }
 
     public byte[] responseAsBytes() {
@@ -113,7 +122,8 @@ public final class Request {
         if (r.statusCode() >= 200 && r.statusCode() <= 299) {
             return r.content();
         } else {
-            throw new ServiceException(r.statusCode(), new String(r.content(), StandardCharsets.UTF_8));
+            throw new ServiceException(r.statusCode(),
+                    new String(r.content(), StandardCharsets.UTF_8));
         }
     }
 

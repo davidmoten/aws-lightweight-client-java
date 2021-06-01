@@ -105,6 +105,12 @@ public final class Client {
         Preconditions.checkNotNull(value);
         return path("").query(name, value);
     }
+    
+    public Request attribute(String name, String value) {
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(value);
+        return path("").attribute(name, value);
+    }
 
     private static String removeLeadingSlash(String s) {
         Preconditions.checkNotNull(s);
