@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.xml.Preconditions;
 import com.github.davidmoten.xml.XmlElement;
 
 public final class Request {
@@ -28,11 +29,14 @@ public final class Request {
     }
 
     public Request method(HttpMethod method) {
+        Preconditions.checkNotNull(method);
         this.method = method;
         return this;
     }
 
     public Request query(String name, String value) {
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(value);
         if (!url.contains("?")) {
             url += "?";
         }
@@ -44,25 +48,32 @@ public final class Request {
     }
 
     public Request header(String name, String value) {
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(value);
         RequestHelper.put(headers, name, value);
         return this;
     }
 
     public Request metadata(String name, String value) {
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(value);
         return header("x-amz-meta-" + name, value);
     }
 
     public Request requestBody(byte[] requestBody) {
+        Preconditions.checkNotNull(requestBody);
         this.requestBody = requestBody;
         return this;
     }
 
     public Request requestBody(String requestBody) {
+        Preconditions.checkNotNull(requestBody);
         this.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
         return this;
     }
 
     public Request regionName(String regionName) {
+        Preconditions.checkNotNull(regionName);
         this.regionName = regionName;
         return this;
     }

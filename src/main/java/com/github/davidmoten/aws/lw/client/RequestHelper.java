@@ -15,6 +15,7 @@ import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.BinaryUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.xml.Preconditions;
 
 final class RequestHelper {
 
@@ -23,6 +24,9 @@ final class RequestHelper {
     }
 
     static void put(Map<String, List<String>> map, String name, String value) {
+        Preconditions.checkNotNull(map);
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(value);
         List<String> list = map.get(name);
         if (list == null) {
             list = new ArrayList<>();
@@ -32,6 +36,7 @@ final class RequestHelper {
     }
 
     static Map<String, String> combineHeaders(Map<String, List<String>> headers) {
+        Preconditions.checkNotNull(headers);
         return headers.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(),
                 x -> x.getValue().stream().collect(Collectors.joining(","))));
     }

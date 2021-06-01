@@ -5,6 +5,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.xml.Preconditions;
+
 public final class Response {
 
     private final Map<String, List<String>> headers;
@@ -31,8 +33,9 @@ public final class Response {
                         x -> x.getKey().substring(11), //
                         x -> x.getValue()));
     }
-    
+
     public Optional<String> metadataFirst(String name) {
+        Preconditions.checkNotNull(name);
         List<String> list = metadata().get(name);
         if (list == null || list.isEmpty()) {
             return Optional.empty();
@@ -40,7 +43,7 @@ public final class Response {
             return Optional.of(list.get(0));
         }
     }
-    
+
     public byte[] content() {
         return content;
     }
