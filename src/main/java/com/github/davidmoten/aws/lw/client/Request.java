@@ -21,7 +21,7 @@ public final class Request {
     private int connectTimeoutMs;
     private int readTimeoutMs;
     private int attributeNumber = 1;
-    private String attributePrefix;
+    private String attributePrefix = "Attribute";
 
     Request(Client client, String url) {
         this.client = client;
