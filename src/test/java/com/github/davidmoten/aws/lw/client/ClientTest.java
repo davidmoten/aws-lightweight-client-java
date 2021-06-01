@@ -28,7 +28,6 @@ public class ClientTest {
                 .connectTimeoutMs(5000) //
                 .readTimeoutMs(6000) //
                 .execute();
-        System.out.println(hc);
         assertEquals("https://s3.ap-southeast-2.amazonaws.com/MyBucket", hc.endpointUrl.toString());
         assertEquals("PUT", hc.httpMethod);
         assertEquals("9b96a1fe1d548cbbc960cc6a0286668fd74a763667b06366fb2324269fcabaa4",
