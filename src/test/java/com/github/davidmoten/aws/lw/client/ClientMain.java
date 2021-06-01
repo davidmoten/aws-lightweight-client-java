@@ -43,19 +43,33 @@ public final class ClientMain {
             System.out.println("put object completed, headers:");
             h.entrySet().stream().forEach(x -> System.out.println("  " + x));
 
-            // read bucket object
-            Response r = s3 //
-                    .path(bucketName + "/" + objectName) //
-                    .response();
-            System.out.println(r.content().length + " chars read");
-            r //
-                    .metadata() //
-                    .entrySet() //
-                    .stream() //
-                    .map(x -> x.getKey() + "=" + x.getValue()) //
-                    .forEach(System.out::println);
+            try {
+                s3.path(bucketName + "/" + "not-there") //
+                        .responseAsUtf8();
+            } catch (Throwable e) {
+                e.printStackTrace(System.out);
+            }
 
-            System.out.println("category[0]=" + r.metadata("category").orElse(""));
+            {
+                Response r = s3.path(bucketName + "/" + "notThere").response();
+                System.out.println("ok=" + r.isOk() + ", statusCode=" + r.statusCode()
+                        + ", message=" + r.contentUtf8());
+            }
+            {
+                // read bucket object with metadata
+                Response r = s3 //
+                        .path(bucketName + "/" + objectName) //
+                        .response();
+                System.out.println(r.content().length + " chars read");
+                r //
+                        .metadata() //
+                        .entrySet() //
+                        .stream() //
+                        .map(x -> x.getKey() + "=" + x.getValue()) //
+                        .forEach(System.out::println);
+
+                System.out.println("category[0]=" + r.metadata("category").orElse(""));
+            }
 
             List<String> keys = s3 //
                     .url("https://" + bucketName + ".s3." + regionName + ".amazonaws.com") //

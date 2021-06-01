@@ -70,9 +70,18 @@ s3
 // read object including metadata
 ///////////////////////////////////
 
+String text = s3
+    .path(bucketName + "/" + objectName)
+    .responseAsUtf8();
+
+///////////////////////////////////
+// read object including metadata
+///////////////////////////////////
+
 Response r = s3
     .path(bucketName + "/" + objectName)
     .response();
+System.out.println("response ok=" + response.isOk());
 System.out.println(r.content().length + " chars read");
 System.out.println("category=" + r.metadata("category").orElse(""));
 
@@ -167,5 +176,36 @@ sqs.url(queueUrl)
 
 ### Error handling
 Let's look at a simple one, reading an object in an S3 bucket.
+
+```java
+String text = s3
+    .path(bucketName + "/" + objectName)
+    .responseAsUtf8();
+```
+If the object does not exist you will see this exception:
+```
+com.github.davidmoten.aws.lw.client.ServiceException: statusCode=404: <?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>not-there</Key><RequestId>8P4KZDD5AG7FTRQZ</RequestId><HostId>NhfJ16ZkmgTRp+lgQA/jIAWdShf2lLmvPq7IAuXdfKQWgEUnNS78TV/wX0dZH3wk//jUfhKR9uQ=</HostId></Error>
+	at com.github.davidmoten.aws.lw.client.Request.responseAsBytes(Request.java:142)
+	at com.github.davidmoten.aws.lw.client.Request.responseAsUtf8(Request.java:152)
+	at com.github.davidmoten.aws.lw.client.ClientMain.main(ClientMain.java:48)
+```
+
+You can see that the AWS exception message (in xml format) is present in the error message and can be used to check for standard codes. If you were using the full AWS SDK library then it would throw a `NoSuchKeyException`. In our case we check for the presence of `NoSuchKey` in the error message.
+
+The code below does not throw an exception when the object does not exist. However, `response.isOk()` returns false:
+
+```java
+Response r = s3
+    .path(bucketName + "/" + objectName)
+    .response();
+System.out.println("ok=" + r.isOk() + ", statusCode=" + r.statusCode() + ", message=" + r.contentUtf8());
+```
+
+The output is:
+```
+ok=false, statusCode=404, message=<?xml version="1.0" encoding="UTF-8"?>
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>notThere</Key><RequestId>4AAX24QZ8777FA6B</RequestId><HostId>4N1rsMjjdM7tjKSQDXNQZNH8EOqNckUsO6gRVPfcjMmHZ9APRwYJwufZOr9l1Qlinux5W537bDc=</HostId></Error>
+```
 
 

@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,6 +50,10 @@ public final class Response {
         return content;
     }
 
+    public String contentUtf8() {
+        return new String(content, StandardCharsets.UTF_8);
+    }
+
     public int statusCode() {
         return statusCode;
     }
@@ -56,4 +61,6 @@ public final class Response {
     public boolean isOk() {
         return statusCode >= 200 && statusCode <= 299;
     }
+
+    // TODO add toString method
 }
