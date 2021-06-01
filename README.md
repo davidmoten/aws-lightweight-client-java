@@ -182,12 +182,13 @@ String text = s3
     .path(bucketName + "/" + objectName)
     .responseAsUtf8();
 ```
-If the object does not exist you will see this exception:
+If the object does not exist an exception will be thrown like this:
 ```
 com.github.davidmoten.aws.lw.client.ServiceException: statusCode=404: <?xml version="1.0" encoding="UTF-8"?>
-<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>not-there</Key><RequestId>8P4KZDD5AG7FTRQZ</RequestId><HostId>NhfJ16ZkmgTRp+lgQA/jIAWdShf2lLmvPq7IAuXdfKQWgEUnNS78TV/wX0dZH3wk//jUfhKR9uQ=</HostId></Error>
-	at com.github.davidmoten.aws.lw.client.Request.responseAsBytes(Request.java:142)
-	at com.github.davidmoten.aws.lw.client.Request.responseAsUtf8(Request.java:152)
+<Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>not-there</Key><RequestId>1TVAXX4VF5DYHJJH</RequestId><HostId>VrvGCPhExKbjuONSuX/LGw0mYSndjg3t26LNAQCKTL/i5U+cZfYa4ow3KQ1tpJdQuMH9sB4JTUk=</HostId></Error>
+	at com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryDefault.create(ExceptionFactoryDefault.java:17)
+	at com.github.davidmoten.aws.lw.client.Request.responseAsBytes(Request.java:140)
+	at com.github.davidmoten.aws.lw.client.Request.responseAsUtf8(Request.java:153)
 	at com.github.davidmoten.aws.lw.client.ClientMain.main(ClientMain.java:48)
 ```
 

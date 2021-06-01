@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -136,11 +137,11 @@ public final class Request {
 
     public byte[] responseAsBytes() {
         Response r = response();
-        if (r.statusCode() >= 200 && r.statusCode() <= 299) {
+        Optional<? extends RuntimeException> exception = client.exceptionFactory().create(r);
+        if (!exception.isPresent()) {
             return r.content();
         } else {
-            throw new ServiceException(r.statusCode(),
-                    new String(r.content(), StandardCharsets.UTF_8));
+            throw exception.get();
         }
     }
 

@@ -11,15 +11,17 @@ public final class Client {
     private final HttpClient httpClient;
     private final int connectTimeoutMs;
     private final int readTimeoutMs;
+    private final ExceptionFactory exceptionFactory;
 
     private Client(String serviceName, String regionName, Credentials credentials, HttpClient httpClient,
-            int connectTimeoutMs, int readTimeoutMs) {
+            int connectTimeoutMs, int readTimeoutMs, ExceptionFactory exceptionFactory) {
         this.serviceName = serviceName;
         this.regionName = regionName;
         this.credentials = credentials;
         this.httpClient = httpClient;
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
+        this.exceptionFactory = exceptionFactory;
     }
 
     public static Builder service(String serviceName) {
@@ -74,6 +76,10 @@ public final class Client {
 
     HttpClient httpClient() {
         return httpClient;
+    }
+    
+    ExceptionFactory exceptionFactory() {
+        return exceptionFactory;
     }
 
     int connectTimeoutMs() {
@@ -134,6 +140,7 @@ public final class Client {
         private HttpClient httpClient = HttpClientDefault.INSTANCE;
         private int connectTimeoutMs = 30000;
         private int readTimeoutMs = 300000;
+        private ExceptionFactory exceptionFactory = ExceptionFactory.DEFAULT;
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
@@ -214,10 +221,15 @@ public final class Client {
             b.readTimeoutMs = readTimeoutMs;
             return this;
         }
+        
+        public Builder4 exceptionFactory(ExceptionFactory exceptionFactory) {
+            b.exceptionFactory = exceptionFactory;
+            return this;
+        }
 
         public Client build() {
             return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient, b.connectTimeoutMs,
-                    b.readTimeoutMs);
+                    b.readTimeoutMs, b.exceptionFactory);
         }
     }
 }
