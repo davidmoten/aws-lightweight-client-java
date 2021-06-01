@@ -5,8 +5,12 @@ import java.util.Locale;
 /**
  * Utilities for encoding and decoding binary data to and from different forms.
  */
-public class BinaryUtils {
+public final class BinaryUtils {
 
+    private BinaryUtils() {
+        // prevent instantiation
+    }
+    
     /**
      * Converts byte data to a Hex-encoded string.
      *

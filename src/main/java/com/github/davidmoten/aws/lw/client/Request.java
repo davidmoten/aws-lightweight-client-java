@@ -11,6 +11,7 @@ import com.github.davidmoten.xml.Preconditions;
 import com.github.davidmoten.xml.XmlElement;
 
 public final class Request {
+    
     private final Client client;
     private String regionName;
     private String url;
