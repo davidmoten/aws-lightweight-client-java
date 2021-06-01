@@ -23,6 +23,13 @@ public final class Response {
         return headers;
     }
 
+    /**
+     * Returns those headers that start with {@code x-amz-meta-} (and removes that
+     * prefix).
+     * 
+     * @return headers that start with {@code x-amz-meta-} (and removes that
+     *         prefix)
+     */
     public Map<String, List<String>> metadata() {
         return headers //
                 .entrySet() //
