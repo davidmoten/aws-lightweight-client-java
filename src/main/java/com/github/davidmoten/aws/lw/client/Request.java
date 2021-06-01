@@ -4,7 +4,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -18,13 +17,15 @@ public final class Request {
     private HttpMethod method = HttpMethod.GET;
     private final Map<String, List<String>> headers = new HashMap<>();
     private byte[] requestBody;
-    private int connectTimeoutMs = (int) TimeUnit.SECONDS.toMillis(30);
-    private int readTimeoutMs = (int) TimeUnit.MINUTES.toMillis(5);
+    private int connectTimeoutMs;
+    private int readTimeoutMs;
 
     Request(Client client, String url) {
         this.client = client;
         this.url = url;
         this.regionName = client.regionName();
+        this.connectTimeoutMs = client.connectTimeoutMs();
+        this.readTimeoutMs = client.readTimeoutMs();
     }
 
     static Request clientAndUrl(Client client, String url) {

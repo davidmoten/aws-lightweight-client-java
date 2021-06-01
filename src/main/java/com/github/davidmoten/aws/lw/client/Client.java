@@ -9,12 +9,17 @@ public final class Client {
     private final String regionName;
     private final Credentials credentials;
     private final HttpClient httpClient;
+    private final int connectTimeoutMs;
+    private final int readTimeoutMs;
 
-    private Client(String serviceName, String regionName, Credentials credentials, HttpClient httpClient) {
+    private Client(String serviceName, String regionName, Credentials credentials, HttpClient httpClient,
+            int connectTimeoutMs, int readTimeoutMs) {
         this.serviceName = serviceName;
         this.regionName = regionName;
         this.credentials = credentials;
         this.httpClient = httpClient;
+        this.connectTimeoutMs = connectTimeoutMs;
+        this.readTimeoutMs = readTimeoutMs;
     }
 
     public static Builder service(String serviceName) {
@@ -66,9 +71,17 @@ public final class Client {
     Credentials credentials() {
         return credentials;
     }
-    
-    public HttpClient httpClient() {
+
+    HttpClient httpClient() {
         return httpClient;
+    }
+
+    int connectTimeoutMs() {
+        return connectTimeoutMs;
+    }
+
+    int readTimeoutMs() {
+        return readTimeoutMs;
     }
 
     public Request url(String url) {
@@ -107,8 +120,10 @@ public final class Client {
         private final String serviceName;
         private String regionName;
         private String accessKey;
-        public Credentials credentials;
-        public HttpClient httpClient = HttpClientDefault.INSTANCE;
+        private Credentials credentials;
+        private HttpClient httpClient = HttpClientDefault.INSTANCE;
+        private int connectTimeoutMs = 30000;
+        private int readTimeoutMs = 300000;
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
@@ -174,9 +189,25 @@ public final class Client {
         private Builder4(Builder b) {
             this.b = b;
         }
-        
+
+        public Builder4 httpClient(HttpClient httpClient) {
+            b.httpClient = httpClient;
+            return this;
+        }
+
+        public Builder4 connectTimeoutMs(int connectTimeoutMs) {
+            b.connectTimeoutMs = connectTimeoutMs;
+            return this;
+        }
+
+        public Builder4 readTimeoutMs(int readTimeoutMs) {
+            b.readTimeoutMs = readTimeoutMs;
+            return this;
+        }
+
         public Client build() {
-            return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient);
+            return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient, b.connectTimeoutMs,
+                    b.readTimeoutMs);
         }
     }
 }
