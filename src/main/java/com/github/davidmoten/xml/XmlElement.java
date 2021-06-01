@@ -45,6 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class XmlElement {
 
@@ -128,6 +129,10 @@ public final class XmlElement {
 
     public List<XmlElement> children() {
         return children;
+    }
+    
+    public List<XmlElement> childrenWithName(String name) {
+        return children.stream().filter(x -> name.equals(x.name())).collect(Collectors.toList());
     }
 
     public XmlElement firstChild() {

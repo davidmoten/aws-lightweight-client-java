@@ -64,7 +64,7 @@ public final class Client {
         return serviceName;
     }
 
-    String regionName() {
+    public String regionName() {
         return regionName;
     }
 
