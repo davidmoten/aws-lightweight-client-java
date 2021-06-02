@@ -8,9 +8,13 @@ This is a really lightweight standalone artifact (about 56K) that performs authe
 For example with the 56K standalone artifact you can do:
 
 ```java
-String content = Client
-  .s3() 
-  .defaultClient() 
+Client s3 = Client.s3()
+  .regionName("ap-southeast-2")
+  .accessKey(accessKey)
+  .secretKey(secretKey)
+  .build();
+
+String content = s3
   .path("myBucket/myObject.txt")
   .responseAsUtf8();
 ```
