@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.xml.XmlElement;
@@ -47,6 +48,18 @@ public final class ClientMain {
                 s3.path(bucketName + "/" + "not-there") //
                         .responseAsUtf8();
             } catch (Throwable e) {
+                e.printStackTrace(System.out);
+            }
+
+            try {
+                Client.s3() //
+                        .regionName(regionName) //
+                        .credentials(credentials) //
+                        .exception(r -> !r.isOk(), r -> new NoSuchKeyException(r.contentUtf8()))
+                        .build() //
+                        .path(bucketName + "/" + "not-there") //
+                        .responseAsUtf8();
+            } catch (NoSuchKeyException e) {
                 e.printStackTrace(System.out);
             }
 

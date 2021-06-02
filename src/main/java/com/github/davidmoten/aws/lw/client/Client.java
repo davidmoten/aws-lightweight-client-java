@@ -1,5 +1,9 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.util.function.Function;
+import java.util.function.Predicate;
+
+import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
 import com.github.davidmoten.aws.lw.client.internal.HttpClientDefault;
 import com.github.davidmoten.xml.Preconditions;
 
@@ -13,8 +17,9 @@ public final class Client {
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
 
-    private Client(String serviceName, String regionName, Credentials credentials, HttpClient httpClient,
-            int connectTimeoutMs, int readTimeoutMs, ExceptionFactory exceptionFactory) {
+    private Client(String serviceName, String regionName, Credentials credentials,
+            HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
+            ExceptionFactory exceptionFactory) {
         this.serviceName = serviceName;
         this.regionName = regionName;
         this.credentials = credentials;
@@ -77,7 +82,7 @@ public final class Client {
     HttpClient httpClient() {
         return httpClient;
     }
-    
+
     ExceptionFactory exceptionFactory() {
         return exceptionFactory;
     }
@@ -103,7 +108,8 @@ public final class Client {
      */
     public Request path(String path) {
         Preconditions.checkNotNull(path);
-        return url("https://" + serviceName + "." + regionName + ".amazonaws.com/" + removeLeadingSlash(path));
+        return url("https://" + serviceName + "." + regionName + ".amazonaws.com/"
+                + removeLeadingSlash(path));
     }
 
     public Request query(String name, String value) {
@@ -111,11 +117,11 @@ public final class Client {
         Preconditions.checkNotNull(value);
         return path("").query(name, value);
     }
-    
+
     public Request attributePrefix(String attributePrefix) {
         return path("").attributePrefix(attributePrefix);
     }
-    
+
     public Request attribute(String name, String value) {
         Preconditions.checkNotNull(name);
         Preconditions.checkNotNull(value);
@@ -221,15 +227,22 @@ public final class Client {
             b.readTimeoutMs = readTimeoutMs;
             return this;
         }
-        
+
         public Builder4 exceptionFactory(ExceptionFactory exceptionFactory) {
             b.exceptionFactory = exceptionFactory;
             return this;
         }
+        
+        public Builder4 exception(Predicate<? super Response> predicate,
+                Function<? super Response, ? extends RuntimeException> factory) {
+            b.exceptionFactory = new ExceptionFactoryExtended(b.exceptionFactory, predicate,
+                    factory);
+            return this;
+        }
 
         public Client build() {
-            return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient, b.connectTimeoutMs,
-                    b.readTimeoutMs, b.exceptionFactory);
+            return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient,
+                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory);
         }
     }
 }
