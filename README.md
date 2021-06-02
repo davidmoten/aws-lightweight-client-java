@@ -212,6 +212,13 @@ ok=false, statusCode=404, message=<?xml version="1.0" encoding="UTF-8"?>
 You can define what exceptions get thrown using a builder method for a `Client`:
 
 ```java
-
+Client sqs = Client 
+    .sqs()
+    .defaultClient()
+    .exception(
+            x -> !x.isOk() && x.contentUtf8().contains("NonExistentQueue"),
+            x -> new QueueDoesNotExistException(x.contentUtf8()))
+    .build()
 ```
+
 
