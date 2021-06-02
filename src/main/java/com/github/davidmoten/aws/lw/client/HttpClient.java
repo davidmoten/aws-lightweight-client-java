@@ -10,7 +10,7 @@ public interface HttpClient {
     Response request(URL endpointUrl, String httpMethod, Map<String, String> headers,
             byte[] requestBody, int connectTimeoutMs, int readTimeoutMs);
     
-    public static HttpClient defaultClient() {
+    static HttpClient defaultClient() {
         return HttpClientDefault.INSTANCE;
     }
 }

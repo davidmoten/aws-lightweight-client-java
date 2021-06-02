@@ -17,5 +17,5 @@ public interface ExceptionFactory {
      */
     Optional<? extends RuntimeException> create(Response response);
 
-    public static final ExceptionFactory DEFAULT = new ExceptionFactoryDefault();
+    ExceptionFactory DEFAULT = new ExceptionFactoryDefault();
 }
