@@ -158,7 +158,13 @@ public final class Client {
 
         public Builder4 from(Client client) {
             Preconditions.checkNotNull(client);
-            return regionName(client.regionName()).credentials(client.credentials());
+            this.regionName = client.regionName;
+            this.credentials = client.credentials;
+            this.httpClient = client.httpClient;
+            this.connectTimeoutMs = client.connectTimeoutMs;
+            this.readTimeoutMs = client.readTimeoutMs;
+            this.exceptionFactory = client.exceptionFactory;
+            return new Builder4(this);
         }
 
         public Builder2 regionFromEnvironment() {
@@ -232,7 +238,7 @@ public final class Client {
             b.exceptionFactory = exceptionFactory;
             return this;
         }
-        
+
         public Builder4 exception(Predicate<? super Response> predicate,
                 Function<? super Response, ? extends RuntimeException> factory) {
             b.exceptionFactory = new ExceptionFactoryExtended(b.exceptionFactory, predicate,
