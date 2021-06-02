@@ -31,9 +31,8 @@ public class ClientTest {
         assertEquals("9b96a1fe1d548cbbc960cc6a0286668fd74a763667b06366fb2324269fcabaa4",
                 hc.headers.get("x-amz-content-sha256"));
         String authorization = hc.headers.get("Authorization");
-//        assertEquals(
-//                "AWS4-HMAC-SHA256 Credential=123/20210601/ap-southeast-2/s3/aws4_request, SignedHeaders=content-length;host;x-amz-content-sha256;x-amz-date;x-amz-meta-category",
-//                authorization.substring(0, authorization.indexOf(", Signature=")));
+        assertTrue(authorization.startsWith("AWS4-HMAC-SHA256 Credential="));
+        assertTrue(authorization.contains("/ap-southeast-2/s3/aws4_request, SignedHeaders=content-length;host;x-amz-content-sha256;x-amz-date;x-amz-meta-category"));
         assertEquals("8", hc.headers.get("content-length"));
         assertEquals("s3.ap-southeast-2.amazonaws.com", hc.headers.get("Host"));
         assertTrue(hc.headers.get("x-amz-date").endsWith("Z"));
