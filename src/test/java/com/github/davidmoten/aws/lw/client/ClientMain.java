@@ -35,7 +35,7 @@ public final class ClientMain {
 
             String objectName = "ExampleObject.txt";
             Map<String, List<String>> h = s3 //
-                    .path(bucketName + "/" + objectName) //
+                    .path(bucketName, objectName) //
                     .method(HttpMethod.PUT) //
                     .requestBody("hi there") //
                     .metadata("category", "something") //
@@ -64,13 +64,13 @@ public final class ClientMain {
             }
 
             {
-                Response r = s3.path(bucketName + "/" + "notThere").response();
+                Response r = s3.path(bucketName , "notThere").response();
                 System.out.println("ok=" + r.isOk() + ", statusCode=" + r.statusCode()
                         + ", message=" + r.contentUtf8());
             }
             {
                 // read bucket object
-                String text = s3.path(bucketName + "/" + objectName).responseAsUtf8();
+                String text = s3.path(bucketName, objectName).responseAsUtf8();
                 System.out.println(text);
                 System.out.println("presignedUrl="
                         + s3.path("amsa-xml-in" + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
@@ -78,7 +78,7 @@ public final class ClientMain {
             {
                 // read bucket object with metadata
                 Response r = s3 //
-                        .path(bucketName + "/" + objectName) //
+                        .path(bucketName, objectName) //
                         .response();
                 System.out.println(r.content().length + " chars read");
                 r //
@@ -103,7 +103,7 @@ public final class ClientMain {
             System.out.println(keys);
 
             // delete object
-            s3.path(bucketName + "/" + objectName) //
+            s3.path(bucketName, objectName) //
                     .method(HttpMethod.DELETE) //
                     .execute();
 

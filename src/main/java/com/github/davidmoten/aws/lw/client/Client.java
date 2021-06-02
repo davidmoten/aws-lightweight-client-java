@@ -1,8 +1,10 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
 import com.github.davidmoten.aws.lw.client.internal.HttpClientDefault;
@@ -107,10 +109,12 @@ public final class Client {
      * @param path can include query parts as well (stuff after ?)
      * @return builder
      */
-    public Request path(String path) {
-        Preconditions.checkNotNull(path);
+    public Request path(String... segments) {
+        Preconditions.checkNotNull(segments);
         return url("https://" + serviceName + "." + regionName + ".amazonaws.com/"
-                + removeLeadingSlash(path));
+                + Arrays.stream(segments) //
+                .map(x -> removeLeadingAndTrailingSlashes(x)) //
+                .collect(Collectors.joining("/")));
     }
 
     public Request query(String name, String value) {
@@ -129,13 +133,15 @@ public final class Client {
         return path("").attribute(name, value);
     }
 
-    private static String removeLeadingSlash(String s) {
+    private static String removeLeadingAndTrailingSlashes(String s) {
         Preconditions.checkNotNull(s);
         if (s.startsWith("/")) {
-            return s.substring(1);
-        } else {
-            return s;
+            s = s.substring(1);
         }
+        if (s.endsWith("/")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
     }
 
     public static final class Builder {
