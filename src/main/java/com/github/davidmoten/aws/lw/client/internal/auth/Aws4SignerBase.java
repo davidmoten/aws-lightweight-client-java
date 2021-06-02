@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client.internal.auth;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -217,11 +218,11 @@ public abstract class Aws4SignerBase {
 
     protected static byte[] sign(String stringData, byte[] key, String algorithm) {
         try {
-            byte[] data = stringData.getBytes("UTF-8");
+            byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
             Mac mac = Mac.getInstance(algorithm);
             mac.init(new SecretKeySpec(key, algorithm));
             return mac.doFinal(data);
-        } catch (RuntimeException | UnsupportedEncodingException | NoSuchAlgorithmException
+        } catch (RuntimeException | NoSuchAlgorithmException
                 | InvalidKeyException e) {
             throw new RuntimeException("Unable to calculate a request signature: " + e.getMessage(),
                     e);
