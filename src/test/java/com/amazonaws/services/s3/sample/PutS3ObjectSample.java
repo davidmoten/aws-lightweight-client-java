@@ -5,8 +5,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
@@ -47,7 +47,7 @@ public class PutS3ObjectSample {
         }
         
         // precompute hash of the body content
-        byte[] contentHash = AWS4SignerBase.hash(objectContent);
+        byte[] contentHash = Aws4SignerBase.hash(objectContent);
         String contentHashString = Util.toHex(contentHash);
         
         Map<String, String> headers = new HashMap<String, String>();
@@ -55,7 +55,7 @@ public class PutS3ObjectSample {
         headers.put("content-length", "" + objectContent.length());
         headers.put("x-amz-storage-class", "REDUCED_REDUNDANCY");
         
-        AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(
+        Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(
                 endpointUrl, "PUT", "s3", regionName);
         String authorization = signer.computeSignature(headers, 
                                                        null, // no query parameters

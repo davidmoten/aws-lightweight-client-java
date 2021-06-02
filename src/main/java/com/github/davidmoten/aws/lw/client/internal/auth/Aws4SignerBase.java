@@ -25,7 +25,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
 /**
  * Common methods and properties for all AWS4 signer variants
  */
-public abstract class AWS4SignerBase {
+public abstract class Aws4SignerBase {
 
     /** SHA256 hash of an empty request body **/
     public static final String EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -56,7 +56,7 @@ public abstract class AWS4SignerBase {
      * @param regionName  The system name of the AWS region associated with the
      *                    endpoint, e.g. us-east-1.
      */
-    public AWS4SignerBase(URL endpointUrl, String httpMethod, String serviceName,
+    public Aws4SignerBase(URL endpointUrl, String httpMethod, String serviceName,
             String regionName) {
         this.endpointUrl = endpointUrl;
         this.httpMethod = httpMethod;

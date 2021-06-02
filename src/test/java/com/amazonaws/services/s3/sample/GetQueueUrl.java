@@ -8,8 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 
@@ -44,15 +44,15 @@ public class GetQueueUrl {
 
         // for a simple GET, we have no body so supply the precomputed 'empty' hash
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put("x-amz-content-sha256", AWS4SignerBase.EMPTY_BODY_SHA256);
+        headers.put("x-amz-content-sha256", Aws4SignerBase.EMPTY_BODY_SHA256);
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl.getQuery());
         Map<String, String> q = parameters.stream().collect(Collectors.toMap(p -> p.name, p -> p.value));
 
-        AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(endpointUrl,
+        Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(endpointUrl,
                 "GET", "sqs", regionName);
         String authorization = signer.computeSignature(headers, q, 
-                AWS4SignerBase.EMPTY_BODY_SHA256, awsAccessKey, awsSecretKey);
+                Aws4SignerBase.EMPTY_BODY_SHA256, awsAccessKey, awsSecretKey);
 
         // place the computed signature into a formatted 'Authorization' header
         // and call S3

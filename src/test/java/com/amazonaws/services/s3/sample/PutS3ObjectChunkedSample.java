@@ -8,7 +8,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForChunkedUpload;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForChunkedUpload;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
@@ -63,21 +63,21 @@ public class PutS3ObjectChunkedSample {
         
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("x-amz-storage-class", "REDUCED_REDUNDANCY");
-        headers.put("x-amz-content-sha256", AWS4SignerForChunkedUpload.STREAMING_BODY_SHA256);
+        headers.put("x-amz-content-sha256", Aws4SignerForChunkedUpload.STREAMING_BODY_SHA256);
         headers.put("content-encoding", "" + "aws-chunked");
         headers.put("x-amz-decoded-content-length", "" + sampleContent.length());
         
-        AWS4SignerForChunkedUpload signer = new AWS4SignerForChunkedUpload(
+        Aws4SignerForChunkedUpload signer = new Aws4SignerForChunkedUpload(
                 endpointUrl, "PUT", "s3", regionName);
         
         // how big is the overall request stream going to be once we add the signature 
         // 'headers' to each chunk?
-        long totalLength = AWS4SignerForChunkedUpload.calculateChunkedContentLength(sampleContent.length(), userDataBlockSize);
+        long totalLength = Aws4SignerForChunkedUpload.calculateChunkedContentLength(sampleContent.length(), userDataBlockSize);
         headers.put("content-length", "" + totalLength);
         
         String authorization = signer.computeSignature(headers, 
                                                        null, // no query parameters
-                                                       AWS4SignerForChunkedUpload.STREAMING_BODY_SHA256, 
+                                                       Aws4SignerForChunkedUpload.STREAMING_BODY_SHA256, 
                                                        awsAccessKey, 
                                                        awsSecretKey);
                 

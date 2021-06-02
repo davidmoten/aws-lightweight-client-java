@@ -11,9 +11,9 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
  * Sample AWS4 signer demonstrating how to sign requests to Amazon S3 using an
  * 'Authorization' header.
  */
-public class AWS4SignerForAuthorizationHeader extends AWS4SignerBase {
+public class Aws4SignerForAuthorizationHeader extends Aws4SignerBase {
 
-    public AWS4SignerForAuthorizationHeader(URL endpointUrl, String httpMethod, String serviceName,
+    public Aws4SignerForAuthorizationHeader(URL endpointUrl, String httpMethod, String serviceName,
             String regionName) {
         super(endpointUrl, httpMethod, serviceName, regionName);
     }

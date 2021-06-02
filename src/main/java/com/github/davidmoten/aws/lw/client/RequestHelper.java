@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForQueryParameterAuth;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.xml.Preconditions;
 
@@ -56,11 +56,11 @@ final class RequestHelper {
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
         if (requestBody == null || requestBody.length == 0) {
-            contentHashString = AWS4SignerBase.UNSIGNED_PAYLOAD;
+            contentHashString = Aws4SignerBase.UNSIGNED_PAYLOAD;
             h.put("x-amz-content-sha256", "");
         } else {
             // compute hash of the body content
-            byte[] contentHash = AWS4SignerBase.hash(requestBody);
+            byte[] contentHash = Aws4SignerBase.hash(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
             h.put("x-amz-content-sha256", contentHashString);
@@ -79,7 +79,7 @@ final class RequestHelper {
         // expressed in seconds
         q.put("X-Amz-Expires", "" + expirySeconds);
 
-        AWS4SignerForQueryParameterAuth signer = new AWS4SignerForQueryParameterAuth(endpointUrl,
+        Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(endpointUrl,
                 method, serviceName, regionName);
         String authorizationQueryParameters = signer.computeSignature(h, q,
                 contentHashString, credentials.accessKey(), credentials.secretKey());
@@ -111,10 +111,10 @@ final class RequestHelper {
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
         if (requestBody == null || requestBody.length == 0) {
-            contentHashString = AWS4SignerBase.EMPTY_BODY_SHA256;
+            contentHashString = Aws4SignerBase.EMPTY_BODY_SHA256;
         } else {
             // compute hash of the body content
-            byte[] contentHash = AWS4SignerBase.hash(requestBody);
+            byte[] contentHash = Aws4SignerBase.hash(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
         }
@@ -126,7 +126,7 @@ final class RequestHelper {
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
                 .collect(Collectors.toMap(p -> p.name, p -> p.value));
-        AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(endpointUrl,
+        Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(endpointUrl,
                 method, serviceName, regionName);
         String authorization = signer.computeSignature(h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());

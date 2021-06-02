@@ -5,8 +5,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForQueryParameterAuth;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
 
 /**
  * Sample code showing how to use Presigned Urls with Signature V4 authorization
@@ -45,11 +45,11 @@ public class PresignedUrlSample {
         // we have no headers for this sample, but the signer will add 'host'
         Map<String, String> headers = new HashMap<String, String>();
         
-        AWS4SignerForQueryParameterAuth signer = new AWS4SignerForQueryParameterAuth(
+        Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(
                 endpointUrl, "GET", "s3", regionName);
         String authorizationQueryParameters = signer.computeSignature(headers, 
                                                        queryParams,
-                                                       AWS4SignerBase.UNSIGNED_PAYLOAD, 
+                                                       Aws4SignerBase.UNSIGNED_PAYLOAD, 
                                                        awsAccessKey, 
                                                        awsSecretKey);
                 

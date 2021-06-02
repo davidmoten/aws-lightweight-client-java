@@ -10,7 +10,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
 /**
  * Sample AWS4 signer demonstrating how to sign 'chunked' uploads
  */
-public class AWS4SignerForChunkedUpload extends AWS4SignerBase {
+public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
 
     /**
      * SHA256 substitute marker used in place of x-amz-content-sha256 when
@@ -48,7 +48,7 @@ public class AWS4SignerForChunkedUpload extends AWS4SignerBase {
      */
     private byte[] signingKey;
     
-    public AWS4SignerForChunkedUpload(URL endpointUrl, String httpMethod,
+    public Aws4SignerForChunkedUpload(URL endpointUrl, String httpMethod,
             String serviceName, String regionName) {
         super(endpointUrl, httpMethod, serviceName, regionName);
     }
@@ -237,11 +237,11 @@ public class AWS4SignerForChunkedUpload extends AWS4SignerBase {
                 dateTimeStamp + "\n" +
                 scope + "\n" +
                 lastComputedSignature + "\n" +
-                Util.toHex(AWS4SignerBase.hash(nonsigExtension)) + "\n" +
-                Util.toHex(AWS4SignerBase.hash(dataToChunk));
+                Util.toHex(Aws4SignerBase.hash(nonsigExtension)) + "\n" +
+                Util.toHex(Aws4SignerBase.hash(dataToChunk));
         
         // compute the V4 signature for the chunk
-        String chunkSignature = Util.toHex(AWS4SignerBase.sign(chunkStringToSign, signingKey, "HmacSHA256"));
+        String chunkSignature = Util.toHex(Aws4SignerBase.sign(chunkStringToSign, signingKey, "HmacSHA256"));
         
         // cache the signature to include with the next chunk's signature computation
         lastComputedSignature = chunkSignature;

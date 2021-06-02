@@ -5,8 +5,8 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
-import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**
@@ -38,13 +38,13 @@ public class GetS3ObjectSample {
         
         // for a simple GET, we have no body so supply the precomputed 'empty' hash
         Map<String, String> headers = new HashMap<String, String>();
-        headers.put("x-amz-content-sha256", AWS4SignerBase.EMPTY_BODY_SHA256);
+        headers.put("x-amz-content-sha256", Aws4SignerBase.EMPTY_BODY_SHA256);
         
-        AWS4SignerForAuthorizationHeader signer = new AWS4SignerForAuthorizationHeader(
+        Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(
                 endpointUrl, "GET", "s3", regionName);
         String authorization = signer.computeSignature(headers, 
                                                        null, // no query parameters
-                                                       AWS4SignerBase.EMPTY_BODY_SHA256, 
+                                                       Aws4SignerBase.EMPTY_BODY_SHA256, 
                                                        awsAccessKey, 
                                                        awsSecretKey);
                 
