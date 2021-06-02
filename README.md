@@ -115,7 +115,7 @@ String text = s3
     .responseAsUtf8();
 
 ///////////////////////////////////
-// read object including metadata
+// read object
 ///////////////////////////////////
 
 Response r = s3
