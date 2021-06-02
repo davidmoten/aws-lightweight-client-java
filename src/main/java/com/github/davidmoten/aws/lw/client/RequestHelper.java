@@ -56,17 +56,19 @@ final class RequestHelper {
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
         if (requestBody == null || requestBody.length == 0) {
-            contentHashString = AWS4SignerBase.EMPTY_BODY_SHA256;
+            contentHashString = AWS4SignerBase.UNSIGNED_PAYLOAD;
+            h.put("x-amz-content-sha256", "");
         } else {
             // compute hash of the body content
             byte[] contentHash = AWS4SignerBase.hash(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
+            h.put("x-amz-content-sha256", contentHashString);
         }
-        h.put("x-amz-content-sha256", contentHashString);
-        if (credentials.sessionToken().isPresent()) {
-            h.put("x-amz-security-token", credentials.sessionToken().get());
-        }
+        
+//        if (credentials.sessionToken().isPresent()) {
+//            h.put("x-amz-security-token", credentials.sessionToken().get());
+//        }
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
@@ -80,7 +82,7 @@ final class RequestHelper {
         AWS4SignerForQueryParameterAuth signer = new AWS4SignerForQueryParameterAuth(endpointUrl,
                 method, serviceName, regionName);
         String authorizationQueryParameters = signer.computeSignature(h, q,
-                AWS4SignerBase.UNSIGNED_PAYLOAD, credentials.accessKey(), credentials.secretKey());
+                contentHashString, credentials.accessKey(), credentials.secretKey());
 
         // build the presigned url to incorporate the authorization elements as query
         // parameters

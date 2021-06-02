@@ -73,7 +73,7 @@ public final class ClientMain {
                 String text = s3.path(bucketName + "/" + objectName).responseAsUtf8();
                 System.out.println(text);
                 System.out.println("presignedUrl="
-                        + s3.path(bucketName + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
+                        + s3.path("amsa-xml-in" + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
             }
             {
                 // read bucket object with metadata
