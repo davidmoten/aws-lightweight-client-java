@@ -113,8 +113,8 @@ public final class Client {
         Preconditions.checkNotNull(segments);
         return url("https://" + serviceName + "." + regionName + ".amazonaws.com/"
                 + Arrays.stream(segments) //
-                .map(x -> removeLeadingAndTrailingSlashes(x)) //
-                .collect(Collectors.joining("/")));
+                        .map(x -> removeLeadingAndTrailingSlashes(x)) //
+                        .collect(Collectors.joining("/")));
     }
 
     public Request query(String name, String value) {
@@ -232,11 +232,15 @@ public final class Client {
         }
 
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
             b.connectTimeoutMs = (int) unit.toMillis(duration);
             return this;
         }
 
         public Builder4 readTimeoutMs(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
             b.readTimeoutMs = (int) unit.toMillis(duration);
             return this;
         }

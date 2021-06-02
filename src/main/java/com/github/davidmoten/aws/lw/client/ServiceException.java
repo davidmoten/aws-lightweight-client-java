@@ -7,7 +7,6 @@ public final class ServiceException extends RuntimeException {
     private final String message;
 
     public ServiceException(int statusCode, String message) {
-        // TODO make xml?
         super("statusCode=" + statusCode + ": " + message);
         this.statusCode = statusCode;
         this.message = message;
