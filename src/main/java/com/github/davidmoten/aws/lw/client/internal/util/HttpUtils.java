@@ -9,7 +9,9 @@ import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Various Http helper routines
@@ -49,7 +51,7 @@ public class HttpUtils {
                 is = connection.getErrorStream();
             }
 
-            try (BufferedReader rd = new BufferedReader(new InputStreamReader(is))) {
+            try (BufferedReader rd = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
                 String line;
                 StringBuffer response = new StringBuffer();
                 while ((line = rd.readLine()) != null) {
@@ -80,8 +82,8 @@ public class HttpUtils {
             connection.setRequestMethod(httpMethod);
 
             if (headers != null) {
-                for (String headerKey : headers.keySet()) {
-                    connection.setRequestProperty(headerKey, headers.get(headerKey));
+                for (Entry<String, String> entry: headers.entrySet()) {
+                    connection.setRequestProperty(entry.getKey(), entry.getValue());
                 }
             }
 
