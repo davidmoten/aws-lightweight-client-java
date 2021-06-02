@@ -203,9 +203,9 @@ public abstract class Aws4SignerBase {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(data);
             return md.digest();
-        } catch (RuntimeException | NoSuchAlgorithmException e) {
+        } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(
-                    "Unable to compute hash while signing request: " + e.getMessage(), e);
+                    "Unable to compute sha256 hash: " + e.getMessage(), e);
         }
     }
 
@@ -216,7 +216,7 @@ public abstract class Aws4SignerBase {
             Mac mac = Mac.getInstance(algorithm);
             mac.init(new SecretKeySpec(key, algorithm));
             return mac.doFinal(data);
-        } catch (RuntimeException | NoSuchAlgorithmException | InvalidKeyException e) {
+        } catch (NoSuchAlgorithmException | InvalidKeyException e) {
             throw new RuntimeException("Unable to calculate a request signature: " + e.getMessage(),
                     e);
         }
