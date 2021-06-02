@@ -47,7 +47,7 @@ public class PutS3ObjectSample {
         }
         
         // precompute hash of the body content
-        byte[] contentHash = Aws4SignerBase.hash(objectContent);
+        byte[] contentHash = Aws4SignerBase.sha256(objectContent);
         String contentHashString = Util.toHex(contentHash);
         
         Map<String, String> headers = new HashMap<String, String>();

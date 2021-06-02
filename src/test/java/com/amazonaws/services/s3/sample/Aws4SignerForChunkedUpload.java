@@ -122,11 +122,11 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
         
         // compute the signing key
         byte[] kSecret = (SCHEME + awsSecretKey).getBytes(StandardCharsets.UTF_8);
-        byte[] kDate = sign(dateStamp, kSecret, "HmacSHA256");
-        byte[] kRegion = sign(regionName, kDate, "HmacSHA256");
-        byte[] kService = sign(serviceName, kRegion, "HmacSHA256");
-        this.signingKey= sign(TERMINATOR, kService, "HmacSHA256");
-        byte[] signature = sign(stringToSign, signingKey, "HmacSHA256");
+        byte[] kDate = sign(dateStamp, kSecret);
+        byte[] kRegion = sign(regionName, kDate);
+        byte[] kService = sign(serviceName, kRegion);
+        this.signingKey= sign(TERMINATOR, kService);
+        byte[] signature = sign(stringToSign, signingKey);
         
         // cache the computed signature ready for chunk 0 upload
         lastComputedSignature = Util.toHex(signature);
@@ -238,11 +238,11 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
                 dateTimeStamp + "\n" +
                 scope + "\n" +
                 lastComputedSignature + "\n" +
-                Util.toHex(Aws4SignerBase.hash(nonsigExtension)) + "\n" +
+                Util.toHex(Aws4SignerBase.sha256(nonsigExtension)) + "\n" +
                 Util.toHex(Aws4SignerBase.sha256(dataToChunk));
         
         // compute the V4 signature for the chunk
-        String chunkSignature = Util.toHex(Aws4SignerBase.sign(chunkStringToSign, signingKey, "HmacSHA256"));
+        String chunkSignature = Util.toHex(Aws4SignerBase.sign(chunkStringToSign, signingKey));
         
         // cache the signature to include with the next chunk's signature computation
         lastComputedSignature = chunkSignature;

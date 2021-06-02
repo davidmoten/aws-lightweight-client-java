@@ -80,11 +80,11 @@ public class Aws4SignerForAuthorizationHeader extends Aws4SignerBase {
 
         // compute the signing key
         byte[] kSecret = (SCHEME + awsSecretKey).getBytes(StandardCharsets.UTF_8);
-        byte[] kDate = sign(dateStamp, kSecret, "HmacSHA256");
-        byte[] kRegion = sign(regionName, kDate, "HmacSHA256");
-        byte[] kService = sign(serviceName, kRegion, "HmacSHA256");
-        byte[] kSigning = sign(TERMINATOR, kService, "HmacSHA256");
-        byte[] signature = sign(stringToSign, kSigning, "HmacSHA256");
+        byte[] kDate = sign(dateStamp, kSecret);
+        byte[] kRegion = sign(regionName, kDate);
+        byte[] kService = sign(serviceName, kRegion);
+        byte[] kSigning = sign(TERMINATOR, kService);
+        byte[] signature = sign(stringToSign, kSigning);
 
         String credentialsAuthorizationHeader = "Credential=" + awsAccessKey + "/" + scope;
         String signedHeadersAuthorizationHeader = "SignedHeaders=" + canonicalizedHeaderNames;

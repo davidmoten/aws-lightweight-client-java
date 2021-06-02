@@ -28,6 +28,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
  */
 public abstract class Aws4SignerBase {
 
+    private static final String ALGORITHM_HMAC_SHA256 = "HmacSHA256";
     /** SHA256 hash of an empty request body **/
     public static final String EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
@@ -126,9 +127,8 @@ public abstract class Aws4SignerBase {
     protected static String getCanonicalRequest(URL endpoint, String httpMethod,
             String queryParameters, String canonicalizedHeaderNames, String canonicalizedHeaders,
             String bodyHash) {
-        return httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n"
-                + queryParameters + "\n" + canonicalizedHeaders + "\n" + canonicalizedHeaderNames
-                + "\n" + bodyHash;
+        return httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n" + queryParameters
+                + "\n" + canonicalizedHeaders + "\n" + canonicalizedHeaderNames + "\n" + bodyHash;
     }
 
     /**
@@ -185,13 +185,13 @@ public abstract class Aws4SignerBase {
     protected static String getStringToSign(String scheme, String algorithm, String dateTime,
             String scope, String canonicalRequest) {
         return scheme + "-" + algorithm + "\n" + dateTime + "\n" + scope + "\n"
-                + Util.toHex(hash(canonicalRequest));
+                + Util.toHex(sha256(canonicalRequest));
     }
 
     /**
      * Hashes the string contents (assumed to be UTF-8) using the SHA-256 algorithm.
      */
-    public static byte[] hash(String text) {
+    public static byte[] sha256(String text) {
         return sha256(text.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -209,8 +209,9 @@ public abstract class Aws4SignerBase {
         }
     }
 
-    protected static byte[] sign(String stringData, byte[] key, String algorithm) {
+    protected static byte[] sign(String stringData, byte[] key) {
         try {
+            String algorithm = ALGORITHM_HMAC_SHA256;
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
             Mac mac = Mac.getInstance(algorithm);
             mac.init(new SecretKeySpec(key, algorithm));
