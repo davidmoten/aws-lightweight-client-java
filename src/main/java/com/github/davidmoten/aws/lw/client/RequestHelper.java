@@ -1,9 +1,9 @@
 package com.github.davidmoten.aws.lw.client;
 
-import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -65,7 +65,7 @@ final class RequestHelper {
             h.put("content-length", "" + requestBody.length);
             h.put("x-amz-content-sha256", contentHashString);
         }
-        
+
 //        if (credentials.sessionToken().isPresent()) {
 //            h.put("x-amz-security-token", credentials.sessionToken().get());
 //        }
@@ -81,8 +81,8 @@ final class RequestHelper {
 
         Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(endpointUrl,
                 method, serviceName, regionName);
-        String authorizationQueryParameters = signer.computeSignature(h, q,
-                contentHashString, credentials.accessKey(), credentials.secretKey());
+        String authorizationQueryParameters = signer.computeSignature(h, q, contentHashString,
+                credentials.accessKey(), credentials.secretKey());
 
         // build the presigned url to incorporate the authorization elements as query
         // parameters
@@ -192,12 +192,8 @@ final class RequestHelper {
                 index = parameterSeparatorIndex + 1;
             }
             if (value != null) {
-                try {
-                    results.add(new Parameter(URLDecoder.decode(name, "UTF-8"),
-                            URLDecoder.decode(value, "UTF-8")));
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+                results.add(new Parameter(URLDecoder.decode(name, StandardCharsets.UTF_8),
+                        URLDecoder.decode(value, StandardCharsets.UTF_8)));
             }
         }
         return results;

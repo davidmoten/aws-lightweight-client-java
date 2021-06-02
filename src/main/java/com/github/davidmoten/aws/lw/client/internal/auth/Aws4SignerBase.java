@@ -1,6 +1,5 @@
 package com.github.davidmoten.aws.lw.client.internal.auth;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
@@ -194,12 +193,7 @@ public abstract class Aws4SignerBase {
      * Hashes the string contents (assumed to be UTF-8) using the SHA-256 algorithm.
      */
     public static byte[] hash(String text) {
-        try {
-            return hash(text.getBytes("UTF-8"));
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(
-                    "Unable to compute hash while signing request: " + e.getMessage(), e);
-        }
+        return hash(text.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
@@ -222,8 +216,7 @@ public abstract class Aws4SignerBase {
             Mac mac = Mac.getInstance(algorithm);
             mac.init(new SecretKeySpec(key, algorithm));
             return mac.doFinal(data);
-        } catch (RuntimeException | NoSuchAlgorithmException
-                | InvalidKeyException e) {
+        } catch (RuntimeException | NoSuchAlgorithmException | InvalidKeyException e) {
             throw new RuntimeException("Unable to calculate a request signature: " + e.getMessage(),
                     e);
         }
