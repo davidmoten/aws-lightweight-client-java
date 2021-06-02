@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.xml.XmlElement;
@@ -66,6 +67,13 @@ public final class ClientMain {
                 Response r = s3.path(bucketName + "/" + "notThere").response();
                 System.out.println("ok=" + r.isOk() + ", statusCode=" + r.statusCode()
                         + ", message=" + r.contentUtf8());
+            }
+            {
+                // read bucket object
+                String text = s3.path(bucketName + "/" + objectName).responseAsUtf8();
+                System.out.println(text);
+                System.out.println("presignedUrl="
+                        + s3.path(bucketName + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
             }
             {
                 // read bucket object with metadata

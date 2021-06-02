@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -224,13 +225,13 @@ public final class Client {
             return this;
         }
 
-        public Builder4 connectTimeoutMs(int connectTimeoutMs) {
-            b.connectTimeoutMs = connectTimeoutMs;
+        public Builder4 connectTimeout(long duration, TimeUnit unit) {
+            b.connectTimeoutMs = (int) unit.toMillis(duration);
             return this;
         }
 
-        public Builder4 readTimeoutMs(int readTimeoutMs) {
-            b.readTimeoutMs = readTimeoutMs;
+        public Builder4 readTimeoutMs(long duration, TimeUnit unit) {
+            b.readTimeoutMs = (int) unit.toMillis(duration);
             return this;
         }
 

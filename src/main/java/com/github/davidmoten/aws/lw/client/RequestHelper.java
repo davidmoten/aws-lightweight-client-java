@@ -13,6 +13,7 @@ import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForAuthorizationHeader;
+import com.github.davidmoten.aws.lw.client.internal.auth.AWS4SignerForQueryParameterAuth;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.xml.Preconditions;
 
@@ -38,6 +39,59 @@ final class RequestHelper {
         Preconditions.checkNotNull(headers);
         return headers.entrySet().stream().collect(Collectors.toMap(x -> x.getKey(),
                 x -> x.getValue().stream().collect(Collectors.joining(","))));
+    }
+
+    static String presignedUrl(String url, String method, Map<String, String> headers,
+            byte[] requestBody, String serviceName, String regionName, Credentials credentials,
+            int connectTimeoutMs, int readTimeoutMs, long expirySeconds) {
+
+        // the region-specific endpoint to the target object expressed in path style
+        URL endpointUrl;
+        try {
+            endpointUrl = new URL(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
+        }
+
+        Map<String, String> h = new HashMap<>(headers);
+        final String contentHashString;
+        if (requestBody == null || requestBody.length == 0) {
+            contentHashString = AWS4SignerBase.EMPTY_BODY_SHA256;
+        } else {
+            // compute hash of the body content
+            byte[] contentHash = AWS4SignerBase.hash(requestBody);
+            contentHashString = Util.toHex(contentHash);
+            h.put("content-length", "" + requestBody.length);
+        }
+        h.put("x-amz-content-sha256", contentHashString);
+        if (credentials.sessionToken().isPresent()) {
+            h.put("x-amz-security-token", credentials.sessionToken().get());
+        }
+
+        List<Parameter> parameters = extractQueryParameters(endpointUrl);
+        Map<String, String> q = parameters.stream()
+                .collect(Collectors.toMap(p -> p.name, p -> p.value));
+        // construct the query parameter string to accompany the url
+
+        // for SignatureV4, the max expiry for a presigned url is 7 days,
+        // expressed in seconds
+        q.put("X-Amz-Expires", "" + expirySeconds);
+
+        AWS4SignerForQueryParameterAuth signer = new AWS4SignerForQueryParameterAuth(endpointUrl,
+                method, serviceName, regionName);
+        String authorizationQueryParameters = signer.computeSignature(h, q,
+                AWS4SignerBase.UNSIGNED_PAYLOAD, credentials.accessKey(), credentials.secretKey());
+
+        // build the presigned url to incorporate the authorization elements as query
+        // parameters
+        String u = endpointUrl.toString();
+        final String presignedUrl;
+        if (u.contains("?")) {
+            presignedUrl = u + "&" + authorizationQueryParameters;
+        } else {
+            presignedUrl = u + "?" + authorizationQueryParameters;
+        }
+        return presignedUrl;
     }
 
     static Response request(HttpClient httpClient, String url, String method,

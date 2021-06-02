@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -159,6 +160,13 @@ public final class Request {
 
     public void responseAsUtf8(Consumer<String> consumer) {
         consumer.accept(responseAsUtf8());
+    }
+
+    public String presignedUrl(long expiryDuration, TimeUnit unit) {
+        return RequestHelper.presignedUrl(url, method.toString(),
+                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
+                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs,
+                unit.toSeconds(expiryDuration));
     }
 
 }
