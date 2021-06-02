@@ -8,7 +8,6 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForChunkedUpload;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 
 /**

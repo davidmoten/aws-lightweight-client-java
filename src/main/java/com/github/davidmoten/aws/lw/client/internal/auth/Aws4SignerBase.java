@@ -8,13 +8,14 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.SimpleTimeZone;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -170,34 +171,22 @@ public abstract class Aws4SignerBase {
 
         SortedMap<String, String> sorted = new TreeMap<String, String>();
 
-        Iterator<Map.Entry<String, String>> pairs = parameters.entrySet().iterator();
-        while (pairs.hasNext()) {
-            Map.Entry<String, String> pair = pairs.next();
-            String key = pair.getKey();
-            String value = pair.getValue();
-            sorted.put(HttpUtils.urlEncode(key, false), HttpUtils.urlEncode(value, false));
+        for (Entry<String, String> pair : parameters.entrySet()) {
+            sorted.put(HttpUtils.urlEncode(pair.getKey(), false),
+                    HttpUtils.urlEncode(pair.getValue(), false));
         }
 
-        StringBuilder builder = new StringBuilder();
-        pairs = sorted.entrySet().iterator();
-        while (pairs.hasNext()) {
-            Map.Entry<String, String> pair = pairs.next();
-            builder.append(pair.getKey());
-            builder.append("=");
-            builder.append(pair.getValue());
-            if (pairs.hasNext()) {
-                builder.append("&");
-            }
-        }
-
-        return builder.toString();
+        return sorted //
+                .entrySet() //
+                .stream() //
+                .map(pair -> pair.getKey() + "=" + pair.getValue())
+                .collect(Collectors.joining("&"));
     }
 
     protected static String getStringToSign(String scheme, String algorithm, String dateTime,
             String scope, String canonicalRequest) {
-        String stringToSign = scheme + "-" + algorithm + "\n" + dateTime + "\n" + scope + "\n"
+        return scheme + "-" + algorithm + "\n" + dateTime + "\n" + scope + "\n"
                 + Util.toHex(hash(canonicalRequest));
-        return stringToSign;
     }
 
     /**

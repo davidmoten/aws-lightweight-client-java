@@ -1,10 +1,11 @@
-package com.github.davidmoten.aws.lw.client.internal.auth;
+package com.amazonaws.services.s3.sample;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
