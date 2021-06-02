@@ -5,6 +5,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
@@ -99,7 +100,12 @@ public class HttpUtils {
     }
 
     public static String urlEncode(String url, boolean keepPathSlash) {
-        String encoded = URLEncoder.encode(url, StandardCharsets.UTF_8).replace("+", "%20");
+        String encoded;
+        try {
+            encoded = URLEncoder.encode(url, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
         if (keepPathSlash) {
             return encoded.replace("%2F", "/");
         } else {

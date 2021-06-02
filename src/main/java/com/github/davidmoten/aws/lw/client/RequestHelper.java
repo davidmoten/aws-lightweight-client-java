@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -60,7 +61,7 @@ final class RequestHelper {
             h.put("x-amz-content-sha256", "");
         } else {
             // compute hash of the body content
-            byte[] contentHash = Aws4SignerBase.hash(requestBody);
+            byte[] contentHash = Aws4SignerBase.sha256(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
             h.put("x-amz-content-sha256", contentHashString);
@@ -114,7 +115,7 @@ final class RequestHelper {
             contentHashString = Aws4SignerBase.EMPTY_BODY_SHA256;
         } else {
             // compute hash of the body content
-            byte[] contentHash = Aws4SignerBase.hash(requestBody);
+            byte[] contentHash = Aws4SignerBase.sha256(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
         }
@@ -192,8 +193,12 @@ final class RequestHelper {
                 index = parameterSeparatorIndex + 1;
             }
             if (value != null) {
-                results.add(new Parameter(URLDecoder.decode(name, StandardCharsets.UTF_8),
-                        URLDecoder.decode(value, StandardCharsets.UTF_8)));
+                try {
+                    results.add(new Parameter(URLDecoder.decode(name, "UTF-8"),
+                            URLDecoder.decode(value, "UTF-8")));
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return results;

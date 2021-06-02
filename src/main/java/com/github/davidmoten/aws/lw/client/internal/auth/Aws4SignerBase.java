@@ -126,10 +126,9 @@ public abstract class Aws4SignerBase {
     protected static String getCanonicalRequest(URL endpoint, String httpMethod,
             String queryParameters, String canonicalizedHeaderNames, String canonicalizedHeaders,
             String bodyHash) {
-        String canonicalRequest = httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n"
+        return httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n"
                 + queryParameters + "\n" + canonicalizedHeaders + "\n" + canonicalizedHeaderNames
                 + "\n" + bodyHash;
-        return canonicalRequest;
     }
 
     /**
@@ -164,7 +163,7 @@ public abstract class Aws4SignerBase {
      *
      * @return A canonicalized form for the specified query string parameters.
      */
-    public static String getCanonicalizedQueryString(Map<String, String> parameters) {
+    protected static String getCanonicalizedQueryString(Map<String, String> parameters) {
         if (parameters == null || parameters.isEmpty()) {
             return "";
         }
@@ -193,13 +192,13 @@ public abstract class Aws4SignerBase {
      * Hashes the string contents (assumed to be UTF-8) using the SHA-256 algorithm.
      */
     public static byte[] hash(String text) {
-        return hash(text.getBytes(StandardCharsets.UTF_8));
+        return sha256(text.getBytes(StandardCharsets.UTF_8));
     }
 
     /**
      * Hashes the byte array using the SHA-256 algorithm.
      */
-    public static byte[] hash(byte[] data) {
+    public static byte[] sha256(byte[] data) {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(data);
