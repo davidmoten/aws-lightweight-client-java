@@ -34,7 +34,32 @@ In a Lambda handler environment variables hold the credentials and session token
 ```java
 Client s3 = Client.s3().defaultClient().build();
 ```
+### Clients outside of Lambda
+```java
+Client s3 = Client
+  .s3()
+  .regionName("ap-southeast-2")
+  .accessKey(accessKey)
+  .secretKey(secretKey)
+  .build()
+```
+There are a number of other options that can be set when building the Client:
 
+```java
+Client iam = Client
+    .serviceName("iam") //
+    .regionName(regionName) //
+    .accessKey(accessKey) //
+    .secretKey(secretKey) //
+    .exceptionFactory(myExceptionFactory) //
+    .exception( //
+	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"), //
+	    x -> new PolicyDoesNotExistException(x.contentUtf8())) //
+    .httpClient(myHttpClient) //
+    .connectTimeoutMs(30000) //
+    .readTimeoutMs(120000) //
+    .build();
+```
 ### S3
 The code below demonstrates the following:
 * create bucket
