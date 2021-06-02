@@ -37,6 +37,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -263,12 +264,12 @@ public final class XmlElement {
 
     public String toString() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (OutputStreamWriter writer = new OutputStreamWriter(out)) {
+        try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
             this.write(writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return new String(out.toByteArray());
+        return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
     public void write(Writer writer) throws IOException {
