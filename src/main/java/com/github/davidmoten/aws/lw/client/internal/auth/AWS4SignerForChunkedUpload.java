@@ -90,7 +90,7 @@ public class AWS4SignerForChunkedUpload extends AWS4SignerBase {
         String hostHeader = endpointUrl.getHost();
         int port = endpointUrl.getPort();
         if ( port > -1 ) {
-            hostHeader.concat(":" + Integer.toString(port));
+            hostHeader = hostHeader.concat(":" + port);
         }
         headers.put("Host", hostHeader);
         

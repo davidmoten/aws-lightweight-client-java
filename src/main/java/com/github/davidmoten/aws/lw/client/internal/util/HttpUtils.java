@@ -33,13 +33,11 @@ public class HttpUtils {
                     wr.flush();
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new RuntimeException("Request failed. " + e.getMessage(), e);
         }
         return executeHttpRequest(connection);
     }
-
-    
 
     public static String executeHttpRequest(HttpURLConnection connection) {
         try {
@@ -60,7 +58,7 @@ public class HttpUtils {
                 }
                 return response.toString();
             }
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new RuntimeException("Request failed. " + e.getMessage(), e);
         } finally {
             if (connection != null) {
@@ -68,10 +66,11 @@ public class HttpUtils {
             }
         }
     }
-    
+
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
             Map<String, String> headers) {
-        return createHttpConnection(endpointUrl, httpMethod, headers, CONNECT_TIMEOUT_MS, READ_TIMEOUT_MS);
+        return createHttpConnection(endpointUrl, httpMethod, headers, CONNECT_TIMEOUT_MS,
+                READ_TIMEOUT_MS);
     }
 
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
@@ -92,7 +91,7 @@ public class HttpUtils {
             connection.setConnectTimeout(connectTimeoutMs);
             connection.setReadTimeout(readTimeoutMs);
             return connection;
-        } catch (Exception e) {
+        } catch (IOException | RuntimeException e) {
             throw new RuntimeException("Cannot create connection. " + e.getMessage(), e);
         }
     }

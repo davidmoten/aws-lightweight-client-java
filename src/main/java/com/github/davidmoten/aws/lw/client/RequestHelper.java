@@ -40,8 +40,9 @@ final class RequestHelper {
                 x -> x.getValue().stream().collect(Collectors.joining(","))));
     }
 
-    static Response request(HttpClient httpClient, String url, String method, Map<String, String> headers,
-            byte[] requestBody, String serviceName, String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs) {
+    static Response request(HttpClient httpClient, String url, String method,
+            Map<String, String> headers, byte[] requestBody, String serviceName, String regionName,
+            Credentials credentials, int connectTimeoutMs, int readTimeoutMs) {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl;
@@ -77,7 +78,8 @@ final class RequestHelper {
         // place the computed signature into a formatted 'Authorization' header
         // and call S3
         h.put("Authorization", authorization);
-        return httpClient.request(endpointUrl, method, h, requestBody, connectTimeoutMs, readTimeoutMs);
+        return httpClient.request(endpointUrl, method, h, requestBody, connectTimeoutMs,
+                readTimeoutMs);
     }
 
     private static List<Parameter> extractQueryParameters(URL endpointUrl) {
@@ -133,11 +135,13 @@ final class RequestHelper {
 
                 index = parameterSeparatorIndex + 1;
             }
-            try {
-                results.add(new Parameter(URLDecoder.decode(name, "UTF-8"),
-                        URLDecoder.decode(value, "UTF-8")));
-            } catch (UnsupportedEncodingException e) {
-                throw new RuntimeException(e);
+            if (value != null) {
+                try {
+                    results.add(new Parameter(URLDecoder.decode(name, "UTF-8"),
+                            URLDecoder.decode(value, "UTF-8")));
+                } catch (UnsupportedEncodingException e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
         return results;
