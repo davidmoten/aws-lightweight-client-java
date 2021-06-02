@@ -113,7 +113,7 @@ s3.path(bucketName)
 
 String objectName = "ExampleObject.txt";
 s3
-    .path(bucketName + "/" + objectName)
+    .path(bucketName, objectName)
     .method(HttpMethod.PUT)
     .requestBody("hi there")
     .metadata("category", "something")
@@ -132,7 +132,7 @@ String text = s3
 ///////////////////////////////////
 
 Response r = s3
-    .path(bucketName + "/" + objectName)
+    .path(bucketName, objectName)
     .response();
 System.out.println("response ok=" + response.isOk());
 System.out.println(r.content().length + " chars read");
@@ -156,7 +156,7 @@ System.out.println(keys);
 // delete object 
 ///////////////////////////////////
 
-s3.path(bucketName + "/" + objectName) 
+s3.path(bucketName, objectName) 
     .method(HttpMethod.DELETE) 
     .execute();
         
