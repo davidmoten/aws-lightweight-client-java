@@ -72,6 +72,13 @@ public class XmlElementTest {
     }
 
     @Test
+    public void testChildrenWithName() {
+        XmlElement x = XmlElement.parse("<a><b/><b/><c/></a>");
+        assertEquals("a", x.name());
+        assertEquals(2, x.childrenWithName("b").size());
+    }
+
+    @Test
     public void testHasTwoChildren() {
         String xml = "<a><b>boo</b><c step=\"large\">bingo</c><d>&amp;&gt;&lt;&quot;&apos;&#x7;&#x130;zz</d></a>";
         XmlElement x = XmlElement.parse(xml);
@@ -86,7 +93,9 @@ public class XmlElementTest {
         assertEquals("c", x.child("c").name());
         assertEquals("bingo", x.child(1).content());
         assertEquals("large", x.child("c").attribute("step"));
-        assertEquals("<a><b>boo</b><c step=\"large\">bingo</c><d>&amp;&gt;&lt;&quot;&apos;&#x7;&#x130;zz</d></a>", x.toString());
+        assertEquals(
+                "<a><b>boo</b><c step=\"large\">bingo</c><d>&amp;&gt;&lt;&quot;&apos;&#x7;&#x130;zz</d></a>",
+                x.toString());
         assertEquals(0, x.lineNumber());
     }
 
@@ -101,17 +110,17 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a><!-- hi there -->boo</a>");
         assertEquals("boo", x.content());
     }
-    
+
     @Test
     public void testCData() {
-        XmlElement x = XmlElement.parse("<a><![CDATA[\n"
-                + "Within this Character Data block I can\n"
-                + "use double dashes as much as I want (along with <, &, ', and \")\n"
-                + "*and* %MyParamEntity; will be expanded to the text\n"
-                + "\"Has been expanded\" ... however, I can't use\n"
-                + "the CEND sequence. If I need to use CEND I must escape one of the\n"
-                + "brackets or the greater-than sign using concatenated CDATA sections.\n"
-                + "]]></a>");
+        XmlElement x = XmlElement
+                .parse("<a><![CDATA[\n" + "Within this Character Data block I can\n"
+                        + "use double dashes as much as I want (along with <, &, ', and \")\n"
+                        + "*and* %MyParamEntity; will be expanded to the text\n"
+                        + "\"Has been expanded\" ... however, I can't use\n"
+                        + "the CEND sequence. If I need to use CEND I must escape one of the\n"
+                        + "brackets or the greater-than sign using concatenated CDATA sections.\n"
+                        + "]]></a>");
         String s = x.content();
         assertTrue(s.contains("as I want (along with <, &, '"));
     }

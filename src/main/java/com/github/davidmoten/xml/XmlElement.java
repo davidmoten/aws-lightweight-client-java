@@ -249,21 +249,20 @@ public final class XmlElement {
     public static XmlElement parse(Reader reader) throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
         XmlElement x = new XmlElement();
-        x.parseFromReader(reader, /* startingLineNr */ 1);
+        x.parseFromReader(reader);
         return x;
     }
 
-    private void parseFromReader(Reader reader, int startingLineNr)
+    private void parseFromReader(Reader reader)
             throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
-        Preconditions.checkArgument(startingLineNr >= 1);
         this.name = null;
         this.content = "";
         this.attributes = new HashMap<>();
         this.children = new ArrayList<>();
         this.charReadTooMuch = '\0';
         this.reader = reader;
-        this.parserLineNr = startingLineNr;
+        this.parserLineNr = 1;
 
         for (;;) {
             char ch = this.scanWhitespace();
