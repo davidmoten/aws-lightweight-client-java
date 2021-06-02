@@ -2,12 +2,15 @@ package com.github.davidmoten.aws.lw.client.internal.auth;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.security.InvalidKeyException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.SimpleTimeZone;
 import java.util.SortedMap;
@@ -16,8 +19,8 @@ import java.util.TreeMap;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Common methods and properties for all AWS4 signer variants
@@ -80,7 +83,7 @@ public abstract class AWS4SignerBase {
         for (String header : sortedHeaders) {
             if (buffer.length() > 0)
                 buffer.append(";");
-            buffer.append(header.toLowerCase());
+            buffer.append(header.toLowerCase(Locale.ENGLISH));
         }
 
         return buffer.toString();
@@ -105,7 +108,7 @@ public abstract class AWS4SignerBase {
         // space.
         StringBuilder buffer = new StringBuilder();
         for (String key : sortedHeaders) {
-            buffer.append(key.toLowerCase().replaceAll("\\s+", " ") + ":"
+            buffer.append(key.toLowerCase(Locale.ENGLISH).replaceAll("\\s+", " ") + ":"
                     + headers.get(key).replaceAll("\\s+", " "));
             buffer.append("\n");
         }
@@ -217,7 +220,7 @@ public abstract class AWS4SignerBase {
             MessageDigest md = MessageDigest.getInstance("SHA-256");
             md.update(data);
             return md.digest();
-        } catch (Exception e) {
+        } catch (RuntimeException | NoSuchAlgorithmException e) {
             throw new RuntimeException(
                     "Unable to compute hash while signing request: " + e.getMessage(), e);
         }
@@ -229,7 +232,8 @@ public abstract class AWS4SignerBase {
             Mac mac = Mac.getInstance(algorithm);
             mac.init(new SecretKeySpec(key, algorithm));
             return mac.doFinal(data);
-        } catch (Exception e) {
+        } catch (RuntimeException | UnsupportedEncodingException | NoSuchAlgorithmException
+                | InvalidKeyException e) {
             throw new RuntimeException("Unable to calculate a request signature: " + e.getMessage(),
                     e);
         }
