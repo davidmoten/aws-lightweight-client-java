@@ -152,13 +152,13 @@ public final class Client {
             this.serviceName = serviceName;
         }
 
-        public Client defaultClient() {
-            return regionFromEnvironment().credentials(Credentials.fromEnvironment()).build();
+        public Builder4 defaultClient() {
+            return regionFromEnvironment().credentials(Credentials.fromEnvironment());
         }
 
-        public Client from(Client client) {
+        public Builder4 from(Client client) {
             Preconditions.checkNotNull(client);
-            return regionName(client.regionName()).credentials(client.credentials()).build();
+            return regionName(client.regionName()).credentials(client.credentials());
         }
 
         public Builder2 regionFromEnvironment() {

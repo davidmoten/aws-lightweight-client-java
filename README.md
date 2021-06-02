@@ -208,5 +208,10 @@ The output is:
 ok=false, statusCode=404, message=<?xml version="1.0" encoding="UTF-8"?>
 <Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>notThere</Key><RequestId>4AAX24QZ8777FA6B</RequestId><HostId>4N1rsMjjdM7tjKSQDXNQZNH8EOqNckUsO6gRVPfcjMmHZ9APRwYJwufZOr9l1Qlinux5W537bDc=</HostId></Error>
 ```
+### Exception factory
+You can define what exceptions get thrown using a builder method for a `Client`:
 
+```java
+
+```
 

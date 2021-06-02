@@ -2,7 +2,6 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.xml.XmlElement;
@@ -20,7 +19,7 @@ public final class ClientMain {
                 .regionName(regionName) //
                 .credentials(credentials) //
                 .build();
-        Client s3 = Client.s3().from(sqs);
+        Client s3 = Client.s3().from(sqs).build();
         {
             // create bucket
             String bucketName = "temp-bucket-" + System.currentTimeMillis();
