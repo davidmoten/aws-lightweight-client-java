@@ -183,25 +183,37 @@ You'll note that most of the interactions with sqs involve using the url of the 
 ```java
 String queueName = "MyQueue-" + System.currentTimeMillis();
 
+///////////////////////////////////
 // create queue
+///////////////////////////////////
+
 sqs.query("Action", "CreateQueue") 
     .query("QueueName", queueName) 
     .execute();
 
+///////////////////////////////////
 // get queue url
+///////////////////////////////////
+
 String queueUrl = sqs 
     .query("Action", "GetQueueUrl") 
     .query("QueueName", queueName) 
     .responseAsXml() 
     .content("GetQueueUrlResult", "QueueUrl");
 
+///////////////////////////////////
 // send a message
+///////////////////////////////////
+
 sqs.url(queueUrl) 
     .query("Action", "SendMessage") 
     .query("MessageBody", "hi there") 
     .execute();
 
-// read all messages, print to console and delete them
+///////////////////////////////////
+// read all messages
+///////////////////////////////////
+
 List<XmlElement> list;
 do {
     list = sqs.url(queueUrl)
@@ -221,7 +233,10 @@ do {
     });
 } while (!list.isEmpty());
 
+///////////////////////////////////
 // delete queue
+///////////////////////////////////
+
 sqs.url(queueUrl) 
     .query("Action", "DeleteQueue") 
     .execute();
