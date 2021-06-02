@@ -28,6 +28,13 @@ Add this dependency to your pom.xml:
 
 To perform actions against the API you do need to know what methods exist and the parameters for those methods. This library is lightweight because it doesn't include a mass of generated classes from the API so you'll need to check the AWS API documentation to get that information. For example the API docs for S3 is [here](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
+### Clients in Lambda
+In a Lambda handler environment variables hold the credentials and session token. To pick those values up:
+
+```java
+Client s3 = Client.s3().defaultClient().build();
+```
+
 ### S3
 The code below demonstrates the following:
 * create bucket
