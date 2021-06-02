@@ -1,3 +1,10 @@
+/* 
+ * The NanoXML 2 Lite licence blurb is included here. The classes have been 
+ * completely butchered but the core xml parsing routines are thanks to 
+ * the NanoXML authors.
+ *  
+ **/
+
 /* XMLParseException.java
  *
  * $Revision: 1.4 $
@@ -62,62 +69,36 @@ public class XmlParseException
      * <code>NO_LINE</code> if the line number is unknown.
      *
      * <dl><dt><b>Invariants:</b></dt><dd>
-     * <ul><li><code>lineNr &gt 0 || lineNr == NO_LINE</code>
+     * <ul><li><code>lineNumber &gt 0 || lineNumber == NO_LINE</code>
      * </ul></dd></dl>
      */
-    private int lineNr;
-
+    private int lineNumber;
 
     /**
      * Creates an exception.
      *
      * @param name    The name of the element where the error is located.
+     * @param lineNumber  The number of the line in the input.
      * @param message A message describing what went wrong.
      *
      * </dl><dl><dt><b>Preconditions:</b></dt><dd>
      * <ul><li><code>message != null</code>
+     *     <li><code>lineNumber &gt; 0</code>
      * </ul></dd></dl>
      *
      * <dl><dt><b>Postconditions:</b></dt><dd>
-     * <ul><li>getLineNr() => NO_LINE
+     * <ul><li>getLineNumber() => lineNr
      * </ul></dd></dl><dl>
      */
     public XmlParseException(String name,
+                             int    lineNumber,
                              String message)
     {
-        super("XML Parse Exception during parsing of "
+        super("Problem parsing "
               + ((name == null) ? "the XML definition"
                                 : ("a " + name + " element"))
-              + ": " + message);
-        this.lineNr = XmlParseException.NO_LINE;
-    }
-
-
-    /**
-     * Creates an exception.
-     *
-     * @param name    The name of the element where the error is located.
-     * @param lineNr  The number of the line in the input.
-     * @param message A message describing what went wrong.
-     *
-     * </dl><dl><dt><b>Preconditions:</b></dt><dd>
-     * <ul><li><code>message != null</code>
-     *     <li><code>lineNr &gt; 0</code>
-     * </ul></dd></dl>
-     *
-     * <dl><dt><b>Postconditions:</b></dt><dd>
-     * <ul><li>getLineNr() => lineNr
-     * </ul></dd></dl><dl>
-     */
-    public XmlParseException(String name,
-                             int    lineNr,
-                             String message)
-    {
-        super("XML Parse Exception during parsing of "
-              + ((name == null) ? "the XML definition"
-                                : ("a " + name + " element"))
-              + " at line " + lineNr + ": " + message);
-        this.lineNr = lineNr;
+              + " at line " + lineNumber + ": " + message);
+        this.lineNumber = lineNumber;
     }
 
 
@@ -125,11 +106,10 @@ public class XmlParseException
      * Where the error occurred, or <code>NO_LINE</code> if the line number is
      * unknown.
      *
-     * @see com.github.davidmoten.xml.XmlParseException#NO_LINE
      */
-    public int getLineNr()
+    public int lineNumber()
     {
-        return this.lineNr;
+        return this.lineNumber;
     }
 
 }
