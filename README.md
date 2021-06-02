@@ -67,6 +67,15 @@ A client can be copied from another client to pick up same configuration (but wi
 ```java
 Client sqs = Client.from(iam).build();
 ```
+### Presigned URLs
+Presigned URLs are generated as follows (with a specified expiry duration):
+
+```java
+String presignedUrl = 
+     s3
+     .path(bucketName + "/" + objectName) 
+     .presignedUrl(1, TimeUnit.DAYS));
+```
 
 ### S3
 The code below demonstrates the following:
