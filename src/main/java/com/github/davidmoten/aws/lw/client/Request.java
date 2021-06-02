@@ -1,12 +1,15 @@
 package com.github.davidmoten.aws.lw.client;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
@@ -25,17 +28,16 @@ public final class Request {
     private int readTimeoutMs;
     private int attributeNumber = 1;
     private String attributePrefix = "Attribute";
+    private String[] pathSegments;
+    private final List<NameValue> queries = new ArrayList<>();
 
-    Request(Client client, String url) {
+    Request(Client client, String url, String... pathSegments) {
         this.client = client;
         this.url = url;
+        this.pathSegments = pathSegments;
         this.regionName = client.regionName();
         this.connectTimeoutMs = client.connectTimeoutMs();
         this.readTimeoutMs = client.readTimeoutMs();
-    }
-
-    static Request clientAndUrl(Client client, String url) {
-        return new Request(client, url);
     }
 
     public Request method(HttpMethod method) {
@@ -47,13 +49,7 @@ public final class Request {
     public Request query(String name, String value) {
         Preconditions.checkNotNull(name);
         Preconditions.checkNotNull(value);
-        if (!url.contains("?")) {
-            url += "?";
-        }
-        if (!url.endsWith("?")) {
-            url += "&";
-        }
-        url += HttpUtils.urlEncode(name, false) + "=" + HttpUtils.urlEncode(value, false);
+        queries.add(new NameValue(name, value));
         return this;
     }
 
@@ -100,8 +96,7 @@ public final class Request {
 
     public Request requestBody(String requestBody) {
         Preconditions.checkNotNull(requestBody);
-        this.requestBody = requestBody.getBytes(StandardCharsets.UTF_8);
-        return this;
+        return requestBody(requestBody.getBytes(StandardCharsets.UTF_8));
     }
 
     public Request regionName(String regionName) {
@@ -131,7 +126,24 @@ public final class Request {
      * @return all response information
      */
     public Response response() {
-        return RequestHelper.request(client.httpClient(), url, method.toString(),
+        String u = url;
+        if (u == null) {
+            u = "https://" + client.serviceName() + "." + regionName + ".amazonaws.com/"
+                    + Arrays.stream(pathSegments) //
+                            .map(x -> trimAndRemoveLeadingAndTrailingSlashes(x)) //
+                            .collect(Collectors.joining("/"));
+        }
+        // add queries
+        for (NameValue nv : queries) {
+            if (!u.contains("?")) {
+                u += "?";
+            }
+            if (!u.endsWith("?")) {
+                u += "&";
+            }
+            u += HttpUtils.urlEncode(nv.name, false) + "=" + HttpUtils.urlEncode(nv.value, false);
+        }
+        return RequestHelper.request(client.httpClient(), u, method.toString(),
                 RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
                 regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
     }
@@ -169,4 +181,25 @@ public final class Request {
                 unit.toSeconds(expiryDuration));
     }
 
+    private static String trimAndRemoveLeadingAndTrailingSlashes(String s) {
+        Preconditions.checkNotNull(s);
+        s = s.trim();
+        if (s.startsWith("/")) {
+            s = s.substring(1);
+        }
+        if (s.endsWith("/")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        return s;
+    }
+
+    private static final class NameValue {
+        final String name;
+        final String value;
+
+        NameValue(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+    }
 }

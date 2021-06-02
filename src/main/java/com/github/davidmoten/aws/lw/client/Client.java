@@ -1,10 +1,8 @@
 package com.github.davidmoten.aws.lw.client;
 
-import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
 import com.github.davidmoten.aws.lw.client.internal.HttpClientDefault;
@@ -100,7 +98,7 @@ public final class Client {
 
     public Request url(String url) {
         Preconditions.checkNotNull(url);
-        return Request.clientAndUrl(this, url);
+        return new Request(this, url);
     }
 
     /**
@@ -111,10 +109,7 @@ public final class Client {
      */
     public Request path(String... segments) {
         Preconditions.checkNotNull(segments);
-        return url("https://" + serviceName + "." + regionName + ".amazonaws.com/"
-                + Arrays.stream(segments) //
-                        .map(x -> removeLeadingAndTrailingSlashes(x)) //
-                        .collect(Collectors.joining("/")));
+        return new Request(this, null, segments);
     }
 
     public Request query(String name, String value) {
@@ -131,17 +126,6 @@ public final class Client {
         Preconditions.checkNotNull(name);
         Preconditions.checkNotNull(value);
         return path("").attribute(name, value);
-    }
-
-    private static String removeLeadingAndTrailingSlashes(String s) {
-        Preconditions.checkNotNull(s);
-        if (s.startsWith("/")) {
-            s = s.substring(1);
-        }
-        if (s.endsWith("/")) {
-            s = s.substring(0, s.length() - 1);
-        }
-        return s;
     }
 
     public static final class Builder {
