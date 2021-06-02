@@ -14,13 +14,13 @@
     <description>Lightweight client for all AWS services (but still with useful builders and XML parser)</description>
     <packaging>bundle</packaging>
 
-    <url>http://github.com/amsa-code/aws-lightweight-client-java</url>
+    <url>http://github.com/davidmoten/aws-lightweight-client-java</url>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <scm.url>scm:git:https://github.com/amsa-code/aws-lightweight-client-java.git</scm.url>
+        <scm.url>scm:git:https://github.com/davidmoten/aws-lightweight-client-java.git</scm.url>
 
         <checkstyle.version>3.1.2</checkstyle.version>
         <checkstyle.xml>src/main/checkstyle/checkstyle.xml</checkstyle.xml>
@@ -53,12 +53,12 @@
 
     <ciManagement>
         <system>Travis</system>
-        <url>https://travis-ci.org/amsa-code/aws-lightweight-client-java</url>
+        <url>https://travis-ci.org/davidmoten/aws-lightweight-client-java</url>
     </ciManagement>
 
     <issueManagement>
         <system>GitHub</system>
-        <url>https://github.com/amsa-code/aws-lightweight-client-java/issues</url>
+        <url>https://github.com/davidmoten/aws-lightweight-client-java/issues</url>
     </issueManagement>
 
     <inceptionYear>2021</inceptionYear>
