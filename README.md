@@ -28,13 +28,14 @@ Add this dependency to your pom.xml:
 
 To perform actions against the API you do need to know what methods exist and the parameters for those methods. This library is lightweight because it doesn't include a mass of generated classes from the API so you'll need to check the AWS API documentation to get that information. For example the API docs for S3 is [here](https://docs.aws.amazon.com/AmazonS3/latest/API/Welcome.html).
 
-### Clients in Lambda
+### Creating a Client
 In a Lambda handler environment variables hold the credentials and session token. To pick those values up:
 
 ```java
 Client s3 = Client.s3().defaultClient().build();
 ```
-### Clients outside of Lambda
+Outside of lambda you might specify your credentials explicitly:
+
 ```java
 Client s3 = Client
   .s3()
@@ -47,19 +48,25 @@ There are a number of other options that can be set when building the Client:
 
 ```java
 Client iam = Client
-    .serviceName("iam") //
-    .regionName(regionName) //
-    .accessKey(accessKey) //
-    .secretKey(secretKey) //
-    .exceptionFactory(myExceptionFactory) //
-    .exception( //
-	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"), //
-	    x -> new PolicyDoesNotExistException(x.contentUtf8())) //
-    .httpClient(myHttpClient) //
-    .connectTimeoutMs(30000) //
-    .readTimeoutMs(120000) //
+    .serviceName("iam") 
+    .regionName(regionName) 
+    .accessKey(accessKey)
+    .secretKey(secretKey)
+    .exceptionFactory(myExceptionFactory)
+    .exception(
+	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"),
+	    x -> new PolicyDoesNotExistException(x.contentUtf8()))
+    .httpClient(myHttpClient) 
+    .connectTimeoutMs(30000)
+    .readTimeoutMs(120000)
     .build();
 ```
+A client can be copied from another client to pick up same configuration (but with a different service name):
+
+```java
+Client sqs = Client.from(iam).build();
+```
+
 ### S3
 The code below demonstrates the following:
 * create bucket
