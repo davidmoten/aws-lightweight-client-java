@@ -1,10 +1,15 @@
 package com.github.davidmoten.aws.lw.client.internal.util;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Locale;
+import java.util.Map;
+import java.util.Map.Entry;
 
 /**
  * Utilities for encoding and decoding binary data to and from different forms.
@@ -13,6 +18,29 @@ public final class Util {
 
     private Util() {
         // prevent instantiation
+    }
+
+    public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
+            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) {
+        try {
+            HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
+            connection.setRequestMethod(httpMethod);
+
+            if (headers != null) {
+                for (Entry<String, String> entry : headers.entrySet()) {
+                    connection.setRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
+
+            connection.setUseCaches(false);
+            connection.setDoInput(true);
+            connection.setDoOutput(true);
+            connection.setConnectTimeout(connectTimeoutMs);
+            connection.setReadTimeout(readTimeoutMs);
+            return connection;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public static String canonicalMetadataKey(String meta) {
@@ -48,7 +76,7 @@ public final class Util {
         }
         return sb.toString().toLowerCase(Locale.getDefault());
     }
-    
+
     public static URL toUrl(String url) {
         try {
             return new URL(url);
@@ -56,7 +84,7 @@ public final class Util {
             throw new RuntimeException(e);
         }
     }
-    
+
     public static String urlEncode(String url, boolean keepPathSlash) {
         String encoded;
         try {

@@ -3,12 +3,10 @@ package com.amazonaws.services.s3.sample;
 import java.io.ByteArrayInputStream;
 import java.io.DataOutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**

@@ -1,6 +1,5 @@
 package com.amazonaws.services.s3.sample;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -11,7 +10,6 @@ import java.util.stream.Collectors;
 import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
-import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**

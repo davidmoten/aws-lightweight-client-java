@@ -12,7 +12,7 @@ import java.util.Map;
 import com.github.davidmoten.aws.lw.client.HttpClient;
 import com.github.davidmoten.aws.lw.client.Response;
 import com.github.davidmoten.aws.lw.client.ServiceException;
-import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 public final class HttpClientDefault implements HttpClient {
 
@@ -24,7 +24,7 @@ public final class HttpClientDefault implements HttpClient {
     @Override
     public Response request(URL endpointUrl, String httpMethod, Map<String, String> headers,
             byte[] requestBody, int connectTimeoutMs, int readTimeoutMs) {
-        HttpURLConnection connection = HttpUtils.createHttpConnection(endpointUrl, httpMethod, headers,
+        HttpURLConnection connection = Util.createHttpConnection(endpointUrl, httpMethod, headers,
                 connectTimeoutMs, readTimeoutMs);
         try {
             if (requestBody != null) {

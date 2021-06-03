@@ -1,6 +1,5 @@
 package com.amazonaws.services.s3.sample;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;

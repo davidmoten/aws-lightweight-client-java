@@ -1,17 +1,16 @@
-package com.github.davidmoten.aws.lw.client.internal.util;
+package com.amazonaws.services.s3.sample;
 
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.Map.Entry;
+
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Various Http helper routines
@@ -72,31 +71,8 @@ public class HttpUtils {
 
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
             Map<String, String> headers) {
-        return createHttpConnection(endpointUrl, httpMethod, headers, CONNECT_TIMEOUT_MS,
+        return Util.createHttpConnection(endpointUrl, httpMethod, headers, CONNECT_TIMEOUT_MS,
                 READ_TIMEOUT_MS);
-    }
-
-    public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
-            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) {
-        try {
-            HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
-            connection.setRequestMethod(httpMethod);
-
-            if (headers != null) {
-                for (Entry<String, String> entry : headers.entrySet()) {
-                    connection.setRequestProperty(entry.getKey(), entry.getValue());
-                }
-            }
-
-            connection.setUseCaches(false);
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-            connection.setConnectTimeout(connectTimeoutMs);
-            connection.setReadTimeout(readTimeoutMs);
-            return connection;
-        } catch (IOException | RuntimeException e) {
-            throw new RuntimeException("Cannot create connection. " + e.getMessage(), e);
-        }
     }
 
 }
