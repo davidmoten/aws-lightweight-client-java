@@ -99,17 +99,4 @@ public class HttpUtils {
         }
     }
 
-    public static String urlEncode(String url, boolean keepPathSlash) {
-        String encoded;
-        try {
-            encoded = URLEncoder.encode(url, "UTF-8").replace("+", "%20");
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
-        if (keepPathSlash) {
-            return encoded.replace("%2F", "/");
-        } else {
-            return encoded;
-        }
-    }
 }

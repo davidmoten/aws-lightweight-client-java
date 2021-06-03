@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
-import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
@@ -143,7 +142,7 @@ public abstract class Aws4SignerBase {
             return "/";
         }
 
-        String encodedPath = HttpUtils.urlEncode(path, true);
+        String encodedPath = Util.urlEncode(path, true);
         if (encodedPath.startsWith("/")) {
             return encodedPath;
         } else {
@@ -171,8 +170,8 @@ public abstract class Aws4SignerBase {
         SortedMap<String, String> sorted = new TreeMap<String, String>();
 
         for (Entry<String, String> pair : parameters.entrySet()) {
-            sorted.put(HttpUtils.urlEncode(pair.getKey(), false),
-                    HttpUtils.urlEncode(pair.getValue(), false));
+            sorted.put(Util.urlEncode(pair.getKey(), false),
+                    Util.urlEncode(pair.getValue(), false));
         }
 
         return sorted //

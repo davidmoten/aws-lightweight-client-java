@@ -1,7 +1,9 @@
 package com.github.davidmoten.aws.lw.client.internal.util;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.Locale;
 
 /**
@@ -52,6 +54,20 @@ public final class Util {
             return new URL(url);
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
+        }
+    }
+    
+    public static String urlEncode(String url, boolean keepPathSlash) {
+        String encoded;
+        try {
+            encoded = URLEncoder.encode(url, "UTF-8").replace("+", "%20");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        if (keepPathSlash) {
+            return encoded.replace("%2F", "/");
+        } else {
+            return encoded;
         }
     }
 

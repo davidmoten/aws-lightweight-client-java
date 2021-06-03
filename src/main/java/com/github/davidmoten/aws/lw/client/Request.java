@@ -11,7 +11,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.xml.Preconditions;
 import com.github.davidmoten.xml.XmlElement;
@@ -155,7 +154,7 @@ public final class Request {
             if (!u.endsWith("?")) {
                 u += "&";
             }
-            u += HttpUtils.urlEncode(nv.name, false) + "=" + HttpUtils.urlEncode(nv.value, false);
+            u += Util.urlEncode(nv.name, false) + "=" + Util.urlEncode(nv.value, false);
         }
         return u;
     }
