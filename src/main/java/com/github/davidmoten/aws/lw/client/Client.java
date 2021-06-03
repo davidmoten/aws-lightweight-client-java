@@ -86,7 +86,7 @@ public final class Client {
     HttpClient httpClient() {
         return httpClient;
     }
-    
+
     Clock clock() {
         return clock;
     }
@@ -109,10 +109,10 @@ public final class Client {
     }
 
     /**
-     * Specify the path (can include query).
+     * Specify the path (can include query starting with ? at end of final segment).
      * 
-     * @param path can include query parts as well (stuff after ?)
-     * @return builder
+     * @param segments that will be joined together with the '/' character
+     * @return request
      */
     public Request path(String... segments) {
         Preconditions.checkNotNull(segments);
@@ -248,7 +248,7 @@ public final class Client {
                     factory);
             return this;
         }
-        
+
         public Builder4 clock(Clock clock) {
             b.clock = clock;
             return this;
