@@ -79,6 +79,25 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
+    
+    @Test
+    public void testNoPathOrUrlSet() {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(hc) //
+                .build();
+
+        // create a bucket
+        client //
+                .query("number", "four") //
+                .method(HttpMethod.PUT) //
+                .execute();
+
+        assertEquals("https://s3.ap-southeast-2.amazonaws.com/?number=four", hc.endpointUrl.toString());
+    }
 
     @Test
     public void testPresignedUrl() {
