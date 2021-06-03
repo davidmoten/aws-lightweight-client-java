@@ -46,27 +46,27 @@ public final class Client {
     ///////////////////////////////////////////////////
 
     public static Builder s3() {
-        return new Builder("s3");
+        return service("s3");
     }
 
     public static Builder sqs() {
-        return new Builder("sqs");
+        return service("sqs");
     }
 
     public static Builder iam() {
-        return new Builder("iam");
+        return service("iam");
     }
 
     public static Builder ec2() {
-        return new Builder("ec2");
+        return service("ec2");
     }
 
     public static Builder sns() {
-        return new Builder("sns");
+        return service("sns");
     }
 
     public static Builder lambda() {
-        return new Builder("lambda");
+        return service("lambda");
     }
 
     ///////////////////////////////////////////////////

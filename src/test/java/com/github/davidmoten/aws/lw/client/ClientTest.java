@@ -140,4 +140,16 @@ public class ClientTest {
         assertEquals(a.size(), hc.headers.size());
     }
 
+    @Test
+    public void testOtherServiceNames() {
+        Client s3 = Client.s3().regionName("ap-southeast-2").accessKey("123").secretKey("abc")
+                .build();
+        assertEquals("iam", Client.iam().from(s3).build().serviceName());
+        assertEquals("ec2", Client.ec2().from(s3).build().serviceName());
+        assertEquals("lambda", Client.lambda().from(s3).build().serviceName());
+        assertEquals("s3", Client.s3().from(s3).build().serviceName());
+        assertEquals("sns", Client.sns().from(s3).build().serviceName());
+        assertEquals("sqs", Client.sqs().from(s3).build().serviceName());
+    }
+
 }
