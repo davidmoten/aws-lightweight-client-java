@@ -14,6 +14,14 @@ public class ClientTest {
 
     private static final HttpClientTesting hc = HttpClientTesting.INSTANCE;
 
+    private static final Client s3 = Client //
+            .s3() //
+            .regionName("ap-southeast-2") //
+            .accessKey("123") //
+            .secretKey("456") //
+            .httpClient(hc) //
+            .build();
+
     @Test
     public void test() {
         Client client = Client //
@@ -79,24 +87,23 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
-    
+
     @Test
     public void testNoPathOrUrlSet() {
-        Client client = Client //
-                .s3() //
-                .regionName("ap-southeast-2") //
-                .accessKey("123") //
-                .secretKey("456") //
-                .httpClient(hc) //
-                .build();
-
-        // create a bucket
-        client //
-                .query("number", "four") //
+        s3.query("number", "four") //
                 .method(HttpMethod.PUT) //
                 .execute();
-
-        assertEquals("https://s3.ap-southeast-2.amazonaws.com/?number=four", hc.endpointUrl.toString());
+        assertEquals("https://s3.ap-southeast-2.amazonaws.com/?number=four",
+                hc.endpointUrl.toString());
+    }
+    
+    @Test
+    public void testUrlSet() {
+        s3.url("https://blah") //
+                .method(HttpMethod.PUT) //
+                .execute();
+        assertEquals("https://blah",
+                hc.endpointUrl.toString());
     }
 
     @Test
