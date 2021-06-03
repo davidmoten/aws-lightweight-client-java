@@ -3,6 +3,9 @@ package com.github.davidmoten.aws.lw.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
@@ -97,6 +100,44 @@ public class ClientTest {
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=content-length;host;x-amz-content-sha256&X-Amz-Signature=3f27d3fe5e595d787990866d05112cd73e21be2275bf02269b640bc9b7c35ec6",
                 presignedUrl);
+    }
+
+    @Test
+    public void testAuthorizationSignedRequest() {
+        Client s3 = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .httpClient(hc) //
+                .build();
+
+        s3 //
+                .path("myBucket/myObject.txt") //
+                .query("Type", "Thing") //
+                .header("my-header", "blah") //
+                .requestBody("something") //
+                .response();
+
+        assertEquals("GET", hc.httpMethod);
+        assertEquals("something", hc.requestBodyString());
+        assertEquals("https://s3.ap-southeast-2.amazonaws.com/myBucket/myObject.txt?Type=Thing",
+                hc.endpointUrl.toString());
+//        hc.headers.entrySet().forEach(System.out::println);
+        Map<String, String> a = new HashMap<>();
+        a.put("my-header", "blah");
+        a.put("x-amz-content-sha256",
+                "3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb");
+        a.put("Authorization",
+                "AWS4-HMAC-SHA256 Credential=123/20210603/ap-southeast-2/s3/aws4_request, SignedHeaders=content-length;host;my-header;x-amz-content-sha256;x-amz-date, Signature=b68fd6e232d7a0b694fc4b7b366e2ed887c7ba976c16dd5ccfcf77a0fae8c9e7");
+        a.put("Host", "s3.ap-southeast-2.amazonaws.com");
+        a.put("x-amz-date", "20210603T045046Z");
+        a.put("content-length", "" + 9);
+        for (Entry<String, String> entry : hc.headers.entrySet()) {
+            assertEquals(a.get(entry.getKey()), entry.getValue());
+        }
+        assertEquals(a.size(), hc.headers.size());
     }
 
 }
