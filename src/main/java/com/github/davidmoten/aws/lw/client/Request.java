@@ -8,12 +8,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
-import com.github.davidmoten.xml.Preconditions;
-import com.github.davidmoten.xml.XmlElement;
+import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 
 public final class Request {
 
@@ -181,10 +180,6 @@ public final class Request {
         return XmlElement.parse(responseAsUtf8());
     }
 
-    public void responseAsUtf8(Consumer<String> consumer) {
-        consumer.accept(responseAsUtf8());
-    }
-
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
         String u = calculateUrl(url, client.serviceName(), regionName, queries,
                 Arrays.asList(pathSegments));
@@ -194,7 +189,8 @@ public final class Request {
                 unit.toSeconds(expiryDuration));
     }
 
-    private static String trimAndRemoveLeadingAndTrailingSlashes(String s) {
+    // VisibleForTesting
+    static String trimAndRemoveLeadingAndTrailingSlashes(String s) {
         Preconditions.checkNotNull(s);
         s = s.trim();
         if (s.startsWith("/")) {

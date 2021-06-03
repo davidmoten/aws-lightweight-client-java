@@ -14,8 +14,8 @@ import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
-import com.github.davidmoten.xml.Preconditions;
 
 final class RequestHelper {
 
@@ -50,12 +50,12 @@ final class RequestHelper {
 
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
-        if (requestBody == null || requestBody.length == 0) {
+        if (isEmpty(requestBody)) {
             contentHashString = Aws4SignerBase.UNSIGNED_PAYLOAD;
             h.put("x-amz-content-sha256", "");
         } else {
             // compute hash of the body content
-            byte[] contentHash = Aws4SignerBase.sha256(requestBody);
+            byte[] contentHash = Util.sha256(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
             h.put("x-amz-content-sha256", contentHashString);
@@ -76,8 +76,8 @@ final class RequestHelper {
 
         Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(endpointUrl,
                 method, serviceName, regionName);
-        String authorizationQueryParameters = signer.computeSignature(clock, h, q, contentHashString,
-                credentials.accessKey(), credentials.secretKey());
+        String authorizationQueryParameters = signer.computeSignature(clock, h, q,
+                contentHashString, credentials.accessKey(), credentials.secretKey());
 
         // build the presigned url to incorporate the authorization elements as query
         // parameters
@@ -100,11 +100,11 @@ final class RequestHelper {
 
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
-        if (requestBody == null || requestBody.length == 0) {
+        if (isEmpty(requestBody)) {
             contentHashString = Aws4SignerBase.EMPTY_BODY_SHA256;
         } else {
             // compute hash of the body content
-            byte[] contentHash = Aws4SignerBase.sha256(requestBody);
+            byte[] contentHash = Util.sha256(requestBody);
             contentHashString = Util.toHex(contentHash);
             h.put("content-length", "" + requestBody.length);
         }
@@ -149,7 +149,8 @@ final class RequestHelper {
      * @param rawQuery the query to parse
      * @return The list of parameters, in the order they were found.
      */
-    private static List<Parameter> extractQueryParameters(String rawQuery) {
+    // VisibleForTesting
+    static List<Parameter> extractQueryParameters(String rawQuery) {
         List<Parameter> results = new ArrayList<>();
         int endIndex = rawQuery.length() - 1;
         int index = 0;
@@ -193,14 +194,19 @@ final class RequestHelper {
         return results;
     }
 
-    private static final class Parameter {
-        private final String name;
-        private final String value;
+    // VisibleForTesting
+    static final class Parameter {
+        final String name;
+        final String value;
 
         Parameter(String name, String value) {
             this.name = name;
             this.value = value;
         }
+    }
+
+    static boolean isEmpty(byte[] array) {
+        return array == null || array.length == 0;
     }
 
 }

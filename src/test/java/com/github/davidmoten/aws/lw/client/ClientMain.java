@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import com.github.davidmoten.xml.XmlElement;
+import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 
 public final class ClientMain {
 

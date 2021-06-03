@@ -3,9 +3,10 @@ package com.github.davidmoten.aws.lw.client;
 import java.util.Optional;
 
 import com.github.davidmoten.aws.lw.client.internal.CredentialsImpl;
+import com.github.davidmoten.aws.lw.client.internal.Environment;
 
 public interface Credentials {
-
+    
     String accessKey();
 
     String secretKey();
@@ -17,9 +18,13 @@ public interface Credentials {
     }
 
     static Credentials fromEnvironment() {
-        return new CredentialsImpl(System.getenv("AWS_ACCESS_KEY_ID"),
-                System.getenv("AWS_SECRET_ACCESS_KEY"),
-                Optional.ofNullable(System.getenv("AWS_SESSION_TOKEN")));
+        return Environment.DEFAULT.credentials();
+    }
+    
+    static Credentials fromSystemProperties() {
+        return new CredentialsImpl(System.getProperty("aws.accessKeyId"),
+                System.getProperty("aws.secretKey"),
+                Optional.empty());
     }
 
 }

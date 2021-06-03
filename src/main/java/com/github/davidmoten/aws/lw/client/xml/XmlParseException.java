@@ -34,7 +34,7 @@
  *****************************************************************************/
 
 
-package com.github.davidmoten.xml;
+package com.github.davidmoten.aws.lw.client.xml;
 
 /**
  * An XMLParseException is thrown when an error occures while parsing an XML
@@ -43,7 +43,7 @@ package com.github.davidmoten.xml;
  * $Revision: 1.4 $<BR>
  * $Date: 2002/03/24 10:27:59 $<P>
  *
- * @see com.github.davidmoten.xml.XmlElement
+ * @see com.github.davidmoten.aws.lw.client.xml.XmlElement
  *
  * @author Marc De Scheemaecker
  * @version $Name: RELEASE_2_2_1 $, $Revision: 1.4 $

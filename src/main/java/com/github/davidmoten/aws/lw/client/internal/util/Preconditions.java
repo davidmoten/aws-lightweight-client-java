@@ -1,4 +1,4 @@
-package com.github.davidmoten.xml;
+package com.github.davidmoten.aws.lw.client.internal.util;
 
 public final class Preconditions {
 

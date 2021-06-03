@@ -30,4 +30,33 @@ public class ResponseTest {
         assertEquals(200, r.statusCode());
     }
 
+    @Test
+    public void testFilterNullKeys() {
+        byte[] content = "hi there".getBytes(StandardCharsets.UTF_8);
+        Map<String, List<String>> headers = new HashMap<>();
+        headers.put("x-amz-meta-color", Collections.singletonList("red"));
+        headers.put((String) null, Collections.singletonList("thing"));
+        Response r = new Response(headers, content, 200);
+        assertEquals(1, r.metadata().entrySet().size());
+        assertEquals(2, r.headers().size());
+    }
+    
+    @Test
+    public void testResponseCodeOk() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 210);
+        assertTrue(r.isOk());
+    }
+    
+    @Test
+    public void testResponseCode199() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 199);
+        assertTrue(!r.isOk());
+    }
+    
+    @Test
+    public void testResponseCode300() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 300);
+        assertTrue(!r.isOk());
+    }
+    
 }

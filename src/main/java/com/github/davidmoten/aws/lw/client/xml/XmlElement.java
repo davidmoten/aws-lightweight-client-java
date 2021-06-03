@@ -28,7 +28,7 @@
 
 // ALTERED greatly by Dave Moten May 2021
 
-package com.github.davidmoten.xml;
+package com.github.davidmoten.aws.lw.client.xml;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -47,6 +47,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 /* 
  * The NanoXML 2 Lite licence blurb is included here. The class has been 
@@ -253,8 +255,7 @@ public final class XmlElement {
         return x;
     }
 
-    private void parseFromReader(Reader reader)
-            throws IOException, XmlParseException {
+    private void parseFromReader(Reader reader) throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
         this.name = null;
         this.content = "";
@@ -285,8 +286,13 @@ public final class XmlElement {
 
     public static XmlElement parse(String string) throws XmlParseException {
         Preconditions.checkNotNull(string);
+        return parseUnchecked(new StringReader(string));
+    }
+
+    // VisibleForTesting
+    static XmlElement parseUnchecked(Reader reader) throws XmlParseException {
         try {
-            return parse(new StringReader(string));
+            return parse(reader);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -587,6 +593,8 @@ public final class XmlElement {
         char stringDelimiter = '\0';
         if (bracketLevel == 0) {
             char ch = this.readChar();
+//            System.out.println("ch="+ ch + ", rest="+ readAll());
+//            if (true) throw new RuntimeException();
             if (ch == '[') {
                 bracketLevel += 1;
             } else if (ch == '-') {
@@ -759,6 +767,7 @@ public final class XmlElement {
             throw this.createUnexpectedInputException("/");
         }
         this.unreadChar(this.scanWhitespace());
+
         if (!this.checkLiteral(name)) {
             throw this.createUnexpectedInputException(name);
         }
@@ -766,6 +775,20 @@ public final class XmlElement {
             throw this.createUnexpectedInputException(">");
         }
     }
+
+    // for debugging
+//    private String readAll() {
+//        StringBuilder b = new StringBuilder();
+//        int c;
+//        try {
+//            while ((c = reader.read()) != -1) {
+//                b.append((char) c);
+//            }
+//        } catch (IOException e) {
+//            throw new UncheckedIOException(e);
+//        }
+//        return b.toString();
+//    }
 
     /**
      * Resolves an entity. The name of the entity is read from the reader. The value

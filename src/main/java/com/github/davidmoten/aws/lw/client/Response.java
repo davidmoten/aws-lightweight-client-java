@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.github.davidmoten.xml.Preconditions;
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Response {
 

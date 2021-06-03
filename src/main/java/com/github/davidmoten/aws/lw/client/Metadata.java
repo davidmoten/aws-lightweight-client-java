@@ -5,8 +5,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
-import com.github.davidmoten.xml.Preconditions;
 
 public final class Metadata {
 

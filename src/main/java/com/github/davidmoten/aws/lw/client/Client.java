@@ -5,9 +5,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 import com.github.davidmoten.aws.lw.client.internal.Clock;
+import com.github.davidmoten.aws.lw.client.internal.Environment;
 import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
-import com.github.davidmoten.aws.lw.client.internal.HttpClientDefault;
-import com.github.davidmoten.xml.Preconditions;
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Client {
 
@@ -141,18 +141,25 @@ public final class Client {
         private String regionName;
         private String accessKey;
         private Credentials credentials;
-        private HttpClient httpClient = HttpClientDefault.INSTANCE;
+        private HttpClient httpClient = HttpClient.defaultClient();
         private int connectTimeoutMs = 30000;
         private int readTimeoutMs = 300000;
         private ExceptionFactory exceptionFactory = ExceptionFactory.DEFAULT;
         private Clock clock = Clock.DEFAULT;
+        private Environment environment = Environment.DEFAULT;
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
         }
 
+        // VisibleForTesting
+        Builder environment(Environment environment) {
+            this.environment = environment;
+            return this;
+        }
+
         public Builder4 defaultClient() {
-            return regionFromEnvironment().credentials(Credentials.fromEnvironment());
+            return regionFromEnvironment().credentialsFromEnvironment();
         }
 
         public Builder4 from(Client client) {
@@ -167,7 +174,7 @@ public final class Client {
         }
 
         public Builder2 regionFromEnvironment() {
-            return regionName(System.getenv("AWS_REGION"));
+            return regionName(environment.get("AWS_REGION"));
         }
 
         public Builder2 regionName(String regionName) {
@@ -182,6 +189,15 @@ public final class Client {
 
         private Builder2(Builder b) {
             this.b = b;
+        }
+
+        public Builder4 credentialsFromEnvironment() {
+            b.credentials = b.environment.credentials();
+            return new Builder4(b);
+        }
+
+        public Builder4 credentialsFromSystemProperties() {
+            return credentials(Credentials.fromSystemProperties());
         }
 
         public Builder3 accessKey(String accessKey) {

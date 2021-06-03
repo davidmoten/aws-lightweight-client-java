@@ -3,7 +3,6 @@ package com.github.davidmoten.aws.lw.client.internal.auth;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,8 +19,8 @@ import java.util.stream.Collectors;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
-import com.github.davidmoten.xml.Preconditions;
 
 /**
  * Common methods and properties for all AWS4 signer variants
@@ -96,9 +95,6 @@ public abstract class Aws4SignerBase {
      * headers must be included in the signing process.
      */
     protected static String getCanonicalizedHeaderString(Map<String, String> headers) {
-        if (headers == null || headers.isEmpty()) {
-            return "";
-        }
 
         // step1: sort the headers by case-insensitive order
         List<String> sortedHeaders = new ArrayList<String>();
@@ -145,6 +141,7 @@ public abstract class Aws4SignerBase {
         if (encodedPath.startsWith("/")) {
             return encodedPath;
         } else {
+            //TODO impossible?
             return "/".concat(encodedPath);
         }
     }
@@ -162,10 +159,6 @@ public abstract class Aws4SignerBase {
      * @return A canonicalized form for the specified query string parameters.
      */
     protected static String getCanonicalizedQueryString(Map<String, String> parameters) {
-        if (parameters == null || parameters.isEmpty()) {
-            return "";
-        }
-
         SortedMap<String, String> sorted = new TreeMap<String, String>();
 
         for (Entry<String, String> pair : parameters.entrySet()) {
@@ -183,27 +176,7 @@ public abstract class Aws4SignerBase {
     protected static String getStringToSign(String scheme, String algorithm, String dateTime,
             String scope, String canonicalRequest) {
         return scheme + "-" + algorithm + "\n" + dateTime + "\n" + scope + "\n"
-                + Util.toHex(sha256(canonicalRequest));
-    }
-
-    /**
-     * Hashes the string contents (assumed to be UTF-8) using the SHA-256 algorithm.
-     */
-    public static byte[] sha256(String text) {
-        return sha256(text.getBytes(StandardCharsets.UTF_8));
-    }
-
-    /**
-     * Hashes the byte array using the SHA-256 algorithm.
-     */
-    public static byte[] sha256(byte[] data) {
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            md.update(data);
-            return md.digest();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Unable to compute sha256 hash: " + e.getMessage(), e);
-        }
+                + Util.toHex(Util.sha256(canonicalRequest));
     }
 
     public static byte[] sign(String stringData, byte[] key) {
@@ -214,8 +187,7 @@ public abstract class Aws4SignerBase {
             mac.init(new SecretKeySpec(key, algorithm));
             return mac.doFinal(data);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
-            throw new RuntimeException("Unable to calculate a request signature: " + e.getMessage(),
-                    e);
+            throw new RuntimeException(e);
         }
     }
 }

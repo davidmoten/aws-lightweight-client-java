@@ -214,8 +214,8 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
         // sig-extension
         String chunkStringToSign = CHUNK_STRING_TO_SIGN_PREFIX + "\n" + dateTimeStamp + "\n" + scope
                 + "\n" + lastComputedSignature + "\n"
-                + Util.toHex(Aws4SignerBase.sha256(nonsigExtension)) + "\n"
-                + Util.toHex(Aws4SignerBase.sha256(dataToChunk));
+                + Util.toHex(Util.sha256(nonsigExtension)) + "\n"
+                + Util.toHex(Util.sha256(dataToChunk));
 
         // compute the V4 signature for the chunk
         String chunkSignature = Util.toHex(Aws4SignerBase.sign(chunkStringToSign, signingKey));

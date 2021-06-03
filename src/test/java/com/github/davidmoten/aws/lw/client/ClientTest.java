@@ -1,6 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
@@ -97,6 +98,11 @@ public class ClientTest {
         s3.path().connectTimeout(-1, TimeUnit.SECONDS);
     }
 
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadReadTimeout2() {
+        s3.path().readTimeout(-1, TimeUnit.SECONDS);
+    }
+
     @Test
     public void testTimeoutsAtClientLevel() {
         Client client = Client //
@@ -118,6 +124,33 @@ public class ClientTest {
 
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
+    }
+
+    @Test
+    public void testDefaultClientFromEnvironment() {
+        Map<String, String> map = new HashMap<>();
+        map.put("AWS_REGION", "ap-southeast-2");
+        map.put("AWS_ACCESS_KEY_ID", "123");
+        map.put("AWS_SECRET_ACCESS_KEY", "abc");
+        Client client = Client.s3().environment(name -> map.get(name)).defaultClient().build();
+        assertEquals("ap-southeast-2", client.regionName());
+        Credentials c = client.credentials();
+        assertEquals("123", c.accessKey());
+        assertEquals("abc", c.secretKey());
+        assertFalse(c.sessionToken().isPresent());
+    }
+
+    @Test
+    public void testDefaultClientFromSystemProperties() {
+        System.setProperty("aws.accessKeyId", "123");
+        System.setProperty("aws.secretKey", "abc");
+        Client client = Client.s3().regionName("ap-southeast-2").credentialsFromSystemProperties()
+                .build();
+        assertEquals("ap-southeast-2", client.regionName());
+        Credentials c = client.credentials();
+        assertEquals("123", c.accessKey());
+        assertEquals("abc", c.secretKey());
+        assertFalse(c.sessionToken().isPresent());
     }
 
     @Test
@@ -182,11 +215,12 @@ public class ClientTest {
                 .clock(() -> 1622695846902L) //
                 .build();
         try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setBody("hello").setResponseCode(200));
+            server.enqueue(new MockResponse().setBody("<a>hello</a>").setResponseCode(200));
             String baseUrl = server.url("").toString();
             String text = client.url(baseUrl) //
                     .requestBody("hi there") //
-                    .responseAsUtf8(); //
+                    .responseAsXml() //
+                    .content(); //
             assertEquals("hello", text);
         }
     }
@@ -210,10 +244,11 @@ public class ClientTest {
                 Assert.fail();
             } catch (ServiceException e) {
                 assertEquals(500, e.statusCode());
+                assertEquals("hello", e.message());
             }
         }
     }
-    
+
     @Test
     public void testServerErrorCustomExceptions() throws IOException {
         Client client = Client //
@@ -237,7 +272,30 @@ public class ClientTest {
             }
         }
     }
-    
+    @Test
+    public void testServerErrorCustomExceptionsPassThrough() throws IOException {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .exception(r -> !r.isOk() && r.statusCode() == 404, r -> new UnsupportedOperationException()) //
+                .build();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
+            String baseUrl = server.url("").toString();
+            try {
+                client.url(baseUrl) //
+                        .requestBody("hi there") //
+                        .responseAsUtf8(); //
+                Assert.fail();
+            } catch (ServiceException e) {
+                // all good
+            }
+        }
+    }
+
     @Test
     public void testServerErrorExceptionFactory() throws IOException {
         Client client = Client //
@@ -267,8 +325,7 @@ public class ClientTest {
             }
         }
     }
-
-
+    
     @Test
     public void testWithServerNoResponseBody() throws IOException {
         Client client = Client //
@@ -329,6 +386,46 @@ public class ClientTest {
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=b14df0b38e6a1dadce2f340483bd61db69730da26d571e1f0cfacea993372085",
+                presignedUrl);
+    }
+
+    @Test
+    public void testPresignedUrlWhenUrlHasPort() {
+        Client client = Client //
+                .s3() //
+                .regionName("us-west-1") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        // create a bucket
+        String presignedUrl = client //
+                .url("https://s3.myserver.com:8443") //
+                .method(HttpMethod.PUT) //
+                .regionName("ap-southeast-2") //
+                .presignedUrl(5, TimeUnit.DAYS);
+        assertEquals(
+                "https://s3.myserver.com:8443?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=e78feecf8da1d5c8029f117bb8bd10779d420ce02e838461e3abfafe7d565a5c",
+                presignedUrl);
+    }
+
+    @Test
+    public void testPresignedUrlWithoutQueryParameters() {
+        Client client = Client //
+                .s3() //
+                .regionName("us-west-1") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        // create a bucket
+        String presignedUrl = client //
+                .path("MyBucket") //
+                .method(HttpMethod.PUT) //
+                .regionName("ap-southeast-2") //
+                .presignedUrl(5, TimeUnit.DAYS);
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/MyBucket?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=4ffc22f4b86b0514a29994c92bbf0342e2dccc66cdceae670414c847baa338ef",
                 presignedUrl);
     }
 

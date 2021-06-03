@@ -15,12 +15,14 @@ Client s3 = Client.s3()
   .build();
 
 String content = s3
-  .path("myBucket/myObject.txt")
+  .path("myBucket", "myObject.txt")
   .responseAsUtf8();
 ```
-This is actually a lot more concise than using the AWS SDK for Java but moreover because the artifact is small and the number of classes loaded to perform the action is much less, the *cold start* time for a Java AWS Lambda that uses s3 is **reduced from 10s to 4s**! Sub-second cold start time latency would be great but the catch is that a lot of classes are loaded by the java platform to perform the https call to the S3 API so that's going to be hard to avoid. In fact my testing shows that without any https calls at all a lambda can cold start in <1s (but will have presumably pretty limited functionality)!
+This is actually a lot more concise than using the AWS SDK for Java but moreover because the artifact is small and the number of classes loaded to perform the action is much less (almost half), the *cold start* time for a Java AWS Lambda that uses s3 is **reduced from 10s to 4s**! Sub-second cold start time latency would be great but the catch is that a lot of classes are loaded by the java platform to perform the https call to the S3 API so that's going to be hard to avoid. In fact my testing shows that without any https calls at all a lambda can cold start in <1s (but will have presumably pretty limited functionality)!
 
 Aside from cold-start improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
+
+Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes. That is *aws-lightweight-client-java* only has to load 56% of the number of classes as the AWS SDK.
 
 ## Getting started
 Add this dependency to your pom.xml:
@@ -81,7 +83,7 @@ Presigned URLs are generated as follows (with a specified expiry duration):
 ```java
 String presignedUrl = 
      s3
-     .path(bucketName + "/" + objectName) 
+     .path(bucketName, objectName) 
      .presignedUrl(1, TimeUnit.DAYS));
 ```
 

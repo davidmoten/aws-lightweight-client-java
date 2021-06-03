@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.internal.Clock;
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
@@ -39,6 +40,8 @@ public class Aws4SignerForAuthorizationHeader extends Aws4SignerBase {
      */
     public String computeSignature(Clock clock, Map<String, String> headers, Map<String, String> queryParameters,
             String bodyHash, String awsAccessKey, String awsSecretKey) {
+        Preconditions.checkNotNull(headers);
+        Preconditions.checkNotNull(queryParameters);
         // first get the date and time for the subsequent request, and convert
         // to ISO 8601 format for use in signature generation
         Date now = new Date(clock.time());

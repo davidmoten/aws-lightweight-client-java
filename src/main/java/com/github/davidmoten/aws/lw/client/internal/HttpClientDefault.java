@@ -12,7 +12,6 @@ import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.HttpClient;
 import com.github.davidmoten.aws.lw.client.Response;
-import com.github.davidmoten.aws.lw.client.ServiceException;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 public final class HttpClientDefault implements HttpClient {

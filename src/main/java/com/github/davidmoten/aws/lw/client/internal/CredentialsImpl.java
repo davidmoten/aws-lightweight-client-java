@@ -3,7 +3,7 @@ package com.github.davidmoten.aws.lw.client.internal;
 import java.util.Optional;
 
 import com.github.davidmoten.aws.lw.client.Credentials;
-import com.github.davidmoten.xml.Preconditions;
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class CredentialsImpl implements Credentials {
 

@@ -7,6 +7,9 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -22,14 +25,13 @@ public final class Util {
 
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
             Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) {
+        Preconditions.checkNotNull(headers);
         try {
             HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
             connection.setRequestMethod(httpMethod);
 
-            if (headers != null) {
-                for (Entry<String, String> entry : headers.entrySet()) {
-                    connection.setRequestProperty(entry.getKey(), entry.getValue());
-                }
+            for (Entry<String, String> entry : headers.entrySet()) {
+                connection.setRequestProperty(entry.getKey(), entry.getValue());
             }
 
             connection.setUseCaches(false);
@@ -86,9 +88,14 @@ public final class Util {
     }
 
     public static String urlEncode(String url, boolean keepPathSlash) {
+        return urlEncode(url, keepPathSlash, "UTF-8");
+    }
+
+    // VisibleForTesting
+    static String urlEncode(String url, boolean keepPathSlash, String charset) {
         String encoded;
         try {
-            encoded = URLEncoder.encode(url, "UTF-8").replace("+", "%20");
+            encoded = URLEncoder.encode(url, charset).replace("+", "%20");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }
@@ -96,6 +103,28 @@ public final class Util {
             return encoded.replace("%2F", "/");
         } else {
             return encoded;
+        }
+    }
+
+    /**
+     * Hashes the string contents (assumed to be UTF-8) using the SHA-256 algorithm.
+     */
+    public static byte[] sha256(String text) {
+        return sha256(text.getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static byte[] sha256(byte[] data) {
+        return hash(data, "SHA-256");
+    }
+
+    // VisibleForTesting
+    static byte[] hash(byte[] data, String algorithm) {
+        try {
+            MessageDigest md = MessageDigest.getInstance(algorithm);
+            md.update(data);
+            return md.digest();
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
         }
     }
 
