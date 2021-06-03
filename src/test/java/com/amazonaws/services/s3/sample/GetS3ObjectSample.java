@@ -1,6 +1,5 @@
 package com.amazonaws.services.s3.sample;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
@@ -9,6 +8,7 @@ import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Samples showing how to GET an object from Amazon S3 using Signature V4
@@ -30,12 +30,7 @@ public class GetS3ObjectSample {
         System.out.println("*******************************************************");
         
         // the region-specific endpoint to the target object expressed in path style
-        URL endpointUrl;
-        try {
-            endpointUrl = new URL("https://" + bucketName + ".s3.amazonaws.com/driveItem.txt");
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
-        }
+        URL endpointUrl = Util.toUrl("https://" + bucketName + ".s3.amazonaws.com/driveItem.txt");
         
         // for a simple GET, we have no body so supply the precomputed 'empty' hash
         Map<String, String> headers = new HashMap<String, String>();

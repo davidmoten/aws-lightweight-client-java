@@ -47,12 +47,7 @@ final class RequestHelper {
             int connectTimeoutMs, int readTimeoutMs, long expirySeconds) {
 
         // the region-specific endpoint to the target object expressed in path style
-        URL endpointUrl;
-        try {
-            endpointUrl = new URL(url);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + url , e);
-        }
+        URL endpointUrl = Util.toUrl(url);
 
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
@@ -102,12 +97,7 @@ final class RequestHelper {
             Credentials credentials, int connectTimeoutMs, int readTimeoutMs) {
 
         // the region-specific endpoint to the target object expressed in path style
-        URL endpointUrl;
-        try {
-            endpointUrl = new URL(url);
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
-        }
+        URL endpointUrl = Util.toUrl(url);
 
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
@@ -211,17 +201,6 @@ final class RequestHelper {
         Parameter(String name, String value) {
             this.name = name;
             this.value = value;
-        }
-
-        @Override
-        public String toString() {
-            StringBuilder b = new StringBuilder();
-            b.append("Parameter [name=");
-            b.append(name);
-            b.append(", value=");
-            b.append(value);
-            b.append("]");
-            return b.toString();
         }
     }
 

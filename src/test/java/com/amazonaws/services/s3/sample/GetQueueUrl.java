@@ -12,7 +12,7 @@ import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
-
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Samples showing how to GET an object from Amazon S3 using Signature V4
@@ -36,23 +36,20 @@ public class GetQueueUrl {
         System.out.println("*******************************************************");
 
         // the region-specific endpoint to the target object expressed in path style
-        URL endpointUrl;
-        try {
-            endpointUrl = new URL("https://sqs." + regionName + ".amazonaws.com/?Action=GetQueueUrl&QueueName=amsa-xml-in&Version=2012-11-05");
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
-        }
+        URL endpointUrl = Util.toUrl("https://sqs." + regionName
+                + ".amazonaws.com/?Action=GetQueueUrl&QueueName=amsa-xml-in&Version=2012-11-05");
 
         // for a simple GET, we have no body so supply the precomputed 'empty' hash
         Map<String, String> headers = new HashMap<String, String>();
         headers.put("x-amz-content-sha256", Aws4SignerBase.EMPTY_BODY_SHA256);
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl.getQuery());
-        Map<String, String> q = parameters.stream().collect(Collectors.toMap(p -> p.name, p -> p.value));
+        Map<String, String> q = parameters.stream()
+                .collect(Collectors.toMap(p -> p.name, p -> p.value));
 
         Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(endpointUrl,
                 "GET", "sqs", regionName);
-        String authorization = signer.computeSignature(Clock.DEFAULT, headers, q, 
+        String authorization = signer.computeSignature(Clock.DEFAULT, headers, q,
                 Aws4SignerBase.EMPTY_BODY_SHA256, awsAccessKey, awsSecretKey);
 
         // place the computed signature into a formatted 'Authorization' header
@@ -63,18 +60,17 @@ public class GetQueueUrl {
         System.out.println(response);
         System.out.println("------------------------------------");
     }
-    
+
     private static final char QUERY_PARAMETER_SEPARATOR = '&';
     private static final char QUERY_PARAMETER_VALUE_SEPARATOR = '=';
-    
+
     /**
      * Extract parameters from a query string, preserving encoding.
      * <p>
-     * We can't use Apache HTTP Client's URLEncodedUtils.parse, mainly because
-     * we don't want to decode names/values.
+     * We can't use Apache HTTP Client's URLEncodedUtils.parse, mainly because we
+     * don't want to decode names/values.
      *
-     * @param rawQuery
-     *            the query to parse
+     * @param rawQuery the query to parse
      * @return The list of parameters, in the order they were found.
      */
     private static List<Parameter> extractQueryParameters(String rawQuery) {
@@ -83,12 +79,11 @@ public class GetQueueUrl {
         int index = 0;
         while (0 <= index && index <= endIndex) {
             /*
-             * Ideally we should first look for '&', then look for '=' before
-             * the '&', but obviously that's not how AWS understand query
-             * parsing; see the test "post-vanilla-query-nonunreserved" in the
-             * test suite. A string such as "?foo&bar=qux" will be understood as
-             * one parameter with name "foo&bar" and value "qux". Don't ask me
-             * why.
+             * Ideally we should first look for '&', then look for '=' before the '&', but
+             * obviously that's not how AWS understand query parsing; see the test
+             * "post-vanilla-query-nonunreserved" in the test suite. A string such as
+             * "?foo&bar=qux" will be understood as one parameter with name "foo&bar" and
+             * value "qux". Don't ask me why.
              */
             String name;
             String value;
@@ -100,7 +95,8 @@ public class GetQueueUrl {
 
                 index = endIndex + 1;
             } else {
-                int parameterSeparatorIndex = rawQuery.indexOf(QUERY_PARAMETER_SEPARATOR, nameValueSeparatorIndex);
+                int parameterSeparatorIndex = rawQuery.indexOf(QUERY_PARAMETER_SEPARATOR,
+                        nameValueSeparatorIndex);
                 if (parameterSeparatorIndex < 0) {
                     parameterSeparatorIndex = endIndex + 1;
                 }

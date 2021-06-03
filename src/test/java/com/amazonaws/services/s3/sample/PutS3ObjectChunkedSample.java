@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Sample code showing how to PUT objects to Amazon S3 using chunked uploading
@@ -41,15 +42,11 @@ public class PutS3ObjectChunkedSample {
         String sampleContent = make65KPayload();
         
         URL endpointUrl;
-        try {
             if (regionName.equals("us-east-1")) {
-                endpointUrl = new URL("https://s3.amazonaws.com/" + bucketName + "/ExampleChunkedObject.txt");
+                endpointUrl = Util.toUrl("https://s3.amazonaws.com/" + bucketName + "/ExampleChunkedObject.txt");
             } else {
-                endpointUrl = new URL("https://s3-" + regionName + ".amazonaws.com/" + bucketName + "/ExampleChunkedObject.txt");
+                endpointUrl = Util.toUrl("https://s3-" + regionName + ".amazonaws.com/" + bucketName + "/ExampleChunkedObject.txt");
             }
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
-        }
         
         // set the markers indicating we're going to send the upload as a series 
         // of chunks:

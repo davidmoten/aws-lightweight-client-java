@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client.internal.util;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Locale;
 
 /**
@@ -43,6 +45,14 @@ public final class Util {
             sb.append(hex);
         }
         return sb.toString().toLowerCase(Locale.getDefault());
+    }
+    
+    public static URL toUrl(String url) {
+        try {
+            return new URL(url);
+        } catch (MalformedURLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
 //    /**

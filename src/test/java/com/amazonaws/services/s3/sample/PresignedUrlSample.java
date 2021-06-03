@@ -8,6 +8,7 @@ import java.util.Map;
 import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Sample code showing how to use Presigned Urls with Signature V4 authorization
@@ -25,15 +26,11 @@ public class PresignedUrlSample {
         System.out.println("******************************************************");
         
         URL endpointUrl;
-        try {
             if (regionName.equals("us-east-1")) {
-                endpointUrl = new URL("https://s3.amazonaws.com/" + bucketName + "/ExampleObject.txt");
+                endpointUrl = Util.toUrl("https://s3.amazonaws.com/" + bucketName + "/ExampleObject.txt");
             } else {
-                endpointUrl = new URL("https://s3-" + regionName + ".amazonaws.com/" + bucketName + "/ExampleObject.txt");
+                endpointUrl = Util.toUrl("https://s3-" + regionName + ".amazonaws.com/" + bucketName + "/ExampleObject.txt");
             }
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
-        }
         
         // construct the query parameter string to accompany the url
         Map<String, String> queryParams = new HashMap<String, String>();
