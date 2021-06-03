@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.UncheckedIOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.List;
@@ -17,10 +18,10 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
 public final class HttpClientDefault implements HttpClient {
 
     public static final HttpClientDefault INSTANCE = new HttpClientDefault();
-    
+
     private HttpClientDefault() {
     }
-    
+
     @Override
     public Response request(URL endpointUrl, String httpMethod, Map<String, String> headers,
             byte[] requestBody, int connectTimeoutMs, int readTimeoutMs) {
@@ -32,10 +33,6 @@ public final class HttpClientDefault implements HttpClient {
                 out.write(requestBody);
                 out.flush();
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Request failed. " + e.getMessage(), e);
-        }
-        try {
             Map<String, List<String>> responseHeaders = connection.getHeaderFields();
             int responseCode = connection.getResponseCode();
             boolean ok = isOk(responseCode);
@@ -52,12 +49,8 @@ public final class HttpClientDefault implements HttpClient {
                 bytes = readBytes(is);
             }
             return new Response(responseHeaders, bytes, responseCode);
-        } catch (Exception e) {
-            if (e instanceof ServiceException) {
-                throw (ServiceException) e;
-            } else {
-                throw new RuntimeException("Request failed. " + e.getMessage(), e);
-            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         } finally {
             if (connection != null) {
                 connection.disconnect();

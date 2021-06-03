@@ -3,12 +3,17 @@ package com.github.davidmoten.aws.lw.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
+import org.junit.Assert;
 import org.junit.Test;
+
+import okhttp3.mockwebserver.MockResponse;
+import okhttp3.mockwebserver.MockWebServer;
 
 public class ClientTest {
 
@@ -138,6 +143,68 @@ public class ClientTest {
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/?surface.1.Name=color&surface.1.Value=green",
                 hc.endpointUrl.toString());
+    }
+
+    @Test
+    public void testServerOkResponse() throws IOException {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("hello").setResponseCode(200));
+            String baseUrl = server.url("").toString();
+            String text = client.url(baseUrl) //
+                    .requestBody("hi there") //
+                    .responseAsUtf8(); //
+            assertEquals("hello", text);
+        }
+    }
+
+    @Test
+    public void testServerErrorResponse() throws IOException {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
+            String baseUrl = server.url("").toString();
+            try {
+                client.url(baseUrl) //
+                        .requestBody("hi there") //
+                        .responseAsUtf8(); //
+                Assert.fail();
+            } catch (ServiceException e) {
+                assertEquals(500, e.statusCode());
+            }
+        }
+    }
+
+    @Test
+    public void testWithServerNoResponseBody() throws IOException {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setResponseCode(200));
+            String baseUrl = server.url("").toString();
+            String text = client.url(baseUrl) //
+                    .method(HttpMethod.PUT) //
+                    .requestBody("hi there") //
+                    .responseAsUtf8(); //
+            assertEquals("", text);
+        }
     }
 
     @Test

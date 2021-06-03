@@ -21,6 +21,7 @@ import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
+import com.github.davidmoten.xml.Preconditions;
 
 /**
  * Common methods and properties for all AWS4 signer variants
@@ -134,11 +135,9 @@ public abstract class Aws4SignerBase {
      * Returns the canonicalized resource path for the service endpoint.
      */
     protected static String getCanonicalizedResourcePath(URL endpoint) {
-        if (endpoint == null) {
-            return "/";
-        }
+        Preconditions.checkNotNull(endpoint);
         String path = endpoint.getPath();
-        if (path == null || path.isEmpty()) {
+        if (path.isEmpty()) {
             return "/";
         }
 
@@ -203,8 +202,7 @@ public abstract class Aws4SignerBase {
             md.update(data);
             return md.digest();
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(
-                    "Unable to compute sha256 hash: " + e.getMessage(), e);
+            throw new RuntimeException("Unable to compute sha256 hash: " + e.getMessage(), e);
         }
     }
 
