@@ -96,13 +96,36 @@ public class ClientTest {
         assertEquals("https://s3.ap-southeast-2.amazonaws.com/?number=four",
                 hc.endpointUrl.toString());
     }
-    
+
     @Test
     public void testUrlSet() {
         s3.url("https://blah") //
                 .method(HttpMethod.PUT) //
                 .execute();
-        assertEquals("https://blah",
+        assertEquals("https://blah", hc.endpointUrl.toString());
+    }
+
+    @Test
+    public void testAttribute() {
+        s3.attribute("colour", "blue") //
+                .attribute("color", "green") //
+                .method(HttpMethod.PUT) //
+                .execute();
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/?Attribute.1.Name=colour&Attribute.1.Value=blue&Attribute.2.Name=color&Attribute.2.Value=green",
+                hc.endpointUrl.toString());
+    }
+
+    @Test
+    public void testAttributePrefix() {
+        s3.attribute("colour", "blue") //
+                .attribute("color", "green") //
+                .attributePrefix("surface") //
+                .attribute("texture", "rough") //
+                .method(HttpMethod.PUT) //
+                .execute();
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/?Attribute.1.Name=colour&Attribute.1.Value=blue&Attribute.2.Name=color&Attribute.2.Value=green&surface.1.Name=texture&surface.1.Value=rough",
                 hc.endpointUrl.toString());
     }
 
