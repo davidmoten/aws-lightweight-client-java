@@ -27,6 +27,7 @@ public class ResponseTest {
         assertEquals("under", r.metadata("thing").get());
         assertEquals(2, r.metadata().entrySet().size());
         assertEquals(3, r.headers().size());
+        assertEquals(200, r.statusCode());
     }
 
 }
