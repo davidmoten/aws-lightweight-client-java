@@ -130,6 +130,17 @@ public class ClientTest {
     }
 
     @Test
+    public void testAttributePrefix2() {
+        s3.attributePrefix("surface") //
+                .attribute("color", "green") //
+                .method(HttpMethod.PUT) //
+                .execute();
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/?surface.1.Name=color&surface.1.Value=green",
+                hc.endpointUrl.toString());
+    }
+
+    @Test
     public void testPresignedUrl() {
         Client client = Client //
                 .s3() //
