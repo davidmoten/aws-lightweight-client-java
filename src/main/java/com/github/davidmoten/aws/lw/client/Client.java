@@ -222,7 +222,7 @@ public final class Client {
             return this;
         }
 
-        public Builder4 readTimeoutMs(long duration, TimeUnit unit) {
+        public Builder4 readTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
             Preconditions.checkNotNull(unit, "unit cannot be null");
             b.readTimeoutMs = (int) unit.toMillis(duration);

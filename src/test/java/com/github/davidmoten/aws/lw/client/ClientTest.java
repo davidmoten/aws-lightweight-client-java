@@ -3,6 +3,8 @@ package com.github.davidmoten.aws.lw.client;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.concurrent.TimeUnit;
+
 import org.junit.Test;
 
 public class ClientTest {
@@ -47,6 +49,29 @@ public class ClientTest {
         assertEquals("something", hc.headers.get("x-amz-meta-category"));
 
         assertEquals("hi there", hc.requestBodyString());
+        assertEquals(5000, hc.connectTimeoutMs);
+        assertEquals(6000, hc.readTimeoutMs);
+    }
+    
+    @Test
+    public void testTimeoutsAtClientLevel() {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .connectTimeout(5, TimeUnit.SECONDS) //
+                .readTimeout(6, TimeUnit.SECONDS) //
+                .httpClient(hc) //
+                .build();
+        
+        // create a bucket
+        client //
+                .path("MyBucket") //
+                .method(HttpMethod.PUT) //
+                .requestBody("hi there") //
+                .execute();
+        
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
