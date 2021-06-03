@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Assert;
@@ -32,7 +33,8 @@ public class ClientTest {
         Client client = Client //
                 .s3() //
                 .regionName("us-west-1") //
-                .accessKey("123").secretKey("456") //
+                .accessKey("123") //
+                .secretKey("456") //
                 .httpClient(hc) //
                 .build();
         // create a bucket
@@ -48,8 +50,8 @@ public class ClientTest {
                 .method(HttpMethod.PUT) //
                 .requestBody("hi there") //
                 .regionName("ap-southeast-2") //
-                .connectTimeoutMs(5000) //
-                .readTimeoutMs(6000) //
+                .connectTimeout(5, TimeUnit.SECONDS) //
+                .readTimeout(6, TimeUnit.SECONDS) //
                 .execute();
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&Attribute.1.Name=color&Attribute.1.Value=red&Attribute.2.Name=color&Attribute.2.Value=blue&Message.1.Name=name&Message.1.Value=hi&Message.2.Name=name&Message.2.Value=there",
@@ -68,6 +70,31 @@ public class ClientTest {
         assertEquals("hi there", hc.requestBodyString());
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadConnectTimeout() {
+        Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .connectTimeout(-1, TimeUnit.SECONDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadReadTimeout() {
+        Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .readTimeout(-1, TimeUnit.SECONDS);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadConnectTimeout2() {
+        s3.path().connectTimeout(-1, TimeUnit.SECONDS);
     }
 
     @Test
@@ -186,6 +213,61 @@ public class ClientTest {
             }
         }
     }
+    
+    @Test
+    public void testServerErrorCustomExceptions() throws IOException {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .exception(r -> !r.isOk(), r -> new UnsupportedOperationException()) //
+                .build();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
+            String baseUrl = server.url("").toString();
+            try {
+                client.url(baseUrl) //
+                        .requestBody("hi there") //
+                        .responseAsUtf8(); //
+                Assert.fail();
+            } catch (UnsupportedOperationException e) {
+                // all good
+            }
+        }
+    }
+    
+    @Test
+    public void testServerErrorExceptionFactory() throws IOException {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .exceptionFactory(r -> {
+                    if (r.isOk()) {
+                        return Optional.empty();
+                    } else {
+                        return Optional.of(new UnsupportedOperationException());
+                    }
+                }) //
+                .build();
+        try (MockWebServer server = new MockWebServer()) {
+            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
+            String baseUrl = server.url("").toString();
+            try {
+                client.url(baseUrl) //
+                        .requestBody("hi there") //
+                        .responseAsUtf8(); //
+                Assert.fail();
+            } catch (UnsupportedOperationException e) {
+                // all good
+            }
+        }
+    }
+
 
     @Test
     public void testWithServerNoResponseBody() throws IOException {
@@ -208,7 +290,7 @@ public class ClientTest {
     }
 
     @Test
-    public void testPresignedUrl() {
+    public void testPresignedUrlWithRequestBody() {
         Client client = Client //
                 .s3() //
                 .regionName("us-west-1") //
@@ -226,6 +308,27 @@ public class ClientTest {
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=content-length;host;x-amz-content-sha256&X-Amz-Signature=3f27d3fe5e595d787990866d05112cd73e21be2275bf02269b640bc9b7c35ec6",
+                presignedUrl);
+    }
+
+    @Test
+    public void testPresignedUrlWithoutRequestBody() {
+        Client client = Client //
+                .s3() //
+                .regionName("us-west-1") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        // create a bucket
+        String presignedUrl = client //
+                .path("MyBucket") //
+                .query("type", "thing") //
+                .method(HttpMethod.PUT) //
+                .regionName("ap-southeast-2") //
+                .presignedUrl(5, TimeUnit.DAYS);
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=b14df0b38e6a1dadce2f340483bd61db69730da26d571e1f0cfacea993372085",
                 presignedUrl);
     }
 

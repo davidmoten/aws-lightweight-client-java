@@ -104,15 +104,15 @@ public final class Request {
         return this;
     }
 
-    public Request connectTimeoutMs(int connectTimeoutMs) {
-        Preconditions.checkArgument(connectTimeoutMs >= 0);
-        this.connectTimeoutMs = connectTimeoutMs;
+    public Request connectTimeout(long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0);
+        this.connectTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
 
-    public Request readTimeoutMs(int readTimeoutMs) {
-        Preconditions.checkArgument(readTimeoutMs >= 0);
-        this.readTimeoutMs = readTimeoutMs;
+    public Request readTimeout(long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0);
+        this.readTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
 
