@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -42,7 +43,7 @@ public class GetS3ObjectSample {
         
         Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(
                 endpointUrl, "GET", "s3", regionName);
-        String authorization = signer.computeSignature(headers, 
+        String authorization = signer.computeSignature(Clock.DEFAULT, headers, 
                                                        null, // no query parameters
                                                        Aws4SignerBase.EMPTY_BODY_SHA256, 
                                                        awsAccessKey, 

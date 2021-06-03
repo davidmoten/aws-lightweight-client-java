@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
@@ -36,12 +37,12 @@ public class Aws4SignerForQueryParameterAuth extends Aws4SignerBase {
      *         to be set as the header 'Authorization' on the subsequent HTTP
      *         request.
      */
-    public String computeSignature(Map<String, String> headers, Map<String, String> queryParameters,
+    public String computeSignature(Clock clock, Map<String, String> headers, Map<String, String> queryParameters,
             String bodyHash, String awsAccessKey, String awsSecretKey) {
         // first get the date and time for the subsequent request, and convert
         // to ISO 8601 format
         // for use in signature generation
-        Date now = new Date();
+        Date now = new Date(clock.time());
         String dateTimeStamp = dateTimeFormat.format(now);
 
         // make sure "Host" header is added

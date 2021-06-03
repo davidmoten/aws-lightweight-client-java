@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
 
@@ -47,7 +48,7 @@ public class PresignedUrlSample {
         
         Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(
                 endpointUrl, "GET", "s3", regionName);
-        String authorizationQueryParameters = signer.computeSignature(headers, 
+        String authorizationQueryParameters = signer.computeSignature(Clock.DEFAULT, headers, 
                                                        queryParams,
                                                        Aws4SignerBase.UNSIGNED_PAYLOAD, 
                                                        awsAccessKey, 

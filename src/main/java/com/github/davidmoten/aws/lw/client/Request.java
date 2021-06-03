@@ -126,10 +126,24 @@ public final class Request {
      * @return all response information
      */
     public Response response() {
+        String u = calculateUrl(url, client.serviceName(), regionName, queries,
+                Arrays.asList(pathSegments));
+        return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
+                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
+                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+    }
+
+    private static String calculateUrl(String url, String serviceName, String regionName,
+            List<NameValue> queries, List<String> pathSegments) {
         String u = url;
         if (u == null) {
-            u = "https://" + client.serviceName() + "." + regionName + ".amazonaws.com/"
-                    + Arrays.stream(pathSegments) //
+            u = "https://" //
+                    + serviceName //
+                    + "." //
+                    + regionName //
+                    + ".amazonaws.com/" //
+                    + pathSegments //
+                            .stream() //
                             .map(x -> trimAndRemoveLeadingAndTrailingSlashes(x)) //
                             .collect(Collectors.joining("/"));
         }
@@ -143,9 +157,7 @@ public final class Request {
             }
             u += HttpUtils.urlEncode(nv.name, false) + "=" + HttpUtils.urlEncode(nv.value, false);
         }
-        return RequestHelper.request(client.httpClient(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+        return u;
     }
 
     public byte[] responseAsBytes() {
@@ -175,7 +187,9 @@ public final class Request {
     }
 
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
-        return RequestHelper.presignedUrl(url, method.toString(),
+        String u = calculateUrl(url, client.serviceName(), regionName, queries,
+                Arrays.asList(pathSegments));
+        return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
                 RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
                 regionName, client.credentials(), connectTimeoutMs, readTimeoutMs,
                 unit.toSeconds(expiryDuration));

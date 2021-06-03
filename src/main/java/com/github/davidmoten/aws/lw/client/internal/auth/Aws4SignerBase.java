@@ -209,7 +209,7 @@ public abstract class Aws4SignerBase {
         }
     }
 
-    protected static byte[] sign(String stringData, byte[] key) {
+    public static byte[] sign(String stringData, byte[] key) {
         try {
             String algorithm = ALGORITHM_HMAC_SHA256;
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);

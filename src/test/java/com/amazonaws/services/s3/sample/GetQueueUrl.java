@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -51,7 +52,7 @@ public class GetQueueUrl {
 
         Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(endpointUrl,
                 "GET", "sqs", regionName);
-        String authorization = signer.computeSignature(headers, q, 
+        String authorization = signer.computeSignature(Clock.DEFAULT, headers, q, 
                 Aws4SignerBase.EMPTY_BODY_SHA256, awsAccessKey, awsSecretKey);
 
         // place the computed signature into a formatted 'Authorization' header

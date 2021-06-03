@@ -4,12 +4,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
 import com.github.davidmoten.aws.lw.client.internal.HttpClientDefault;
 import com.github.davidmoten.xml.Preconditions;
 
 public final class Client {
 
+    private final Clock clock;
     private final String serviceName;
     private final String regionName;
     private final Credentials credentials;
@@ -18,9 +20,10 @@ public final class Client {
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
 
-    private Client(String serviceName, String regionName, Credentials credentials,
+    private Client(Clock clock, String serviceName, String regionName, Credentials credentials,
             HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
             ExceptionFactory exceptionFactory) {
+        this.clock = clock;
         this.serviceName = serviceName;
         this.regionName = regionName;
         this.credentials = credentials;
@@ -83,6 +86,10 @@ public final class Client {
     HttpClient httpClient() {
         return httpClient;
     }
+    
+    Clock clock() {
+        return clock;
+    }
 
     ExceptionFactory exceptionFactory() {
         return exceptionFactory;
@@ -138,6 +145,7 @@ public final class Client {
         private int connectTimeoutMs = 30000;
         private int readTimeoutMs = 300000;
         private ExceptionFactory exceptionFactory = ExceptionFactory.DEFAULT;
+        private Clock clock = Clock.DEFAULT;
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
@@ -240,10 +248,16 @@ public final class Client {
                     factory);
             return this;
         }
+        
+        public Builder4 clock(Clock clock) {
+            b.clock = clock;
+            return this;
+        }
 
         public Client build() {
-            return new Client(b.serviceName, b.regionName, b.credentials, b.httpClient,
+            return new Client(b.clock, b.serviceName, b.regionName, b.credentials, b.httpClient,
                     b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory);
         }
     }
+
 }

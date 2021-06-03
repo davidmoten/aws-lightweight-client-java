@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
@@ -41,7 +42,7 @@ final class RequestHelper {
                 x -> x.getValue().stream().collect(Collectors.joining(","))));
     }
 
-    static String presignedUrl(String url, String method, Map<String, String> headers,
+    static String presignedUrl(Clock clock, String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, Credentials credentials,
             int connectTimeoutMs, int readTimeoutMs, long expirySeconds) {
 
@@ -50,7 +51,7 @@ final class RequestHelper {
         try {
             endpointUrl = new URL(url);
         } catch (MalformedURLException e) {
-            throw new RuntimeException("Unable to parse service endpoint: " + e.getMessage());
+            throw new RuntimeException("Unable to parse service endpoint: " + url , e);
         }
 
         Map<String, String> h = new HashMap<>(headers);
@@ -81,7 +82,7 @@ final class RequestHelper {
 
         Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(endpointUrl,
                 method, serviceName, regionName);
-        String authorizationQueryParameters = signer.computeSignature(h, q, contentHashString,
+        String authorizationQueryParameters = signer.computeSignature(clock, h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());
 
         // build the presigned url to incorporate the authorization elements as query
@@ -96,7 +97,7 @@ final class RequestHelper {
         return presignedUrl;
     }
 
-    static Response request(HttpClient httpClient, String url, String method,
+    static Response request(Clock clock, HttpClient httpClient, String url, String method,
             Map<String, String> headers, byte[] requestBody, String serviceName, String regionName,
             Credentials credentials, int connectTimeoutMs, int readTimeoutMs) {
 
@@ -128,7 +129,7 @@ final class RequestHelper {
                 .collect(Collectors.toMap(p -> p.name, p -> p.value));
         Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(endpointUrl,
                 method, serviceName, regionName);
-        String authorization = signer.computeSignature(h, q, contentHashString,
+        String authorization = signer.computeSignature(clock, h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header

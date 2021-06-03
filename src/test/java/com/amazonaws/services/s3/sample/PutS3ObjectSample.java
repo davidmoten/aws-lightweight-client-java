@@ -5,6 +5,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.HttpUtils;
@@ -57,7 +58,7 @@ public class PutS3ObjectSample {
         
         Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(
                 endpointUrl, "PUT", "s3", regionName);
-        String authorization = signer.computeSignature(headers, 
+        String authorization = signer.computeSignature(Clock.DEFAULT, headers, 
                                                        null, // no query parameters
                                                        contentHashString, 
                                                        awsAccessKey, 
