@@ -60,7 +60,9 @@ The test Lambda that I used does this:
 
 Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the jar is 80K.
 
-Here are the cold start runtime results:
+Here are the comparison results:
+
+**Cold Start Runtimes*
 
 | Memory | SDK | Lightweight |
 |--------|-----|-------------|
