@@ -12,6 +12,7 @@ This is a really lightweight standalone artifact (about 57K) that performs authe
 * generates presigned urls
 * supports throwing custom exceptions
 * metadata and attributes support
+* xml response parsing support
 * high level of unit test coverage
 
 **Status**: released to Maven Central
