@@ -15,7 +15,7 @@ This is a really lightweight standalone artifact (about 57K) that performs authe
 * xml response parsing support
 * high level of unit test coverage
 
-**Status**: released to Maven Central
+**Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
 Maven [reports](https://davidmoten.github.io/aws-lightweight-client-java/index.html) including [javadocs](https://davidmoten.github.io/aws-lightweight-client-java/apidocs/index.html)
 
