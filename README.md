@@ -11,6 +11,7 @@ This is a really lightweight standalone artifact (about 57K) that performs authe
 * signs requests with AWS Signature Version 4
 * generates presigned urls
 * supports throwing custom exceptions
+* metadata and attributes support
 * high level of unit test coverage
 
 **Status**: released to Maven Central
