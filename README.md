@@ -49,7 +49,15 @@ sqs.url(queueUrl)
     .query("MessageBody", "hi there") 
     .execute();
 ```
-You can see this is still pretty concise compared to using the AWS SDK for Java but moreover because the artifact is small and the number of classes loaded to perform the action is much less (almost half), the *cold start* time for a Java AWS Lambda (with 128MB memory allocated) that uses s3 is **reduced from 10s to 4s**! Increasing the memory allocation (which allocates more CPU) to 2GB brought the cold start time down further to **1.5s**. Sub-second cold start time latency would be great but the catch is that a lot of classes are loaded by the java platform to perform the https call to the S3 API so that's going to be hard to avoid. In fact my testing shows that without any https calls at all a lambda can cold start in <1s (but will have presumably pretty limited functionality)!
+
+## Lambda performance
+You can see that usage is still pretty concise compared to using the AWS SDK for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
+
+The test Lambda that I used to do comparisons puts a 240K object into an S3 bucket with metadata, creates an SQS queue and sends the queue a small message (16 bytes).
+
+Using AWS SDK the artifact deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the artifact is 80K.
+
+I deployed the lambda with 2GB memory (to get the CPU benefits from that allocation) and cold start runtime for the SDK lambda was 10.4s. The cold start runtime for the lightweight lambda was 1s! Warm invocations were average 0.3s for the SDK lambda and 0.15s for the lightweight lambda (a bit surprising!).
 
 Aside from cold-start improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
