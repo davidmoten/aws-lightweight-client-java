@@ -64,7 +64,7 @@ I deployed the lambda with 2GB memory (to get the CPU benefits from that allocat
 
 Aside from cold-start improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
-Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes. That is *aws-lightweight-client-java* only has to load 56% of the number of classes as the AWS SDK.
+Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%).
 
 ## Getting started
 Add this dependency to your pom.xml:
