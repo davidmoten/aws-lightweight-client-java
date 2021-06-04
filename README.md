@@ -62,7 +62,7 @@ Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-li
 
 Here are the comparison results:
 
-**Cold Start Runtimes**
+**Cold Start Runtimes (average)**
 
 | Memory | SDK | Lightweight |
 |--------|-----|-------------|
@@ -71,7 +71,7 @@ Here are the comparison results:
 | 512MB  | 10.5s           | 3.9s |
 | 2GB    | 10.4s           | 1.0s |
 
-**Warm Runtimes**
+**Warm Runtimes (average)**
 
 | Memory | SDK | Lightweight |
 |--------|-----|-------------|
@@ -80,6 +80,7 @@ Here are the comparison results:
 | 512MB  | 0.3s           | 0.3s |
 | 2GB    | 0.3s           | 0.15s |
 
+Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation (especially as I'm not presenting variation) but still I think a really strong indication of a benefit of using the lightweight client.
 
 Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
