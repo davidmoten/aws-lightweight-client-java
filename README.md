@@ -62,7 +62,7 @@ Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-li
 
 Here are the comparison results:
 
-**Cold Start Runtimes*
+**Cold Start Runtimes**
 
 | Memory | SDK | Lightweight |
 |--------|-----|-------------|
@@ -71,9 +71,17 @@ Here are the comparison results:
 | 512MB  | 10.5s           | 3.9s |
 | 2GB    | 10.4s           | 1.0s |
 
-I deployed the lambda with 2GB memory (to get the CPU benefits from that allocation) and cold start runtime for the SDK lambda was 10.4s. The cold start runtime for the lightweight lambda was 1s! Warm invocations were average 0.3s for the SDK lambda and 0.15s for the lightweight lambda (a bit surprising also).
+**Warm Runtimes**
 
-Aside from cold-start improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
+| Memory | SDK | Lightweight |
+|--------|-----|-------------|
+| 128MB  | Metaspace error | 2.4s |
+| 256MB  | 0.6s             | 0.5s |
+| 512MB  | 0.3s           | 0.3s |
+| 2GB    | 0.3s           | 0.15s |
+
+
+Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%).
 
