@@ -5,6 +5,14 @@
 
 This is a really lightweight standalone artifact (about 57K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
+**Features**
+* small standalone artifact (57K)
+* concise fluent api
+* signs requests with AWS Signature Version 4
+* generates presigned urls
+* supports throwing custom exceptions
+* high level of unit test coverage
+
 **Status**: released to Maven Central
 
 Maven [reports](https://davidmoten.github.io/aws-lightweight-client-java/index.html) including [javadocs](https://davidmoten.github.io/aws-lightweight-client-java/apidocs/index.html)
