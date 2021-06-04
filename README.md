@@ -38,9 +38,9 @@ Here's how to create a SQS queue and send a message to that queue. This time we'
 Client sqs = Client.sqs().defaultClient().build();
   
 String queueUrl = sqs
-    .query("Action", "CreateQueue") //
-    .query("QueueName", queueName(applicationName, key)) //
-    .responseAsXml() //
+    .query("Action", "CreateQueue")
+    .query("QueueName", queueName(applicationName, key))
+    .responseAsXml()
     .content("CreateQueueResult", "QueueUrl");
     
 sqs.url(queueUrl) 
