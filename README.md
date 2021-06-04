@@ -282,7 +282,7 @@ The output is:
 ok=false, statusCode=404, message=<?xml version="1.0" encoding="UTF-8"?>
 <Error><Code>NoSuchKey</Code><Message>The specified key does not exist.</Message><Key>notThere</Key><RequestId>4AAX24QZ8777FA6B</RequestId><HostId>4N1rsMjjdM7tjKSQDXNQZNH8EOqNckUsO6gRVPfcjMmHZ9APRwYJwufZOr9l1Qlinux5W537bDc=</HostId></Error>
 ```
-### Exception factory
+### Custom exceptions
 You can define what exceptions get thrown using a builder method for a `Client`:
 
 ```java
@@ -291,7 +291,9 @@ Client sqs = Client
     .defaultClient()
     .exception(
             x -> !x.isOk() && x.contentUtf8().contains("NonExistentQueue"),
-            x -> new QueueDoesNotExistException(x.contentUtf8()))
+            x -> new QueueDoesNotExistException(x.contentUtf8())
     .build()
 ```
+You can add multiple exception handlers like above or you can set an `ExceptionFactory`. Any response not matching the criteria will 
+throw a `ServiceException` (in those circumstances where exceptions are thrown, like `.responseAsBytes()`, `.responseAsUtf8()` and `.responseAsXml()`).
 
