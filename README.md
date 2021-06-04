@@ -31,7 +31,7 @@ String content = s3
   .path("myBucket", "myObject.txt")
   .responseAsUtf8();
 ```
-This is actually a lot more concise than using the AWS SDK for Java but moreover because the artifact is small and the number of classes loaded to perform the action is much less (almost half), the *cold start* time for a Java AWS Lambda that uses s3 is **reduced from 10s to 4s**! Sub-second cold start time latency would be great but the catch is that a lot of classes are loaded by the java platform to perform the https call to the S3 API so that's going to be hard to avoid. In fact my testing shows that without any https calls at all a lambda can cold start in <1s (but will have presumably pretty limited functionality)!
+This is actually a lot more concise than using the AWS SDK for Java but moreover because the artifact is small and the number of classes loaded to perform the action is much less (almost half), the *cold start* time for a Java AWS Lambda (with 128MB memory allocated) that uses s3 is **reduced from 10s to 4s**! Increasing the memory allocation (which allocates more CPU) to 2GB brought the cold start time down further to 2.5s. Sub-second cold start time latency would be great but the catch is that a lot of classes are loaded by the java platform to perform the https call to the S3 API so that's going to be hard to avoid. In fact my testing shows that without any https calls at all a lambda can cold start in <1s (but will have presumably pretty limited functionality)!
 
 Aside from cold-start improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
