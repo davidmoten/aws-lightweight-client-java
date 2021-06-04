@@ -64,7 +64,10 @@ Here are the cold start runtime results:
 
 | Memory | SDK | Lightweight |
 |--------|-----|-------------|
-| 128MB  | 21s | 19s         |
+| 128MB  | Metaspace error | 19s |
+| 256MB  | 21s             | 8.1s |
+| 512MB  | 10.5s           | 3.9s |
+| 2GB    | 10.4s           | 1.0s |
 
 I deployed the lambda with 2GB memory (to get the CPU benefits from that allocation) and cold start runtime for the SDK lambda was 10.4s. The cold start runtime for the lightweight lambda was 1s! Warm invocations were average 0.3s for the SDK lambda and 0.15s for the lightweight lambda (a bit surprising also).
 
