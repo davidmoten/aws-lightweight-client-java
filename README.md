@@ -60,6 +60,12 @@ The test Lambda that I used does this:
 
 Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the jar is 80K.
 
+Here are the cold start runtime results:
+
+| Memory | SDK | Lightweight |
+|--------|-----|-------------|
+| 128MB  | 21s | 19s         |
+
 I deployed the lambda with 2GB memory (to get the CPU benefits from that allocation) and cold start runtime for the SDK lambda was 10.4s. The cold start runtime for the lightweight lambda was 1s! Warm invocations were average 0.3s for the SDK lambda and 0.15s for the lightweight lambda (a bit surprising also).
 
 Aside from cold-start improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
