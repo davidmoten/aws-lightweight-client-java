@@ -19,7 +19,7 @@ This is a really lightweight standalone artifact (about 57K) that performs authe
 
 Maven [reports](https://davidmoten.github.io/aws-lightweight-client-java/index.html) including [javadocs](https://davidmoten.github.io/aws-lightweight-client-java/apidocs/index.html)
 
-For example with the 55K standalone artifact you can do:
+For example with the 55K standalone artifact you can download an object from an S3 bucket:
 
 ```java
 Client s3 = Client.s3()
@@ -31,6 +31,22 @@ Client s3 = Client.s3()
 String content = s3
   .path("myBucket", "myObject.txt")
   .responseAsUtf8();
+```
+
+Here's how to create a SQS queue and send a message to that queue. This time we'll create our Client within a Lambda handler:
+```java
+Client sqs = Client.sqs().defaultClient().build();
+  
+String queueUrl = sqs
+    .query("Action", "CreateQueue") //
+    .query("QueueName", queueName(applicationName, key)) //
+    .responseAsXml() //
+    .content("CreateQueueResult", "QueueUrl");
+    
+sqs.url(queueUrl) 
+    .query("Action", "SendMessage") 
+    .query("MessageBody", "hi there") 
+    .execute();
 ```
 This is actually a lot more concise than using the AWS SDK for Java but moreover because the artifact is small and the number of classes loaded to perform the action is much less (almost half), the *cold start* time for a Java AWS Lambda (with 128MB memory allocated) that uses s3 is **reduced from 10s to 4s**! Increasing the memory allocation (which allocates more CPU) to 2GB brought the cold start time down further to 2.5s. Sub-second cold start time latency would be great but the catch is that a lot of classes are loaded by the java platform to perform the https call to the S3 API so that's going to be hard to avoid. In fact my testing shows that without any https calls at all a lambda can cold start in <1s (but will have presumably pretty limited functionality)!
 
