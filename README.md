@@ -53,7 +53,10 @@ sqs.url(queueUrl)
 ## Lambda performance
 You can see that usage is still pretty concise compared to using the AWS SDK for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
 
-The test Lambda that I used to do comparisons puts a 240K object into an S3 bucket with metadata, creates an SQS queue and sends the queue a small message (16 bytes).
+The test Lambda that I used does this:
+* puts a 240K object into an S3 bucket with metadata
+* creates an SQS queue 
+* sends the queue a small message (16 bytes).
 
 Using AWS SDK the artifact deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the artifact is 80K.
 
