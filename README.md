@@ -33,7 +33,7 @@ String content = s3
   .responseAsUtf8();
 ```
 
-Here's how to create a SQS queue and send a message to that queue. This time we'll create our Client within a Lambda handler:
+Here's how to create a SQS queue and send a message to that queue. This time we'll create our Client for use in a Lambda handler (credentials are picked up from environment variables):
 ```java
 Client sqs = Client.sqs().defaultClient().build();
   
