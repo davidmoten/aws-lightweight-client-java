@@ -80,7 +80,7 @@ Here are the comparison results:
 | 512MB  | 0.3s           | 0.3s |
 | 2GB    | 0.3s           | 0.15s |
 
-Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation (and I'm not presenting variation) but still I think a really strong indication of a benefit of using the lightweight client.
+Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation (and I'm not presenting variation) but I think still a strong indication of a benefit of using the lightweight client.
 
 Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
