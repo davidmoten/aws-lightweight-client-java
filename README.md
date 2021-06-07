@@ -89,6 +89,11 @@ Note that I measured cold-start runtimes several times and then 5-10 or so warm 
 * Average 1.05s
 * Standard deviation 0.125s
 
+**2GB Lightweight warm-start lambda runtime**
+* Number of samples 198 (9 * 22)
+* Average 0.102s
+* Standard deviation 0.014s
+
 Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%).
