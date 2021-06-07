@@ -82,12 +82,12 @@ Here are the comparison results:
 
 Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation but I think still a indication of the benefit of using the lightweight client. 
 
-**Update 6 June 2021** I ran the 2GB Lightweight cold start test every hour for 21 hours and the results are:
+**Update 6 June 2021** I ran the 2GB Lightweight cold start test every hour for 22 hours and the results are:
 
 **2GB Lightweight cold-start lambda runtime**
-* Number of samples 21
-* Average 1.06s
-* Standard deviation 0.128s
+* Number of samples 22
+* Average 1.05s
+* Standard deviation 0.125s
 
 Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
