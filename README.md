@@ -51,7 +51,7 @@ sqs.url(queueUrl)
 ```
 
 ## Lambda performance
-You can see that usage is still pretty concise compared to using the AWS SDK for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
+You can see that usage is still pretty concise compared to using the AWS SDK v1 for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
 
 The test Lambda that I used does this:
 * puts a 240B object into an S3 bucket with metadata
