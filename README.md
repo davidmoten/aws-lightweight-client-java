@@ -14,7 +14,7 @@ This is a really lightweight standalone artifact (about 57K) that performs authe
 * metadata and attributes support
 * xml response parsing support
 * high level of unit test coverage
-* reduces Lambda cold start time by 60%
+* reduces Lambda cold start time by a factor of 40%
 
 **Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
