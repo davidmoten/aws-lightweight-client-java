@@ -69,7 +69,7 @@ Here are the comparison results:
 | 128MB  | Metaspace error | 19s |
 | 256MB  | 21s             | 8.1s |
 | 512MB  | 10.5s           | 3.9s |
-| 2GB    | 10.4s           | 1.0s |
+| 2GB    | 2.5s           | 1.0s |
 
 **Warm Runtimes (average)**
 
@@ -78,7 +78,7 @@ Here are the comparison results:
 | 128MB  | Metaspace error | 2.4s |
 | 256MB  | 0.6s             | 0.5s |
 | 512MB  | 0.3s           | 0.3s |
-| 2GB    | 0.3s           | 0.1s |
+| 2GB    | 0.12s           | 0.1s |
 
 Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation but I think still a indication of the benefit of using the lightweight client. 
 
