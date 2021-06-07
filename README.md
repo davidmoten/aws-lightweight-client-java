@@ -88,11 +88,15 @@ Note that I measured cold-start runtimes several times and then 5-10 or so warm 
 * Number of samples 22
 * Average 1.05s
 * Standard deviation 0.125s
+* Min 0.91s
+* Max 1.30s
 
 **2GB Lightweight warm-start lambda runtime**
 * Number of samples 198 (9 * 22)
 * Average 0.102s
 * Standard deviation 0.014s
+* Min 0.080s
+* Max 0.131s
 
 Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
