@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.internal.Clock;
-import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 

@@ -39,7 +39,7 @@ public class XmlElementTest {
 
     @Test(expected = UncheckedIOException.class)
     public void testReaderThrows() {
-        XmlElement x = XmlElement.parseUnchecked(new Reader() {
+        XmlElement.parseUnchecked(new Reader() {
 
             @Override
             public int read(char[] cbuf, int off, int len) throws IOException {
