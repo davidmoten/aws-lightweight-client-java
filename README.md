@@ -60,6 +60,8 @@ The test Lambda that I used does this:
 
 Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the jar is 80K.
 
+The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run in 40% of the time as using AWS SDK v1.
+
 Here are the comparison results:
 
 **Cold Start Runtimes (average)**
@@ -377,3 +379,4 @@ throw a `ServiceException` (in those circumstances where exceptions are thrown, 
 
 ## TODO
 * Can a faster cold-start be had using Bouncy Castle TLS library?
+* Compare with AWS SDK v2
