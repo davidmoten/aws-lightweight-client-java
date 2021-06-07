@@ -375,3 +375,5 @@ Client sqs = Client
 You can add multiple exception handlers like above or you can set an `ExceptionFactory`. Any response not matching the criteria will 
 throw a `ServiceException` (in those circumstances where exceptions are thrown, like `.responseAsBytes()`, `.responseAsUtf8()` and `.responseAsXml()`).
 
+## TODO
+* Can a faster cold-start be had using Bouncy Castle TLS library?
