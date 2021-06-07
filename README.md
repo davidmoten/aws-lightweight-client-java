@@ -82,18 +82,18 @@ Here are the comparison results:
 
 Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation but I think still a indication of the benefit of using the lightweight client. 
 
-**Update 6 June 2021** I ran the 2GB Lightweight cold start test every hour for 22 hours and the results are:
+**Update 6 June 2021** I ran the 2GB Lightweight cold start test every hour for 25 hours and the results are:
 
 **2GB Lightweight cold-start lambda runtime**
-* Number of samples 22
-* Average 1.05s
-* Standard deviation 0.125s
+* Number of samples 25
+* Average 1.04s
+* Standard deviation 0.116s
 * Min 0.91s
 * Max 1.30s
 
 **2GB Lightweight warm-start lambda runtime**
-* Number of samples 198 (9 * 22)
-* Average 0.102s
+* Number of samples 225 (9 * 25)
+* Average 0.101s
 * Standard deviation 0.014s
 * Min 0.048s
 * Max not measured
