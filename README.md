@@ -84,37 +84,17 @@ Here are the comparison results:
 
 Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. More data was gathered for the 2GB case below.
 
-I ran the 2GB Lightweight cold start test every hour for 25 hours and the results are:
+**Lambda runtimes for 2GB Memory in seconds**
 
-**2GB Lightweight cold-start lambda runtime**
-* Number of samples 25
-* Average 1.04s
-* Standard deviation 0.116s
-* Min 0.91s
-* Max 1.30s
+|          | SDK Cold| Lightweight Cold| SDK Warm | Lightweight Warm |
+|----------|--------|-------------|-------|-----|
+| samples | 24 | 25 | 216 | 225 |
+| average | 2.772 | 1.04 |0.116 |0.101|
+| stdev   | 0.448 | 0.116 |0.017|0.014|
+| max     | 4.315 | 1.30 | ? | ? |
+| min     | 2.471 | 0.91 | 0.057 | 0.048 | 
 
-**2GB Lightweight warm-start lambda runtime**
-* Number of samples 225 (9 * 25)
-* Average 0.101s
-* Standard deviation 0.014s
-* Min 0.048s
-* Max not measured
-
-**2GB SDK v1 cold-start lambda runtime**
-* Number of samples 24
-* Average 2.772s
-* Standard deviation 0.448s
-* Min 2.471s
-* Max 4.315s
-
-**2GB SDK v1 warm-start lambda runtime**
-* Number of samples 216 (9 * 24)
-* Average 0.116s
-* Standard deviation 0.017s
-* Min 0.057s
-* Max not measured
-
-Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
+Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
 
