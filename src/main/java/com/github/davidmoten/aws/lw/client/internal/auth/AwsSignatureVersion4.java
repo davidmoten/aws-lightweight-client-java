@@ -247,9 +247,12 @@ public final class AwsSignatureVersion4 {
     }
 
     /**
-     * Returns the canonical collection of header names that will be included in the
+     * Returns the canonical string of header names that will be included in the
      * signature. For AWS4, all header names must be included in the process in
      * sorted canonicalized order.
+     * 
+     * @param headers input to convert to canonical string
+     * @return canonical header names string
      */
     static String getCanonicalizeHeaderNames(Map<String, String> headers) {
         List<String> sortedHeaders = new ArrayList<String>();
@@ -267,8 +270,11 @@ public final class AwsSignatureVersion4 {
     }
 
     /**
-     * Computes the canonical headers with values for the request. For AWS4, all
-     * headers must be included in the signing process.
+     * Returns the canonical headers string. For AWS4, all headers must be included
+     * in the signing process.
+     * 
+     * @param headers input to convert to canonical string
+     * @return canonical headers string
      */
     static String getCanonicalizedHeaderString(Map<String, String> headers) {
 
@@ -294,16 +300,27 @@ public final class AwsSignatureVersion4 {
      * Returns the canonical request string to go into the signer process; this
      * consists of several canonical sub-parts.
      * 
+     * @param endpoint                 url to which the request is being made
+     * @param httpMethod               http method (e.g GET, POST)
+     * @param canonicalQueryParameters canonical query parameters string
+     * @param canonicalizedHeaderNames canonical header names string
+     * @param canonicalizedHeaders     canonical headers string
+     * @param bodyHash                 SHA-256 hash of request body
      * @return canonical request string
      */
-    static String getCanonicalRequest(URL endpoint, String httpMethod, String queryParameters,
-            String canonicalizedHeaderNames, String canonicalizedHeaders, String bodyHash) {
-        return httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n" + queryParameters
-                + "\n" + canonicalizedHeaders + "\n" + canonicalizedHeaderNames + "\n" + bodyHash;
+    static String getCanonicalRequest(URL endpoint, String httpMethod,
+            String canonicalQueryParameters, String canonicalizedHeaderNames,
+            String canonicalizedHeaders, String bodyHash) {
+        return httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n"
+                + canonicalQueryParameters + "\n" + canonicalizedHeaders + "\n"
+                + canonicalizedHeaderNames + "\n" + bodyHash;
     }
 
     /**
      * Returns the canonicalized resource path for the service endpoint.
+     * 
+     * @param endpoint url to which the request is being made
+     * @return canonicalized resource path
      */
     static String getCanonicalizedResourcePath(URL endpoint) {
         Preconditions.checkNotNull(endpoint);
