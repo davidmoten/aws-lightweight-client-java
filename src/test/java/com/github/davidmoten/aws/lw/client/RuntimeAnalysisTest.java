@@ -10,8 +10,13 @@ public class RuntimeAnalysisTest {
 
     @Test
     public void test() {
+        report("src/test/resources/one-time-link-lambda-runtimes.txt");
+        report("src/test/resources/one-time-link-lambda-runtimes-sdk-v1.txt");
+    }
+
+    private void report(String filename) {
         List<Record> list = Stream
-                .lines(new File("src/test/resources/one-time-link-lambda-runtimes.txt")) //
+                .lines(new File(filename)) //
                 .map(line -> line.trim()) //
                 .filter(line -> !line.isEmpty()) //
                 .map(line -> line.replaceAll("\\s+", " ")) //
@@ -30,7 +35,6 @@ public class RuntimeAnalysisTest {
 
         Stream.from(list) //
                 .statistics(x -> x.apigLambdaRequestTimeMs).forEach(System.out::println);
-
     }
 
     static final class Record {

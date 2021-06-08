@@ -71,7 +71,7 @@ Here are the comparison results:
 | 128MB  | Metaspace error | 19s |
 | 256MB  | 21s             | 8.1s |
 | 512MB  | 10.5s           | 3.9s |
-| 2GB    | 2.5s           | 1.0s |
+| 2GB    | 2.8s           | 1.0s |
 
 **Warm Runtimes (average)**
 
@@ -82,9 +82,9 @@ Here are the comparison results:
 | 512MB  | 0.3s           | 0.3s |
 | 2GB    | 0.1s           | 0.1s |
 
-Note that I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Hardly what you'd call a thorough statistically significant investigation but I think still a indication of the benefit of using the lightweight client. 
+Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. More data was gathered for the 2GB case below.
 
-**Update 6 June 2021** I ran the 2GB Lightweight cold start test every hour for 25 hours and the results are:
+I ran the 2GB Lightweight cold start test every hour for 25 hours and the results are:
 
 **2GB Lightweight cold-start lambda runtime**
 * Number of samples 25
@@ -98,6 +98,20 @@ Note that I measured cold-start runtimes several times and then 5-10 or so warm 
 * Average 0.101s
 * Standard deviation 0.014s
 * Min 0.048s
+* Max not measured
+
+**2GB SDK v1 cold-start lambda runtime**
+* Number of samples 24
+* Average 2.772s
+* Standard deviation 0.448s
+* Min 2.471s
+* Max 4.315s
+
+**2GB SDK v1 warm-start lambda runtime**
+* Number of samples 216 (9 * 24)
+* Average 0.116s
+* Standard deviation 0.017s
+* Min 0.057s
 * Max not measured
 
 Aside from cold-start (and warm) runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
