@@ -1,17 +1,27 @@
-package com.amazonaws.services.s3.sample;
+package com.github.davidmoten.aws.lw.client.internal.auth;
+
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.ALGORITHM;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.SCHEME;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.TERMINATOR;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.dateStampFormat;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.getCanonicalRequest;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.getCanonicalizeHeaderNames;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.getCanonicalizedHeaderString;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.getCanonicalizedQueryString;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.getStringToSign;
+import static com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4.sign;
 
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 
-import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 /**
  * Sample AWS4 signer demonstrating how to sign 'chunked' uploads
  */
-public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
+public final class Aws4SignerForChunkedUpload {
 
     /**
      * SHA256 substitute marker used in place of x-amz-content-sha256 when employing
@@ -48,10 +58,17 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
      * re-used for each chunk
      */
     private byte[] signingKey;
+    private final URL endpointUrl;
+    private final String httpMethod;
+    private final String serviceName;
+    private final String regionName;
 
     public Aws4SignerForChunkedUpload(URL endpointUrl, String httpMethod, String serviceName,
             String regionName) {
-        super(endpointUrl, httpMethod, serviceName, regionName);
+        this.endpointUrl = endpointUrl;
+        this.httpMethod = httpMethod;
+        this.serviceName = serviceName;
+        this.regionName = regionName;
     }
 
     /**
@@ -77,7 +94,7 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
         // first get the date and time for the subsequent request, and convert
         // to ISO 8601 format for use in signature generation
         Date now = new Date();
-        this.dateTimeStamp = dateTimeFormat.format(now);
+        this.dateTimeStamp = AwsSignatureVersion4.dateTimeFormat().format(now);
 
         // update the headers with required 'x-amz-date' and 'host' values
         headers.put("x-amz-date", dateTimeStamp);
@@ -106,7 +123,7 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
         System.out.println("------------------------------------");
 
         // construct the string to be signed
-        String dateStamp = dateStampFormat.format(now);
+        String dateStamp = dateStampFormat().format(now);
         this.scope = dateStamp + "/" + regionName + "/" + serviceName + "/" + TERMINATOR;
         String stringToSign = getStringToSign(SCHEME, ALGORITHM, dateTimeStamp, scope,
                 canonicalRequest);
@@ -134,7 +151,7 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
 
         return authorizationHeader;
     }
-
+    
     /**
      * Calculates the expanded payload size of our data when it is chunked
      * 
@@ -213,12 +230,11 @@ public class Aws4SignerForChunkedUpload extends Aws4SignerBase {
 
         // sig-extension
         String chunkStringToSign = CHUNK_STRING_TO_SIGN_PREFIX + "\n" + dateTimeStamp + "\n" + scope
-                + "\n" + lastComputedSignature + "\n"
-                + Util.toHex(Util.sha256(nonsigExtension)) + "\n"
-                + Util.toHex(Util.sha256(dataToChunk));
+                + "\n" + lastComputedSignature + "\n" + Util.toHex(Util.sha256(nonsigExtension))
+                + "\n" + Util.toHex(Util.sha256(dataToChunk));
 
         // compute the V4 signature for the chunk
-        String chunkSignature = Util.toHex(Aws4SignerBase.sign(chunkStringToSign, signingKey));
+        String chunkSignature = Util.toHex(AwsSignatureVersion4.sign(chunkStringToSign, signingKey));
 
         // cache the signature to include with the next chunk's signature computation
         lastComputedSignature = chunkSignature;

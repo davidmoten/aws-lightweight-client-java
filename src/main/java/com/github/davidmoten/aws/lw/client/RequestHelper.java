@@ -11,9 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.Clock;
-import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerBase;
-import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForAuthorizationHeader;
-import com.github.davidmoten.aws.lw.client.internal.auth.Aws4SignerForQueryParameterAuth;
+import com.github.davidmoten.aws.lw.client.internal.auth.AwsSignatureVersion4;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
@@ -51,7 +49,7 @@ final class RequestHelper {
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
         if (isEmpty(requestBody)) {
-            contentHashString = Aws4SignerBase.UNSIGNED_PAYLOAD;
+            contentHashString = AwsSignatureVersion4.UNSIGNED_PAYLOAD;
             h.put("x-amz-content-sha256", "");
         } else {
             // compute hash of the body content
@@ -74,9 +72,8 @@ final class RequestHelper {
         // expressed in seconds
         q.put("X-Amz-Expires", "" + expirySeconds);
 
-        Aws4SignerForQueryParameterAuth signer = new Aws4SignerForQueryParameterAuth(endpointUrl,
-                method, serviceName, regionName);
-        String authorizationQueryParameters = signer.computeSignature(clock, h, q,
+        String authorizationQueryParameters = AwsSignatureVersion4.computeSignatureForQueryAuth(endpointUrl,
+                method, serviceName, regionName, clock, h, q,
                 contentHashString, credentials.accessKey(), credentials.secretKey());
 
         // build the presigned url to incorporate the authorization elements as query
@@ -101,7 +98,7 @@ final class RequestHelper {
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
         if (isEmpty(requestBody)) {
-            contentHashString = Aws4SignerBase.EMPTY_BODY_SHA256;
+            contentHashString = AwsSignatureVersion4.EMPTY_BODY_SHA256;
         } else {
             // compute hash of the body content
             byte[] contentHash = Util.sha256(requestBody);
@@ -116,9 +113,8 @@ final class RequestHelper {
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
                 .collect(Collectors.toMap(p -> p.name, p -> p.value));
-        Aws4SignerForAuthorizationHeader signer = new Aws4SignerForAuthorizationHeader(endpointUrl,
-                method, serviceName, regionName);
-        String authorization = signer.computeSignature(clock, h, q, contentHashString,
+        String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(endpointUrl,
+                method, serviceName, regionName, clock, h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header
