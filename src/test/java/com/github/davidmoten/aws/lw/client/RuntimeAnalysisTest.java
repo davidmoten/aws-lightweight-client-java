@@ -12,6 +12,7 @@ public class RuntimeAnalysisTest {
     public void test() {
         report("src/test/resources/one-time-link-lambda-runtimes.txt");
         report("src/test/resources/one-time-link-lambda-runtimes-sdk-v1.txt");
+        report("src/test/resources/one-time-link-lambda-runtimes-sdk-v2.txt");
     }
 
     private void report(String filename) {
