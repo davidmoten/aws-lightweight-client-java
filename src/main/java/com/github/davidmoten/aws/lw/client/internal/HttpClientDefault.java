@@ -34,9 +34,8 @@ public final class HttpClientDefault implements HttpClient {
             }
             Map<String, List<String>> responseHeaders = connection.getHeaderFields();
             int responseCode = connection.getResponseCode();
-            boolean ok = isOk(responseCode);
             InputStream is;
-            if (ok) {
+            if (isOk(responseCode)) {
                 is = connection.getInputStream();
             } else {
                 is = connection.getErrorStream();
