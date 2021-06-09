@@ -87,7 +87,7 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 **Lambda runtimes for 2GB Memory in seconds**
 
 |          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK Warm | Lightweight Warm |
-|----------|--------|-------------|-------|-----|
+|----------|--------|------|-------|-------|-----|
 | average | 2.772 | 2.307 |1.04 |0.116 |0.101|
 | stdev   | 0.448 | 0.128 | 0.116 |0.017|0.014|
 | max     | 4.315 | 2.941 |1.30 | ? | ? |
