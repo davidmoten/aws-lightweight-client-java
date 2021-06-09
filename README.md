@@ -60,7 +60,7 @@ The test Lambda that I used does this:
 
 Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the jar is 80K.
 
-The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run in **40% of the time** as using AWS SDK v1.
+The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run on average in **40% of the time** as using AWS SDK v1, **45% of the time** as using AWS SDK v2.
 
 <img src="src/docs/graph.svg"/>
 
