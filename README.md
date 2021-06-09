@@ -5,8 +5,6 @@
 
 This is a really lightweight standalone artifact (about 57K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
-<img src="src/docs/graph.svg"/>
-
 **Features**
 * small standalone artifact (57K)
 * concise fluent api
@@ -16,7 +14,7 @@ This is a really lightweight standalone artifact (about 57K) that performs authe
 * metadata and attributes support
 * xml response parsing support
 * high level of unit test coverage
-* reduces Lambda cold start time by 60%
+* reduces average Lambda cold start time significantly
 
 **Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
@@ -64,7 +62,9 @@ Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-li
 
 The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run in **40% of the time** as using AWS SDK v1.
 
-Here are the comparison results:
+<img src="src/docs/graph.svg"/>
+
+Here are the comparison details:
 
 **Cold Start Runtimes (average)**
 
@@ -96,7 +96,7 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 | min     | 2.471 | 0.77 | 0.91 | 0.057 | 0.048 | 
 | samples | 24 | 12 | 25 | 216 | 225 |
 
-Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
+Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. s3 + sqs dependency chain for AWS SDK v1 is 7.2MB, for AWS SDK v2 is 6.9MB.
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
 
