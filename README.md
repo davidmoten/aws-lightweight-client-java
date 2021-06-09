@@ -92,7 +92,7 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 | stdev   | 0.448 | 0.128 | 0.116 |0.017|0.014|
 | max     | 4.315 | 2.941 |1.30 | ? | ? |
 | min     | 2.471 | 0.77 | 0.91 | 0.057 | 0.048 | 
-| samples | 24 | 25 |12 | 216 | 225 |
+| samples | 24 | 12 | 25 | 216 | 225 |
 
 Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. 
 
