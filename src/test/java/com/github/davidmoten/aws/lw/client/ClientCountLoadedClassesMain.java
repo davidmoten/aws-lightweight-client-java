@@ -3,6 +3,7 @@ package com.github.davidmoten.aws.lw.client;
 public class ClientCountLoadedClassesMain {
     
     public static void main(String[] args) {
+        // run with -verbose:class
         String regionName = "ap-southeast-2";
         String accessKey = System.getProperty("accessKey");
         String secretKey = System.getProperty("secretKey");
