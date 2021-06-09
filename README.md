@@ -3,10 +3,10 @@
 [![codecov](https://codecov.io/gh/davidmoten/aws-lightweight-client-java/branch/master/graph/badge.svg)](https://codecov.io/gh/davidmoten/aws-lightweight-client-java)<br/>
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java)<br/>
 
-This is a really lightweight standalone artifact (about 57K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
+This is a really lightweight standalone artifact (about 55K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
 **Features**
-* small standalone artifact (57K)
+* small standalone artifact (55K)
 * concise fluent api
 * signs requests with AWS Signature Version 4
 * generates presigned urls
