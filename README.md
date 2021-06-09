@@ -5,6 +5,8 @@
 
 This is a really lightweight standalone artifact (about 57K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
+<img src="src/docs/graph.svg"/>
+
 **Features**
 * small standalone artifact (57K)
 * concise fluent api
@@ -86,7 +88,7 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 
 **Lambda runtimes for 2GB Memory in seconds**
 
-|          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK Warm | Lightweight Warm |
+|          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK v1 Warm | Lightweight Warm |
 |----------|--------|------|-------|-------|-----|
 | average | 2.772 | 2.307 |1.04 |0.116 |0.101|
 | stdev   | 0.448 | 0.128 | 0.116 |0.017|0.014|
