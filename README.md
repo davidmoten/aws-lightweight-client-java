@@ -3,24 +3,24 @@
 [![codecov](https://codecov.io/gh/davidmoten/aws-lightweight-client-java/branch/master/graph/badge.svg)](https://codecov.io/gh/davidmoten/aws-lightweight-client-java)<br/>
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java)<br/>
 
-This is a really lightweight standalone artifact (about 55K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
+This is a really lightweight standalone artifact (about 56K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
 **Features**
-* small standalone artifact (55K)
+* small standalone artifact (56K)
 * concise fluent api
 * signs requests with AWS Signature Version 4
 * generates presigned urls
 * supports throwing custom exceptions
 * metadata and attributes support
 * xml response parsing support
-* high level of unit test coverage
+* 100% unit test coverage
 * reduces average Lambda cold start time significantly
 
 **Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
 Maven [reports](https://davidmoten.github.io/aws-lightweight-client-java/index.html) including [javadocs](https://davidmoten.github.io/aws-lightweight-client-java/apidocs/index.html)
 
-For example with the 55K standalone artifact you can download an object from an S3 bucket:
+For example with the 56K standalone artifact you can download an object from an S3 bucket:
 
 ```java
 Client s3 = Client.s3()
@@ -327,6 +327,26 @@ sqs.url(queueUrl)
     .execute();
 ```
 
+### Attributes
+Some of the AWS API services (like SQS) represent property maps in the query string like this `?Attribute.Name.1=size&Attribute.Value.1=large&Attribute.Name.2=color&Attribute.Value.3=red`. The request builder has helper methods to do this for you:
+
+```java
+// Create a FIFO queue
+String queueUrl = sqs.query("Action", "CreateQueue") 
+  .query("QueueName", queueName(applicationName, key)) 
+  .attribute("FifoQueue", "true") 
+  .attribute("ContentBasedDeduplication", "true") 
+  .attribute("MessageRetentionPeriod", String.valueOf(TimeUnit.DAYS.toSeconds(14))) 
+  .attribute("VisibilityTimeout", "30") 
+  .responseAsXml() 
+  .content("CreateQueueResult", "QueueUrl");
+```
+
+When the prefix of the attribute is different, say "MessageProperty" instead of "Attribute" then you can use the `.attributePrefix(String)` method before calling `.attribute(String)`.
+
+### Metadata
+To set a header `x-amz-meta-KEY:VALUE` use the builder method `.metadata(KEY, VALUE)`.
+
 ### Error handling
 Let's look at a simple one, reading an object in an S3 bucket.
 
@@ -378,4 +398,4 @@ throw a `ServiceException` (in those circumstances where exceptions are thrown, 
 
 ## TODO
 * Can a faster cold-start be had using Bouncy Castle TLS library?
-* Compare with AWS SDK v2
+* add debug logging?
