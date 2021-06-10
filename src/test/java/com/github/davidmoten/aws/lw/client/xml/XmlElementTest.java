@@ -387,7 +387,7 @@ public class XmlElementTest {
 
     @Test(expected = XmlParseException.class)
     public void testBadAttribute() {
-        XmlElement x = XmlElement.parse("<a x={}/>");
+        XmlElement.parse("<a x={}/>");
     }
 
     @Test
