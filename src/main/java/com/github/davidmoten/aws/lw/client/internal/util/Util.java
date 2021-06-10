@@ -26,25 +26,21 @@ public final class Util {
     }
 
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
-            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) {
+            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) throws IOException {
         Preconditions.checkNotNull(headers);
-        try {
-            HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
-            connection.setRequestMethod(httpMethod);
+        HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
+        connection.setRequestMethod(httpMethod);
 
-            for (Entry<String, String> entry : headers.entrySet()) {
-                connection.setRequestProperty(entry.getKey(), entry.getValue());
-            }
-
-            connection.setUseCaches(false);
-            connection.setDoInput(true);
-            connection.setDoOutput(true);
-            connection.setConnectTimeout(connectTimeoutMs);
-            connection.setReadTimeout(readTimeoutMs);
-            return connection;
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        for (Entry<String, String> entry : headers.entrySet()) {
+            connection.setRequestProperty(entry.getKey(), entry.getValue());
         }
+
+        connection.setUseCaches(false);
+        connection.setDoInput(true);
+        connection.setDoOutput(true);
+        connection.setConnectTimeout(connectTimeoutMs);
+        connection.setReadTimeout(readTimeoutMs);
+        return connection;
     }
 
     public static String canonicalMetadataKey(String meta) {
@@ -149,7 +145,7 @@ public final class Util {
             }
         }
     }
-    
+
     public static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
         @Override
         public int read() throws IOException {

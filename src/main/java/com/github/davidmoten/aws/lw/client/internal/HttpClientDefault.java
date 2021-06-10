@@ -23,7 +23,7 @@ public final class HttpClientDefault implements HttpClient {
     @Override
     public ResponseInputStream request(URL endpointUrl, String httpMethod,
             Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,
-            int readTimeoutMs) {
+            int readTimeoutMs) throws IOException {
         HttpURLConnection connection = Util.createHttpConnection(endpointUrl, httpMethod, headers,
                 connectTimeoutMs, readTimeoutMs);
         return request(connection, requestBody);

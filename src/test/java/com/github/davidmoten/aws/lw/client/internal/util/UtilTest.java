@@ -7,7 +7,6 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.Collections;
@@ -34,7 +33,7 @@ public class UtilTest {
     }
 
     @Test
-    public void testCreateConnectionBad() throws MalformedURLException {
+    public void testCreateConnectionBad() throws IOException {
         Util.createHttpConnection(new URL("https://doesnotexist.never12345"), "GET",
                 Collections.emptyMap(), 100, 100);
     }
