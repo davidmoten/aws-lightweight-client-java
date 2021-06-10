@@ -73,9 +73,9 @@ final class RequestHelper {
         // expressed in seconds
         q.put("X-Amz-Expires", "" + expirySeconds);
 
-        String authorizationQueryParameters = AwsSignatureVersion4.computeSignatureForQueryAuth(endpointUrl,
-                method, serviceName, regionName, clock, h, q,
-                contentHashString, credentials.accessKey(), credentials.secretKey());
+        String authorizationQueryParameters = AwsSignatureVersion4.computeSignatureForQueryAuth(
+                endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
+                credentials.accessKey(), credentials.secretKey());
 
         // build the presigned url to incorporate the authorization elements as query
         // parameters
@@ -89,9 +89,10 @@ final class RequestHelper {
         return presignedUrl;
     }
 
-    static ResponseInputStream request(Clock clock, HttpClient httpClient, String url, String method,
-            Map<String, String> headers, byte[] requestBody, String serviceName, String regionName,
-            Credentials credentials, int connectTimeoutMs, int readTimeoutMs) throws IOException {
+    static ResponseInputStream request(Clock clock, HttpClient httpClient, String url,
+            String method, Map<String, String> headers, byte[] requestBody, String serviceName,
+            String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs)
+            throws IOException {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl = Util.toUrl(url);
@@ -114,8 +115,8 @@ final class RequestHelper {
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
                 .collect(Collectors.toMap(p -> p.name, p -> p.value));
-        String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(endpointUrl,
-                method, serviceName, regionName, clock, h, q, contentHashString,
+        String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(
+                endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header
@@ -180,15 +181,20 @@ final class RequestHelper {
                 index = parameterSeparatorIndex + 1;
             }
             if (value != null) {
-                try {
-                    results.add(new Parameter(URLDecoder.decode(name, "UTF-8"),
-                            URLDecoder.decode(value, "UTF-8")));
-                } catch (UnsupportedEncodingException e) {
-                    throw new RuntimeException(e);
-                }
+                results.add(parameter(name, value, "UTF-8"));
             }
         }
         return results;
+    }
+
+    // VisibleForTesting
+    static Parameter parameter(String name, String value, String charset) {
+        try {
+            return new Parameter(URLDecoder.decode(name, charset),
+                    URLDecoder.decode(value, charset));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     // VisibleForTesting
