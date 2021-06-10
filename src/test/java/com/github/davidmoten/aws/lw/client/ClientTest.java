@@ -485,7 +485,6 @@ public class ClientTest {
         a.put("content-length", "" + 9);
         a.put("x-amz-security-token", "789");
         for (Entry<String, String> entry : hc.headers.entrySet()) {
-            System.out.println(entry.getKey());
             assertEquals(a.get(entry.getKey()), entry.getValue());
         }
         assertEquals(a.size(), hc.headers.size());

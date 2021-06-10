@@ -19,5 +19,15 @@ public class AwsSignatureVersion4Test {
     public void testPath2() throws MalformedURLException {
         assertEquals("/hi", getCanonicalizedResourcePath(new URL("https://blah.com/hi")));
     }
+    
+    @Test(expected=RuntimeException.class)
+    public void testSignBadAlgorithmThrows() {
+        AwsSignatureVersion4.sign("hi there", new byte[] {1,2,3,4}, "doesnotexist");
+    }
+    
+    @Test(expected=RuntimeException.class)
+    public void testSignBadKeyThrows2() {
+        AwsSignatureVersion4.sign("hi there", new byte[] {}, AwsSignatureVersion4.ALGORITHM_HMAC_SHA256);
+    }
 
 }
