@@ -285,7 +285,6 @@ public final class XmlElement {
     }
 
     public static XmlElement parse(String string) throws XmlParseException {
-        System.out.println(string);
         Preconditions.checkNotNull(string);
         return parseUnchecked(new StringReader(string));
     }
@@ -803,18 +802,18 @@ public final class XmlElement {
     }
 
     // for debugging
-    private String readAll() {
-        StringBuilder b = new StringBuilder();
-        int c;
-        try {
-            while ((c = reader.read()) != -1) {
-                b.append((char) c);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return b.toString();
-    }
+//    private String readAll() {
+//        StringBuilder b = new StringBuilder();
+//        int c;
+//        try {
+//            while ((c = reader.read()) != -1) {
+//                b.append((char) c);
+//            }
+//        } catch (IOException e) {
+//            throw new UncheckedIOException(e);
+//        }
+//        return b.toString();
+//    }
 
     /**
      * Resolves an entity. The name of the entity is read from the reader. The value
