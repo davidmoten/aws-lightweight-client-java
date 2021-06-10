@@ -65,6 +65,16 @@ public class XmlElementTest {
         assertEquals("a", x.name());
     }
 
+    @Test(expected = XmlParseException.class)
+    public void testOnlyPreamble() {
+        XmlElement.parse("<?xml>  ");
+    }
+    
+    @Test(expected = XmlParseException.class)
+    public void testOnlyPreamble2() {
+        XmlElement.parse("<?xml>  adfda");
+    }
+
     @Test
     public void testWithPreamble3() {
         XmlElement x = XmlElement.parse("<?-xml>\n<a/>");
