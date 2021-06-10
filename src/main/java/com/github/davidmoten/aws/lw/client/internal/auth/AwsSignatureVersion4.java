@@ -327,14 +327,8 @@ public final class AwsSignatureVersion4 {
         String path = endpoint.getPath();
         if (path.isEmpty()) {
             return "/";
-        }
-
-        String encodedPath = Util.urlEncode(path, true);
-        if (encodedPath.startsWith("/")) {
-            return encodedPath;
         } else {
-            // TODO impossible?
-            return "/".concat(encodedPath);
+            return Util.urlEncode(path, true);
         }
     }
 
