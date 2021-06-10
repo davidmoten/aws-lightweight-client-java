@@ -60,6 +60,12 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<?xml>\n<a/>");
         assertEquals("a", x.name());
     }
+    
+    @Test(expected=XmlParseException.class)
+    public void testWithPreamble7() {
+        XmlElement x = XmlElement.parse("<?xml<>\n<a/>");
+        assertEquals("a", x.name());
+    }
 
     @Test
     public void testWithPreamble2() {
@@ -98,6 +104,18 @@ public class XmlElementTest {
     @Test
     public void testWithPreamble6() {
         XmlElement x = XmlElement.parse("<?-]xml>\n<a/>");
+        assertEquals("a", x.name());
+    }
+    
+    @Test
+    public void testWithPreambleAndVersionDoubleQuote() {
+        XmlElement x = XmlElement.parse("<?XML version=\"1.0\"?><a/>");
+        assertEquals("a", x.name());
+    }
+    
+    @Test
+    public void testWithPreambleAndVersionSingleQuote() {
+        XmlElement x = XmlElement.parse("<?XML version='1.0'?><a/>");
         assertEquals("a", x.name());
     }
 
@@ -393,6 +411,21 @@ public class XmlElementTest {
                         + "]]></a>");
         String s = x.content();
         assertTrue(s.contains("as I want (along with <, &, '"));
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testCDataTooManyBracketLevels() {
+        XmlElement.parse("<a><![CDATA[[hi there]]]></a>");
+    }
+    
+    @Test(expected = XmlParseException.class)
+    public void testCDataNotEnoughClosingBrackets() {
+        XmlElement.parse("<a><![CDATA[[hi there]></a>");
+    }
+    
+    @Test(expected = XmlParseException.class)
+    public void testCDataNotEnoughClosingBrackets2() {
+        XmlElement.parse("<a><![CDATA[[hi there]aa></a>");
     }
 
     @Test
