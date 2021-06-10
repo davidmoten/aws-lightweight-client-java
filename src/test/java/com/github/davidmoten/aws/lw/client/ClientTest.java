@@ -272,6 +272,7 @@ public class ClientTest {
             }
         }
     }
+
     @Test
     public void testServerErrorCustomExceptionsPassThrough() throws IOException {
         Client client = Client //
@@ -280,7 +281,8 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
-                .exception(r -> !r.isOk() && r.statusCode() == 404, r -> new UnsupportedOperationException()) //
+                .exception(r -> !r.isOk() && r.statusCode() == 404,
+                        r -> new UnsupportedOperationException()) //
                 .build();
         try (MockWebServer server = new MockWebServer()) {
             server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
@@ -325,7 +327,7 @@ public class ClientTest {
             }
         }
     }
-    
+
     @Test
     public void testWithServerNoResponseBody() throws IOException {
         Client client = Client //
@@ -434,9 +436,7 @@ public class ClientTest {
         Client s3 = Client //
                 .s3() //
                 .regionName("ap-southeast-2") //
-                .accessKey("123") //
-                .secretKey("456") //
-                .clock(() -> 1622695846902L) //
+                .credentials(Credentials.of("123", "456", "789")).clock(() -> 1622695846902L) //
                 .httpClient(hc) //
                 .build();
 
@@ -444,6 +444,7 @@ public class ClientTest {
                 .path("myBucket/myObject.txt") //
                 .query("Type", "Thing") //
                 .header("my-header", "blah") //
+                .header("my-header", "blah2") //
                 .requestBody("something") //
                 .response();
 
@@ -451,17 +452,18 @@ public class ClientTest {
         assertEquals("something", hc.requestBodyString());
         assertEquals("https://s3.ap-southeast-2.amazonaws.com/myBucket/myObject.txt?Type=Thing",
                 hc.endpointUrl.toString());
-//        hc.headers.entrySet().forEach(System.out::println);
         Map<String, String> a = new HashMap<>();
-        a.put("my-header", "blah");
+        a.put("my-header", "blah,blah2");
         a.put("x-amz-content-sha256",
                 "3fc9b689459d738f8c88a3a48aa9e33542016b7a4052e001aaa536fca74813cb");
         a.put("Authorization",
-                "AWS4-HMAC-SHA256 Credential=123/20210603/ap-southeast-2/s3/aws4_request, SignedHeaders=content-length;host;my-header;x-amz-content-sha256;x-amz-date, Signature=b68fd6e232d7a0b694fc4b7b366e2ed887c7ba976c16dd5ccfcf77a0fae8c9e7");
+                "AWS4-HMAC-SHA256 Credential=123/20210603/ap-southeast-2/s3/aws4_request, SignedHeaders=content-length;host;my-header;x-amz-content-sha256;x-amz-date;x-amz-security-token, Signature=72983b3d44575f7b8fea5dd7148a764a7031122154387a30764c56d171906c80");
         a.put("Host", "s3.ap-southeast-2.amazonaws.com");
         a.put("x-amz-date", "20210603T045046Z");
         a.put("content-length", "" + 9);
+        a.put("x-amz-security-token", "789");
         for (Entry<String, String> entry : hc.headers.entrySet()) {
+            System.out.println(entry.getKey());
             assertEquals(a.get(entry.getKey()), entry.getValue());
         }
         assertEquals(a.size(), hc.headers.size());
