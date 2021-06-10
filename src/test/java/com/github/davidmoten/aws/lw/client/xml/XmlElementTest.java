@@ -52,7 +52,7 @@ public class XmlElementTest {
             public void close() throws IOException {
                 // do nothings
             }
-        });
+        }, true);
     }
 
     @Test

@@ -96,7 +96,7 @@ public final class XmlElement {
      */
     private String content; // non-null
 
-    private Map<String, char[]> entities;
+    private static final Map<String, char[]> ENTITIES = createEntities();
 
     /**
      * The line number where the element starts.
@@ -108,7 +108,7 @@ public final class XmlElement {
      * <code>true</code> if the leading and trailing whitespace of #PCDATA sections
      * have to be ignored.
      */
-    private boolean ignoreLeadingAndTrailingWhitespace;
+    private final boolean ignoreLeadingAndTrailingWhitespace;
 
     /**
      * Character read too much. This character provides push-back functionality to
@@ -127,26 +127,13 @@ public final class XmlElement {
      */
     private int parserLineNr;
 
-    public XmlElement() {
-        this(new HashMap<>(), true, true);
-    }
-
-    private XmlElement(Map<String, char[]> entities, boolean ignoreLeadingAndTrailingWhitespace,
-            boolean fillBasicConversionTable) {
+    private XmlElement(boolean ignoreLeadingAndTrailingWhitespace) {
         this.ignoreLeadingAndTrailingWhitespace = ignoreLeadingAndTrailingWhitespace;
         this.name = null;
         this.content = "";
         this.attributes = new HashMap<>();
         this.children = new ArrayList<>();
-        this.entities = entities;
         this.lineNr = 0;
-        if (fillBasicConversionTable) {
-            this.entities.put("amp", new char[] {'&'});
-            this.entities.put("quot", new char[] {'"'});
-            this.entities.put("apos", new char[] {'\''});
-            this.entities.put("lt", new char[] {'<'});
-            this.entities.put("gt", new char[] {'>'});
-        }
     }
 
     public void addChild(XmlElement child) {
@@ -248,9 +235,14 @@ public final class XmlElement {
         return this.name;
     }
 
-    public static XmlElement parse(Reader reader) throws IOException, XmlParseException {
+    public static XmlElement parse(Reader reader) throws XmlParseException, IOException {
+        return parse(reader, true);
+    }
+
+    public static XmlElement parse(Reader reader, boolean ignoreLeadingAndTrailingWhitespace)
+            throws IOException, XmlParseException {
         Preconditions.checkNotNull(reader);
-        XmlElement x = new XmlElement();
+        XmlElement x = new XmlElement(ignoreLeadingAndTrailingWhitespace);
         x.parseFromReader(reader);
         return x;
     }
@@ -283,14 +275,20 @@ public final class XmlElement {
             }
         }
     }
+    
+    public static XmlElement parse(String string)
+            throws XmlParseException {
+        return parse(string, true);
+    }
 
-    public static XmlElement parse(String string) throws XmlParseException {
+    public static XmlElement parse(String string, boolean ignoreLeadingAndTrailingWhitespace)
+            throws XmlParseException {
         Preconditions.checkNotNull(string);
-        return parseUnchecked(new StringReader(string));
+        return parseUnchecked(new StringReader(string), ignoreLeadingAndTrailingWhitespace);
     }
 
     // VisibleForTesting
-    static XmlElement parseUnchecked(Reader reader) throws XmlParseException {
+    static XmlElement parseUnchecked(Reader reader, boolean ignoreLeadingAndTrailingWhitespace) throws XmlParseException {
         try {
             return parse(reader);
         } catch (IOException e) {
@@ -299,7 +297,7 @@ public final class XmlElement {
     }
 
     private XmlElement createAnotherElement() {
-        return new XmlElement(this.entities, this.ignoreLeadingAndTrailingWhitespace, false);
+        return new XmlElement(this.ignoreLeadingAndTrailingWhitespace);
     }
 
     public String toString() {
@@ -439,7 +437,7 @@ public final class XmlElement {
             result.append(ch);
         }
     }
-    
+
     // VisibleForTesting
     static boolean isValidIdentifierCharacter(char ch) {
         return ((ch >= 'A') && (ch <= 'Z')) || //
@@ -523,7 +521,7 @@ public final class XmlElement {
         for (;;) {
             char ch = this.readChar();
             if (ch == '<') {
-                
+
 //              System.out.println("ch="+ ch + ", rest="+ readAll());
 //              if (true) throw new RuntimeException();
                 ch = this.readChar();
@@ -844,7 +842,7 @@ public final class XmlElement {
             }
             buf.append(ch);
         } else {
-            char[] value = (char[]) this.entities.get(key);
+            char[] value = (char[]) ENTITIES.get(key);
             if (value == null) {
                 throw this.createExceptionUnknownEntity(key);
             }
@@ -885,6 +883,16 @@ public final class XmlElement {
     private XmlParseException createExceptionUnknownEntity(String name) {
         String msg = "Unknown or invalid entity: &" + name + ";";
         return new XmlParseException(this.name(), this.parserLineNr, msg);
+    }
+
+    private static Map<String, char[]> createEntities() {
+        Map<String, char[]> map = new HashMap<>();
+        map.put("amp", new char[] {'&'});
+        map.put("quot", new char[] {'"'});
+        map.put("apos", new char[] {'\''});
+        map.put("lt", new char[] {'<'});
+        map.put("gt", new char[] {'>'});
+        return map;
     }
 
 }
