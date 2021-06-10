@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.io.Writer;
 import java.util.NoSuchElementException;
@@ -60,17 +61,17 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<?xml>\n<a/>");
         assertEquals("a", x.name());
     }
-    
+
     @Test
     public void testLineNumber() {
         try {
-        XmlElement.parse("<?xml>\n\n\n<a>");
+            XmlElement.parse("<?xml>\n\n\n<a>");
         } catch (XmlParseException e) {
             assertEquals(4, e.lineNumber());
         }
     }
-    
-    @Test(expected=XmlParseException.class)
+
+    @Test(expected = XmlParseException.class)
     public void testWithPreamble7() {
         XmlElement x = XmlElement.parse("<?xml<>\n<a/>");
         assertEquals("a", x.name());
@@ -115,13 +116,13 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<?-]xml>\n<a/>");
         assertEquals("a", x.name());
     }
-    
+
     @Test
     public void testWithPreambleAndVersionDoubleQuote() {
         XmlElement x = XmlElement.parse("<?XML version=\"1.0\"?><a/>");
         assertEquals("a", x.name());
     }
-    
+
     @Test
     public void testWithPreambleAndVersionSingleQuote() {
         XmlElement x = XmlElement.parse("<?XML version='1.0'?><a/>");
@@ -321,6 +322,21 @@ public class XmlElementTest {
     }
 
     @Test
+    public void testEmptyContent2() {
+        XmlElement x = XmlElement.parse("<a><b></b></a>", false);
+        assertEquals("a", x.name());
+        assertTrue(x.hasChildren());
+    }
+
+    @Test
+    public void testParseReader() throws XmlParseException, IOException {
+        try (StringReader reader = new StringReader("<a> hi </a>")) {
+            XmlElement x = XmlElement.parse(reader);
+            assertEquals("hi", x.content());
+        }
+    }
+
+    @Test
     public void testHasContentAndWhiteSpaceTrimmed() {
         XmlElement x = XmlElement.parse("<a>\t\n hi there -&gt; 1 \n\t</a>");
         assertEquals("a", x.name());
@@ -386,6 +402,11 @@ public class XmlElementTest {
     }
 
     @Test(expected = XmlParseException.class)
+    public void testComment4() {
+        XmlElement.parse("<a><!<hey/><b></a>");
+    }
+
+    @Test(expected = XmlParseException.class)
     public void testBadAttribute() {
         XmlElement.parse("<a x={}/>");
     }
@@ -426,15 +447,27 @@ public class XmlElementTest {
     public void testCDataTooManyBracketLevels() {
         XmlElement.parse("<a><![CDATA[[hi there]]]></a>");
     }
-    
+
     @Test(expected = XmlParseException.class)
     public void testCDataNotEnoughClosingBrackets() {
         XmlElement.parse("<a><![CDATA[[hi there]></a>");
     }
-    
+
     @Test(expected = XmlParseException.class)
     public void testCDataNotEnoughClosingBrackets2() {
         XmlElement.parse("<a><![CDATA[[hi there]aa></a>");
+    }
+
+    @Test
+    public void testPreserveWhitespace() {
+        XmlElement x = XmlElement.parse("<a> hi </a>", false);
+        assertEquals(" hi ", x.content());
+    }
+
+    @Test
+    public void testSkipWhitespace() {
+        XmlElement x = XmlElement.parse("<a> \r\t\nhi</a>");
+        assertEquals("hi", x.content());
     }
 
     @Test

@@ -275,9 +275,8 @@ public final class XmlElement {
             }
         }
     }
-    
-    public static XmlElement parse(String string)
-            throws XmlParseException {
+
+    public static XmlElement parse(String string) throws XmlParseException {
         return parse(string, true);
     }
 
@@ -288,9 +287,10 @@ public final class XmlElement {
     }
 
     // VisibleForTesting
-    static XmlElement parseUnchecked(Reader reader, boolean ignoreLeadingAndTrailingWhitespace) throws XmlParseException {
+    static XmlElement parseUnchecked(Reader reader, boolean ignoreLeadingAndTrailingWhitespace)
+            throws XmlParseException {
         try {
-            return parse(reader);
+            return parse(reader, ignoreLeadingAndTrailingWhitespace);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
