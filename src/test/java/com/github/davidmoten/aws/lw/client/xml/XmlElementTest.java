@@ -272,6 +272,12 @@ public class XmlElementTest {
         XmlElement x = XmlElement.parse("<a><!-- hi there -->boo</a>");
         assertEquals("boo", x.content());
     }
+    
+    @Test
+    public void testComment3() {
+        XmlElement x = XmlElement.parse("<a><![hi there]>boo</a>");
+        assertEquals("boo", x.content());
+    }
 
     @Test
     public void testCData() {
