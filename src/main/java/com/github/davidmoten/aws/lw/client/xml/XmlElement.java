@@ -94,7 +94,7 @@ public final class XmlElement {
     /**
      * The #PCDATA content of the object. null if no #PCDATA, can be empty string
      */
-    private String content;
+    private String content; // non-null
 
     private Map<String, char[]> entities;
 
@@ -304,20 +304,34 @@ public final class XmlElement {
 
     public String toString() {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try (OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+        OutputStreamWriter writer = new OutputStreamWriter(out, StandardCharsets.UTF_8);
+        writeUnchecked(writer);
+        return new String(out.toByteArray(), StandardCharsets.UTF_8);
+    }
+
+    // visible for testing
+    void writeUnchecked(Writer writer) {
+        try {
             this.write(writer);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
         }
-        return new String(out.toByteArray(), StandardCharsets.UTF_8);
     }
 
     public void write(Writer writer) throws IOException {
         Preconditions.checkNotNull(writer);
-        if (this.name == null) {
-            writeEncoded(writer, this.content);
-            return;
-        }
+        Preconditions.checkNotNull(name);
+        Preconditions.checkNotNull(content);
+//        if (this.name == null) {
+//            writeEncoded(writer, this.content);
+//            return;
+//        }
         writer.write('<');
         writer.write(this.name);
         if (!this.attributes.isEmpty()) {
@@ -333,7 +347,7 @@ public final class XmlElement {
                 writer.write('"');
             }
         }
-        if ((this.content != null) && (this.content.length() > 0)) {
+        if (!content.isEmpty()) {
             writer.write('>');
             writeEncoded(writer, this.content);
             writer.write('<');
@@ -418,14 +432,24 @@ public final class XmlElement {
     private void scanIdentifier(StringBuilder result) throws IOException {
         for (;;) {
             char ch = this.readChar();
-            if (((ch < 'A') || (ch > 'Z')) && ((ch < 'a') || (ch > 'z'))
-                    && ((ch < '0') || (ch > '9')) && (ch != '_') && (ch != '.') && (ch != ':')
-                    && (ch != '-') && (ch <= '\u007E')) {
+            if (!isValidIdentifierCharacter(ch)) {
                 this.unreadChar(ch);
                 return;
             }
             result.append(ch);
         }
+    }
+    
+    // VisibleForTesting
+    static boolean isValidIdentifierCharacter(char ch) {
+        return ((ch >= 'A') && (ch <= 'Z')) || //
+                ((ch >= 'a') && (ch <= 'z')) || //
+                ((ch >= '0') && (ch <= '9')) || //
+                (ch == '_') || //
+                (ch == '.') || //
+                (ch == ':') || //
+                (ch == '-') || //
+                (ch > '\u007E');
     }
 
     /**
@@ -777,18 +801,18 @@ public final class XmlElement {
     }
 
     // for debugging
-    private String readAll() {
-        StringBuilder b = new StringBuilder();
-        int c;
-        try {
-            while ((c = reader.read()) != -1) {
-                b.append((char) c);
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-        return b.toString();
-    }
+//    private String readAll() {
+//        StringBuilder b = new StringBuilder();
+//        int c;
+//        try {
+//            while ((c = reader.read()) != -1) {
+//                b.append((char) c);
+//            }
+//        } catch (IOException e) {
+//            throw new UncheckedIOException(e);
+//        }
+//        return b.toString();
+//    }
 
     /**
      * Resolves an entity. The name of the entity is read from the reader. The value
