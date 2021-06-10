@@ -1,10 +1,12 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 
 public final class ClientMain {
@@ -72,6 +74,13 @@ public final class ClientMain {
                 // read bucket object
                 String text = s3.path(bucketName, objectName).responseAsUtf8();
                 System.out.println(text);
+                System.out.println("presignedUrl="
+                        + s3.path("amsa-xml-in" + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
+            }
+            {
+                // read bucket object as stream
+                byte[] bytes = Util.readBytesAndClose(s3.path(bucketName, objectName).responseInputStream());
+                System.out.println(new String(bytes, StandardCharsets.UTF_8));
                 System.out.println("presignedUrl="
                         + s3.path("amsa-xml-in" + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
             }
