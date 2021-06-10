@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -467,6 +468,13 @@ public class ClientTest {
             assertEquals(a.get(entry.getKey()), entry.getValue());
         }
         assertEquals(a.size(), hc.headers.size());
+    }
+
+    @Test(expected = UncheckedIOException.class)
+    public void testUrlDoesNotExist() {
+        Client s3 = Client.s3().regionName("ap-southeast-2").accessKey("123").secretKey("456")
+                .build();
+        s3.url("https://doesnotexist.z21894649.com").execute();
     }
 
     @Test
