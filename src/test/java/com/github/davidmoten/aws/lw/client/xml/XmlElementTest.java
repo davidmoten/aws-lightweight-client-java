@@ -61,6 +61,15 @@ public class XmlElementTest {
         assertEquals("a", x.name());
     }
     
+    @Test
+    public void testLineNumber() {
+        try {
+        XmlElement.parse("<?xml>\n\n\n<a>");
+        } catch (XmlParseException e) {
+            assertEquals(4, e.lineNumber());
+        }
+    }
+    
     @Test(expected=XmlParseException.class)
     public void testWithPreamble7() {
         XmlElement x = XmlElement.parse("<?xml<>\n<a/>");
