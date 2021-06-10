@@ -126,6 +126,27 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
+    
+    @Test(expected=UncheckedIOException.class)
+    public void testThrows() {
+        Client client = Client //
+                .s3() //
+                .regionName("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .connectTimeout(5, TimeUnit.SECONDS) //
+                .readTimeout(6, TimeUnit.SECONDS) //
+                .httpClient(HttpClientTesting.THROWING) //
+                .build();
+
+        // create a bucket
+        client //
+                .path("MyBucket") //
+                .method(HttpMethod.PUT) //
+                .requestBody("hi there") //
+                .execute();
+    }
+
 
     @Test
     public void testDefaultClientFromEnvironment() {
