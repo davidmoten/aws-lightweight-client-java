@@ -173,6 +173,11 @@ public class XmlElementTest {
     public void testSyntaxErrorBadComment5() {
         XmlElement.parse("<a><b>boo</b><!- hi there --> +</a>");
     }
+    
+    @Test(expected = XmlParseException.class)
+    public void testSyntaxErrorBadComment6() {
+        XmlElement.parse("<a><b>boo</b><!-- hi there ---Z +</a>");
+    }
 
     @Test(expected = XmlParseException.class)
     public void testSyntaxBadEntity() {
