@@ -1,6 +1,8 @@
 package com.github.davidmoten.aws.lw.client.internal.util;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
@@ -127,6 +129,33 @@ public final class Util {
             throw new RuntimeException(e);
         }
     }
+
+    public static byte[] readBytesAndClose(InputStream in) {
+        try {
+            byte[] buffer = new byte[8192];
+            int n;
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            while ((n = in.read(buffer)) != -1) {
+                bytes.write(buffer, 0, n);
+            }
+            return bytes.toByteArray();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            try {
+                in.close();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+    }
+    
+    public static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
+        @Override
+        public int read() throws IOException {
+            return -1;
+        }
+    };
 
 //    /**
 //     * Converts a Hex-encoded data string to the original byte data.

@@ -5,6 +5,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.Map;
 
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
+
 public final class HttpClientTesting implements HttpClient {
     
     public static final HttpClientTesting INSTANCE = new HttpClientTesting();
@@ -17,7 +19,7 @@ public final class HttpClientTesting implements HttpClient {
     public int readTimeoutMs;
 
     @Override
-    public Response request(URL endpointUrl, String httpMethod, Map<String, String> headers, byte[] requestBody,
+    public ResponseInputStream request(URL endpointUrl, String httpMethod, Map<String, String> headers, byte[] requestBody,
             int connectTimeoutMs, int readTimeoutMs) {
         this.endpointUrl = endpointUrl;
         this.httpMethod = httpMethod;
@@ -25,7 +27,7 @@ public final class HttpClientTesting implements HttpClient {
         this.requestBody = requestBody;
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
-        return new Response(Collections.emptyMap(), new byte[0], 200);
+        return new ResponseInputStream(null, 200, Collections.emptyMap(), Util.EMPTY_INPUT_STREAM);
     }
 
     @Override

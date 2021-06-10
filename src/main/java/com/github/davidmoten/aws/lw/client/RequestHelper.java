@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.net.URLDecoder;
@@ -88,9 +89,9 @@ final class RequestHelper {
         return presignedUrl;
     }
 
-    static Response request(Clock clock, HttpClient httpClient, String url, String method,
+    static ResponseInputStream request(Clock clock, HttpClient httpClient, String url, String method,
             Map<String, String> headers, byte[] requestBody, String serviceName, String regionName,
-            Credentials credentials, int connectTimeoutMs, int readTimeoutMs) {
+            Credentials credentials, int connectTimeoutMs, int readTimeoutMs) throws IOException {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl = Util.toUrl(url);

@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -117,18 +119,38 @@ public final class Request {
 
     /**
      * Opens a connection and makes the request. This method returns all the
-     * response information including headers, status code, request body. If an
-     * error status code is encountered (outside 200-299) then an exception is
-     * <b>not</b> thrown (unlike the other methods .response*).
+     * response information including headers, status code, request body as an
+     * InputStream. If an error status code is encountered (outside 200-299) then an
+     * exception is <b>not</b> thrown (unlike the other methods .response*). The
+     * caller <b>must close</b> the InputStream when finished with it.
+     * 
+     * @return all response information, the caller must close the
+     *         InputStream when finished with it
+     */
+    public ResponseInputStream responseInputStream() {
+        String u = calculateUrl(url, client.serviceName(), regionName, queries,
+                Arrays.asList(pathSegments));
+        try {
+            return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
+                    RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
+                    regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Opens a connection and makes the request. This method returns all the
+     * response information including headers, status code, request body as a byte
+     * array. If an error status code is encountered (outside 200-299) then an
+     * exception is <b>not</b> thrown (unlike the other methods .response*).
      * 
      * @return all response information
      */
     public Response response() {
-        String u = calculateUrl(url, client.serviceName(), regionName, queries,
-                Arrays.asList(pathSegments));
-        return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+        ResponseInputStream r = responseInputStream();
+        byte[] bytes = Util.readBytesAndClose(r);
+        return new Response(r.headers(), bytes, r.statusCode());
     }
 
     private static String calculateUrl(String url, String serviceName, String regionName,
