@@ -19,7 +19,7 @@ import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 public final class Request {
 
     private final Client client;
-    private String regionName;
+    private String region;
     private String url;
     private HttpMethod method = HttpMethod.GET;
     private final Map<String, List<String>> headers = new HashMap<>();
@@ -35,7 +35,7 @@ public final class Request {
         this.client = client;
         this.url = url;
         this.pathSegments = pathSegments;
-        this.regionName = client.regionName();
+        this.region = client.region();
         this.connectTimeoutMs = client.connectTimeoutMs();
         this.readTimeoutMs = client.readTimeoutMs();
     }
@@ -99,9 +99,9 @@ public final class Request {
         return requestBody(requestBody.getBytes(StandardCharsets.UTF_8));
     }
 
-    public Request regionName(String regionName) {
-        Preconditions.checkNotNull(regionName);
-        this.regionName = regionName;
+    public Request region(String region) {
+        Preconditions.checkNotNull(region);
+        this.region = region;
         return this;
     }
 
@@ -128,12 +128,12 @@ public final class Request {
      *         InputStream when finished with it
      */
     public ResponseInputStream responseInputStream() {
-        String u = calculateUrl(url, client.serviceName(), regionName, queries,
+        String u = calculateUrl(url, client.serviceName(), region, queries,
                 Arrays.asList(pathSegments));
         try {
             return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
                     RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                    regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+                    region, client.credentials(), connectTimeoutMs, readTimeoutMs);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -153,14 +153,14 @@ public final class Request {
         return new Response(r.headers(), bytes, r.statusCode());
     }
 
-    private static String calculateUrl(String url, String serviceName, String regionName,
+    private static String calculateUrl(String url, String serviceName, String region,
             List<NameValue> queries, List<String> pathSegments) {
         String u = url;
         if (u == null) {
             u = "https://" //
                     + serviceName //
                     + "." //
-                    + regionName //
+                    + region //
                     + ".amazonaws.com/" //
                     + pathSegments //
                             .stream() //
@@ -203,11 +203,11 @@ public final class Request {
     }
 
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
-        String u = calculateUrl(url, client.serviceName(), regionName, queries,
+        String u = calculateUrl(url, client.serviceName(), region, queries,
                 Arrays.asList(pathSegments));
         return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
                 RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs,
+                region, client.credentials(), connectTimeoutMs, readTimeoutMs,
                 unit.toSeconds(expiryDuration));
     }
 

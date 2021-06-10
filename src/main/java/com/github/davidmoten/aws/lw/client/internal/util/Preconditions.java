@@ -11,8 +11,9 @@ public final class Preconditions {
     }
 
     public static <T> T checkNotNull(T t, String message) {
-        if (t == null)
+        if (t == null) {
             throw new IllegalArgumentException(message);
+        }
         return t;
     }
 

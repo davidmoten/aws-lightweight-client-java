@@ -24,7 +24,7 @@ public class ClientTest {
 
     private static final Client s3 = Client //
             .s3() //
-            .regionName("ap-southeast-2") //
+            .region("ap-southeast-2") //
             .accessKey("123") //
             .secretKey("456") //
             .httpClient(hc) //
@@ -34,7 +34,7 @@ public class ClientTest {
     public void test() {
         Client client = Client //
                 .s3() //
-                .regionName("us-west-1") //
+                .region("us-west-1") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .httpClient(hc) //
@@ -51,7 +51,7 @@ public class ClientTest {
                 .attribute("name", "there") //
                 .method(HttpMethod.PUT) //
                 .requestBody("hi there") //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .connectTimeout(5, TimeUnit.SECONDS) //
                 .readTimeout(6, TimeUnit.SECONDS) //
                 .execute();
@@ -78,7 +78,7 @@ public class ClientTest {
     public void testBadConnectTimeout() {
         Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .connectTimeout(-1, TimeUnit.SECONDS);
@@ -88,7 +88,7 @@ public class ClientTest {
     public void testBadReadTimeout() {
         Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .readTimeout(-1, TimeUnit.SECONDS);
@@ -108,7 +108,7 @@ public class ClientTest {
     public void testTimeoutsAtClientLevel() {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .connectTimeout(5, TimeUnit.SECONDS) //
@@ -131,7 +131,7 @@ public class ClientTest {
     public void testThrows() {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .connectTimeout(5, TimeUnit.SECONDS) //
@@ -155,7 +155,7 @@ public class ClientTest {
         map.put("AWS_ACCESS_KEY_ID", "123");
         map.put("AWS_SECRET_ACCESS_KEY", "abc");
         Client client = Client.s3().environment(name -> map.get(name)).defaultClient().build();
-        assertEquals("ap-southeast-2", client.regionName());
+        assertEquals("ap-southeast-2", client.region());
         Credentials c = client.credentials();
         assertEquals("123", c.accessKey());
         assertEquals("abc", c.secretKey());
@@ -166,9 +166,9 @@ public class ClientTest {
     public void testDefaultClientFromSystemProperties() {
         System.setProperty("aws.accessKeyId", "123");
         System.setProperty("aws.secretKey", "abc");
-        Client client = Client.s3().regionName("ap-southeast-2").credentialsFromSystemProperties()
+        Client client = Client.s3().region("ap-southeast-2").credentialsFromSystemProperties()
                 .build();
-        assertEquals("ap-southeast-2", client.regionName());
+        assertEquals("ap-southeast-2", client.region());
         Credentials c = client.credentials();
         assertEquals("123", c.accessKey());
         assertEquals("abc", c.secretKey());
@@ -231,7 +231,7 @@ public class ClientTest {
     public void testServerOkResponse() throws IOException {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -251,7 +251,7 @@ public class ClientTest {
     public void testServerErrorResponse() throws IOException {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -275,7 +275,7 @@ public class ClientTest {
     public void testServerErrorCustomExceptions() throws IOException {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -299,7 +299,7 @@ public class ClientTest {
     public void testServerErrorCustomExceptionsPassThrough() throws IOException {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -324,7 +324,7 @@ public class ClientTest {
     public void testServerErrorExceptionFactory() throws IOException {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -354,7 +354,7 @@ public class ClientTest {
     public void testWithServerNoResponseBody() throws IOException {
         Client client = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -374,7 +374,7 @@ public class ClientTest {
     public void testPresignedUrlWithRequestBody() {
         Client client = Client //
                 .s3() //
-                .regionName("us-west-1") //
+                .region("us-west-1") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -385,7 +385,7 @@ public class ClientTest {
                 .query("type", "thing") //
                 .method(HttpMethod.PUT) //
                 .requestBody("hi there") //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=content-length;host;x-amz-content-sha256&X-Amz-Signature=3f27d3fe5e595d787990866d05112cd73e21be2275bf02269b640bc9b7c35ec6",
@@ -396,7 +396,7 @@ public class ClientTest {
     public void testPresignedUrlWithoutRequestBody() {
         Client client = Client //
                 .s3() //
-                .regionName("us-west-1") //
+                .region("us-west-1") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -406,7 +406,7 @@ public class ClientTest {
                 .path("MyBucket") //
                 .query("type", "thing") //
                 .method(HttpMethod.PUT) //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=b14df0b38e6a1dadce2f340483bd61db69730da26d571e1f0cfacea993372085",
@@ -417,7 +417,7 @@ public class ClientTest {
     public void testPresignedUrlWhenUrlHasPort() {
         Client client = Client //
                 .s3() //
-                .regionName("us-west-1") //
+                .region("us-west-1") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -426,7 +426,7 @@ public class ClientTest {
         String presignedUrl = client //
                 .url("https://s3.myserver.com:8443") //
                 .method(HttpMethod.PUT) //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.myserver.com:8443?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=e78feecf8da1d5c8029f117bb8bd10779d420ce02e838461e3abfafe7d565a5c",
@@ -437,7 +437,7 @@ public class ClientTest {
     public void testPresignedUrlWithoutQueryParameters() {
         Client client = Client //
                 .s3() //
-                .regionName("us-west-1") //
+                .region("us-west-1") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
@@ -446,7 +446,7 @@ public class ClientTest {
         String presignedUrl = client //
                 .path("MyBucket") //
                 .method(HttpMethod.PUT) //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=4ffc22f4b86b0514a29994c92bbf0342e2dccc66cdceae670414c847baa338ef",
@@ -457,7 +457,7 @@ public class ClientTest {
     public void testAuthorizationSignedRequest() {
         Client s3 = Client //
                 .s3() //
-                .regionName("ap-southeast-2") //
+                .region("ap-southeast-2") //
                 .credentials(Credentials.of("123", "456", "789")).clock(() -> 1622695846902L) //
                 .httpClient(hc) //
                 .build();
@@ -492,14 +492,14 @@ public class ClientTest {
 
     @Test(expected = UncheckedIOException.class)
     public void testUrlDoesNotExist() {
-        Client s3 = Client.s3().regionName("ap-southeast-2").accessKey("123").secretKey("456")
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456")
                 .build();
         s3.url("https://doesnotexist.z21894649.com").execute();
     }
 
     @Test
     public void testOtherServiceNames() {
-        Client s3 = Client.s3().regionName("ap-southeast-2").accessKey("123").secretKey("abc")
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("abc")
                 .build();
         assertEquals("iam", Client.iam().from(s3).build().serviceName());
         assertEquals("ec2", Client.ec2().from(s3).build().serviceName());

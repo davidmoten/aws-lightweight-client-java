@@ -11,7 +11,7 @@ public class ClientCountLoadedClassesMain {
         Credentials credentials = Credentials.of(accessKey, secretKey);
         Client s3 = Client //
                 .s3() //
-                .regionName(regionName) //
+                .region(regionName) //
                 .credentials(credentials) //
                 .build();
         System.out.println(s3.path("amsa-xml-in", "ExampleObject.txt").responseAsUtf8());

@@ -22,7 +22,7 @@ public interface Credentials {
     }
 
     static Credentials fromEnvironment() {
-        return Environment.DEFAULT.credentials();
+        return Environment.instance().credentials();
     }
     
     static Credentials fromSystemProperties() {

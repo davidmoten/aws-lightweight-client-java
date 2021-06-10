@@ -13,19 +13,19 @@ public final class Client {
 
     private final Clock clock;
     private final String serviceName;
-    private final String regionName;
+    private final String region;
     private final Credentials credentials;
     private final HttpClient httpClient;
     private final int connectTimeoutMs;
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
 
-    private Client(Clock clock, String serviceName, String regionName, Credentials credentials,
+    private Client(Clock clock, String serviceName, String region, Credentials credentials,
             HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
             ExceptionFactory exceptionFactory) {
         this.clock = clock;
         this.serviceName = serviceName;
-        this.regionName = regionName;
+        this.region = region;
         this.credentials = credentials;
         this.httpClient = httpClient;
         this.connectTimeoutMs = connectTimeoutMs;
@@ -75,8 +75,8 @@ public final class Client {
         return serviceName;
     }
 
-    public String regionName() {
-        return regionName;
+    public String region() {
+        return region;
     }
 
     Credentials credentials() {
@@ -115,13 +115,13 @@ public final class Client {
      * @return request
      */
     public Request path(String... segments) {
-        Preconditions.checkNotNull(segments);
+        Preconditions.checkNotNull(segments, "segments cannot be null");
         return new Request(this, null, segments);
     }
 
     public Request query(String name, String value) {
-        Preconditions.checkNotNull(name);
-        Preconditions.checkNotNull(value);
+        Preconditions.checkNotNull(name, "name cannot be null");
+        Preconditions.checkNotNull(value, "value cannot be null");
         return path("").query(name, value);
     }
 
@@ -130,15 +130,15 @@ public final class Client {
     }
 
     public Request attribute(String name, String value) {
-        Preconditions.checkNotNull(name);
-        Preconditions.checkNotNull(value);
+        Preconditions.checkNotNull(name, "name cannot be null");
+        Preconditions.checkNotNull(value, "value cannot be null");
         return path("").attribute(name, value);
     }
 
     public static final class Builder {
 
         private final String serviceName;
-        private String regionName;
+        private String region;
         private String accessKey;
         private Credentials credentials;
         private HttpClient httpClient = HttpClient.defaultClient();
@@ -146,7 +146,7 @@ public final class Client {
         private int readTimeoutMs = 300000;
         private ExceptionFactory exceptionFactory = ExceptionFactory.DEFAULT;
         private Clock clock = Clock.DEFAULT;
-        private Environment environment = Environment.DEFAULT;
+        private Environment environment = Environment.instance();
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;
@@ -154,6 +154,7 @@ public final class Client {
 
         // VisibleForTesting
         Builder environment(Environment environment) {
+            Preconditions.checkNotNull(environment, "environment cannot be null");
             this.environment = environment;
             return this;
         }
@@ -163,8 +164,8 @@ public final class Client {
         }
 
         public Builder4 from(Client client) {
-            Preconditions.checkNotNull(client);
-            this.regionName = client.regionName;
+            Preconditions.checkNotNull(client, "client cannot be null");
+            this.region = client.region;
             this.credentials = client.credentials;
             this.httpClient = client.httpClient;
             this.connectTimeoutMs = client.connectTimeoutMs;
@@ -174,12 +175,12 @@ public final class Client {
         }
 
         public Builder2 regionFromEnvironment() {
-            return regionName(environment.get("AWS_REGION"));
+            return region(environment.get("AWS_REGION"));
         }
 
-        public Builder2 regionName(String regionName) {
-            Preconditions.checkNotNull(regionName);
-            this.regionName = regionName;
+        public Builder2 region(String region) {
+            Preconditions.checkNotNull(region, "region cannot be null");
+            this.region = region;
             return new Builder2(this);
         }
     }
@@ -271,7 +272,7 @@ public final class Client {
         }
 
         public Client build() {
-            return new Client(b.clock, b.serviceName, b.regionName, b.credentials, b.httpClient,
+            return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient,
                     b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory);
         }
     }

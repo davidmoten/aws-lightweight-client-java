@@ -19,7 +19,7 @@ public final class ClientMain {
         Credentials credentials = Credentials.of(accessKey, secretKey);
         Client sqs = Client //
                 .sqs() //
-                .regionName(regionName) //
+                .region(regionName) //
                 .credentials(credentials) //
                 .build();
         Client s3 = Client.s3().from(sqs).build();
@@ -55,7 +55,7 @@ public final class ClientMain {
 
             try {
                 Client.s3() //
-                        .regionName(regionName) //
+                        .region(regionName) //
                         .credentials(credentials) //
                         .exception(r -> !r.isOk(), r -> new NoSuchKeyException(r.contentUtf8()))
                         .build() //
