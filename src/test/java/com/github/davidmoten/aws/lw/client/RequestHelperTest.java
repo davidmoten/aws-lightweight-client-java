@@ -43,8 +43,8 @@ public class RequestHelperTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testEncoding() throws UnsupportedEncodingException {
-        RequestHelper.parameter("name", "fred", "doesnotexist");
+    public void testEncoding() {
+        RequestHelper.parameter("name", "fred", "");
     }
 
 }
