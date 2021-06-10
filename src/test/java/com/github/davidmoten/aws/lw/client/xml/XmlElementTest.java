@@ -198,7 +198,14 @@ public class XmlElementTest {
 
     @Test
     public void testSyntaxGoodEntity() {
-        XmlElement.parse("<a>&#100;</a>");
+        XmlElement x = XmlElement.parse("<a>&#100;</a>");
+        assertEquals("d", x.content());
+    }
+
+    @Test
+    public void testSyntaxGoodEntityFollowedByComment() {
+        XmlElement x = XmlElement.parse("<a>&#100;<!-- boo --></a>");
+        assertEquals("d", x.content());
     }
 
     @Test
@@ -355,19 +362,19 @@ public class XmlElementTest {
     public void testBadAttribute() {
         XmlElement x = XmlElement.parse("<a x={}/>");
     }
-    
+
     @Test
     public void testAttributeSingleQuote() {
         XmlElement x = XmlElement.parse("<a x='hi'/>");
         assertEquals("hi", x.attribute("x"));
     }
-    
+
     @Test
     public void testAttributeDoubleQuote() {
         XmlElement x = XmlElement.parse("<a x=\"hi\"/>");
         assertEquals("hi", x.attribute("x"));
     }
-    
+
     @Test
     public void testAttributeEntity() {
         XmlElement x = XmlElement.parse("<a x='&amp;'/>");

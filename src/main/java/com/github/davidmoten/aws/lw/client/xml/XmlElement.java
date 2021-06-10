@@ -285,6 +285,7 @@ public final class XmlElement {
     }
 
     public static XmlElement parse(String string) throws XmlParseException {
+        System.out.println(string);
         Preconditions.checkNotNull(string);
         return parseUnchecked(new StringReader(string));
     }
@@ -523,6 +524,9 @@ public final class XmlElement {
         for (;;) {
             char ch = this.readChar();
             if (ch == '<') {
+                
+//              System.out.println("ch="+ ch + ", rest="+ readAll());
+//              if (true) throw new RuntimeException();
                 ch = this.readChar();
                 if (ch == '!') {
                     this.checkCDATA(data);
@@ -617,8 +621,6 @@ public final class XmlElement {
         char stringDelimiter = '\0';
         if (bracketLevel == 0) {
             char ch = this.readChar();
-//            System.out.println("ch="+ ch + ", rest="+ readAll());
-//            if (true) throw new RuntimeException();
             if (ch == '[') {
                 bracketLevel += 1;
             } else if (ch == '-') {
@@ -801,18 +803,18 @@ public final class XmlElement {
     }
 
     // for debugging
-//    private String readAll() {
-//        StringBuilder b = new StringBuilder();
-//        int c;
-//        try {
-//            while ((c = reader.read()) != -1) {
-//                b.append((char) c);
-//            }
-//        } catch (IOException e) {
-//            throw new UncheckedIOException(e);
-//        }
-//        return b.toString();
-//    }
+    private String readAll() {
+        StringBuilder b = new StringBuilder();
+        int c;
+        try {
+            while ((c = reader.read()) != -1) {
+                b.append((char) c);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return b.toString();
+    }
 
     /**
      * Resolves an entity. The name of the entity is read from the reader. The value
