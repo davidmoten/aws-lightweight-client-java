@@ -62,7 +62,7 @@ Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-li
 
 The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run their cold-start on average in **40% of the time** as using AWS SDK v1, **45% of the time** as using AWS SDK v2. Not only that but there does seem be a minor advantage in warm runtime (~10% faster).
 
-<img src="src/docs/graph.png"/>
+<img class="background-color:white" src="src/docs/graph.png"/>
 
 Here are the comparison details:
 
