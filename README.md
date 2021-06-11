@@ -88,13 +88,13 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 
 **Lambda runtimes for 2GB Memory in seconds**
 
-|          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK v1 Warm | Lightweight Warm |
+|          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK v1 Warm | SDK v2 Warm |Lightweight Warm |
 |----------|--------|------|-------|-------|-----|
-| average | 2.772 | 2.289 |1.04 |0.116 |0.101|
-| stdev   | 0.448 | 0.130 | 0.116 |0.017|0.014|
-| max     | 4.315 | 2.941 |1.30 | ? | ? |
-| min     | 2.471 | 0.67 | 0.91 | 0.057 | 0.048 | 
-| samples | 24 | 30 | 25 | 216 | 225 |
+| average | 2.772 | 2.289 |1.04 |0.116 |0.130| 0.101|
+| stdev   | 0.448 | 0.130 | 0.116 |0.017|0.016| 0.014|
+| max     | 4.315 | 2.941 |1.30 | ? | ? | ?|
+| min     | 2.471 | 1.976 | 0.91 | 0.057 | 0.068 | 0.048 | 
+| samples | 24 | 30 | 25 | 216 | 270 | 225 |
 
 Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. s3 + sqs dependency chain for AWS SDK v1 is 7.2MB, for AWS SDK v2 is 6.9MB.
 
