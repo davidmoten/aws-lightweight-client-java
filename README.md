@@ -51,7 +51,7 @@ sqs.url(queueUrl)
 ```
 
 ## Lambda performance
-You can see that usage is still pretty concise compared to using the AWS SDK v1 for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
+You can see that usage is still pretty concise compared to using the AWS SDK v1 or v2 for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
 
 The test Lambda that I used does this:
 * puts a 240B object into an S3 bucket with metadata
@@ -62,13 +62,13 @@ Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-li
 
 The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run their cold-start on average in **40% of the time** as using AWS SDK v1, **45% of the time** as using AWS SDK v2. Not only that but there does seem be a minor advantage in warm runtime (~10% faster).
 
-<img src="src/docs/graph.svg"/>
+<img src="src/docs/graph.png"/>
 
 Here are the comparison details:
 
 **Cold Start Runtimes (average)**
 
-| Memory | SDK | Lightweight |
+| Memory | SDK v1 | Lightweight |
 |--------|-----|-------------|
 | 128MB  | Metaspace error | 19s |
 | 256MB  | 21s             | 8.1s |
@@ -77,7 +77,7 @@ Here are the comparison details:
 
 **Warm Runtimes (average)**
 
-| Memory | SDK | Lightweight |
+| Memory | SDK v1 | Lightweight |
 |--------|-----|-------------|
 | 128MB  | Metaspace error | 2.4s |
 | 256MB  | 0.6s             | 0.5s |
@@ -90,11 +90,11 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 
 |          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK v1 Warm | Lightweight Warm |
 |----------|--------|------|-------|-------|-----|
-| average | 2.772 | 2.307 |1.04 |0.116 |0.101|
-| stdev   | 0.448 | 0.128 | 0.116 |0.017|0.014|
+| average | 2.772 | 2.289 |1.04 |0.116 |0.101|
+| stdev   | 0.448 | 0.130 | 0.116 |0.017|0.014|
 | max     | 4.315 | 2.941 |1.30 | ? | ? |
-| min     | 2.471 | 0.77 | 0.91 | 0.057 | 0.048 | 
-| samples | 24 | 12 | 25 | 216 | 225 |
+| min     | 2.471 | 0.67 | 0.91 | 0.057 | 0.048 | 
+| samples | 24 | 30 | 25 | 216 | 225 |
 
 Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. s3 + sqs dependency chain for AWS SDK v1 is 7.2MB, for AWS SDK v2 is 6.9MB.
 
