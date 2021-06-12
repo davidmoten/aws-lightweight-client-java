@@ -15,7 +15,14 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.github.davidmoten.junit.Asserts;
+
 public class UtilTest {
+    
+    @Test
+    public void isUtilityClass() {
+        Asserts.assertIsUtilityClass(Util.class);
+    }
 
     @Test(expected = RuntimeException.class)
     public void testHash() {

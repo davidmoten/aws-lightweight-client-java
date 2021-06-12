@@ -152,7 +152,7 @@ final class RequestHelper {
         List<Parameter> results = new ArrayList<>();
         int endIndex = rawQuery.length() - 1;
         int index = 0;
-        while (0 <= index && index <= endIndex) {
+        while (index <= endIndex) {
             /*
              * Ideally we should first look for '&', then look for '=' before the '&', but
              * obviously that's not how AWS understand query parsing; see the test

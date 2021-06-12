@@ -158,7 +158,8 @@ public final class Request {
         return new Response(r.headers(), bytes, r.statusCode());
     }
 
-    private static boolean hasBody(ResponseInputStream r) {
+    // VisibleForTesting
+    static boolean hasBody(ResponseInputStream r) {
         return r.header("Content-Length").isPresent()
                 || r.header("Transfer-Encoding").orElse("").equalsIgnoreCase("chunked");
     }
