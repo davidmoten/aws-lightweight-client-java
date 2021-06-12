@@ -503,6 +503,7 @@ public class ClientTest {
         assertEquals("s3", Client.s3().from(s3).build().serviceName());
         assertEquals("sns", Client.sns().from(s3).build().serviceName());
         assertEquals("sqs", Client.sqs().from(s3).build().serviceName());
+        assertEquals("hi", Client.service("hi").from(s3).build().serviceName());
     }
 
 }
