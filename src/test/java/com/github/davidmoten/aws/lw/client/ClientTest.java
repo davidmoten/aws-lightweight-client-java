@@ -15,8 +15,7 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Assert;
 import org.junit.Test;
 
-import okhttp3.mockwebserver.MockResponse;
-import okhttp3.mockwebserver.MockWebServer;
+import com.github.davidmoten.http.test.server.Server;
 
 public class ClientTest {
 
@@ -126,8 +125,8 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
-    
-    @Test(expected=UncheckedIOException.class)
+
+    @Test(expected = UncheckedIOException.class)
     public void testThrows() {
         Client client = Client //
                 .s3() //
@@ -146,7 +145,6 @@ public class ClientTest {
                 .requestBody("hi there") //
                 .execute();
     }
-
 
     @Test
     public void testDefaultClientFromEnvironment() {
@@ -228,7 +226,7 @@ public class ClientTest {
     }
 
     @Test
-    public void testServerOkResponse() throws IOException {
+    public void testServerOkResponse2() {
         Client client = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -236,10 +234,10 @@ public class ClientTest {
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
                 .build();
-        try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setBody("<a>hello</a>").setResponseCode(200));
-            String baseUrl = server.url("").toString();
-            String text = client.url(baseUrl) //
+        try (Server server = Server.start()) {
+            server.response().body("<a>hello</a>").add();
+            String text = client //
+                    .url(server.baseUrl()) //
                     .requestBody("hi there") //
                     .responseAsXml() //
                     .content(); //
@@ -256,11 +254,10 @@ public class ClientTest {
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
                 .build();
-        try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
-            String baseUrl = server.url("").toString();
+        try (Server server = Server.start()) {
+            server.response().body("hello").statusCode(500).add();
             try {
-                client.url(baseUrl) //
+                client.url(server.baseUrl()) //
                         .requestBody("hi there") //
                         .responseAsUtf8(); //
                 Assert.fail();
@@ -281,11 +278,10 @@ public class ClientTest {
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk(), r -> new UnsupportedOperationException()) //
                 .build();
-        try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
-            String baseUrl = server.url("").toString();
+        try (Server server = Server.start()) {
+            server.response().body("hello").statusCode(500).add();
             try {
-                client.url(baseUrl) //
+                client.url(server.baseUrl()) //
                         .requestBody("hi there") //
                         .responseAsUtf8(); //
                 Assert.fail();
@@ -306,11 +302,10 @@ public class ClientTest {
                 .exception(r -> !r.isOk() && r.statusCode() == 404,
                         r -> new UnsupportedOperationException()) //
                 .build();
-        try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
-            String baseUrl = server.url("").toString();
+        try (Server server = Server.start()) {
+            server.response().body("hello").statusCode(500).add();
             try {
-                client.url(baseUrl) //
+                client.url(server.baseUrl()) //
                         .requestBody("hi there") //
                         .responseAsUtf8(); //
                 Assert.fail();
@@ -336,11 +331,10 @@ public class ClientTest {
                     }
                 }) //
                 .build();
-        try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setBody("hello").setResponseCode(500));
-            String baseUrl = server.url("").toString();
+        try (Server server = Server.start()) {
+            server.response().body("hello").statusCode(500).add();
             try {
-                client.url(baseUrl) //
+                client.url(server.baseUrl()) //
                         .requestBody("hi there") //
                         .responseAsUtf8(); //
                 Assert.fail();
@@ -352,21 +346,25 @@ public class ClientTest {
 
     @Test
     public void testWithServerNoResponseBody() throws IOException {
-        Client client = Client //
-                .s3() //
-                .region("ap-southeast-2") //
-                .accessKey("123") //
-                .secretKey("456") //
-                .clock(() -> 1622695846902L) //
-                .build();
-        try (MockWebServer server = new MockWebServer()) {
-            server.enqueue(new MockResponse().setResponseCode(200));
-            String baseUrl = server.url("").toString();
-            String text = client.url(baseUrl) //
-                    .method(HttpMethod.PUT) //
-                    .requestBody("hi there") //
-                    .responseAsUtf8(); //
-            assertEquals("", text);
+        try {
+            Client client = Client //
+                    .s3() //
+                    .region("ap-southeast-2") //
+                    .accessKey("123") //
+                    .secretKey("456") //
+                    .clock(() -> 1622695846902L) //
+                    .build();
+            try (Server server = Server.start()) {
+                server.response().statusCode(200).add();
+                String text = client.url(server.baseUrl()) //
+                        .method(HttpMethod.PUT) //
+                        .requestBody("hi there") //
+                        .responseAsUtf8(); //
+                assertEquals("", text);
+            }
+        } catch (Throwable t) {
+            t.printStackTrace();
+            throw t;
         }
     }
 
@@ -492,15 +490,13 @@ public class ClientTest {
 
     @Test(expected = UncheckedIOException.class)
     public void testUrlDoesNotExist() {
-        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456")
-                .build();
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").build();
         s3.url("https://doesnotexist.z21894649.com").execute();
     }
 
     @Test
     public void testOtherServiceNames() {
-        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("abc")
-                .build();
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("abc").build();
         assertEquals("iam", Client.iam().from(s3).build().serviceName());
         assertEquals("ec2", Client.ec2().from(s3).build().serviceName());
         assertEquals("lambda", Client.lambda().from(s3).build().serviceName());

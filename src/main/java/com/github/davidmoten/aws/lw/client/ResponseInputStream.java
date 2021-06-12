@@ -5,10 +5,12 @@ import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public final class ResponseInputStream extends InputStream {
 
-    private final HttpURLConnection connection; //nullable
+    private final HttpURLConnection connection; // nullable
     private final int statusCode;
     private final Map<String, List<String>> headers;
     private final InputStream content;
@@ -43,5 +45,14 @@ public final class ResponseInputStream extends InputStream {
 
     public Map<String, List<String>> headers() {
         return headers;
+    }
+
+    public Optional<String> header(String name) {
+        for (String key : headers.keySet()) {
+            if (name.equalsIgnoreCase(key)) {
+                return Optional.of(headers.get(key).stream().collect(Collectors.joining(",")));
+            }
+        }
+        return Optional.empty();
     }
 }

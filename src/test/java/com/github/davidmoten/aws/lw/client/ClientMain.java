@@ -1,5 +1,10 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.BufferedOutputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -11,7 +16,8 @@ import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 
 public final class ClientMain {
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args)
+            throws InterruptedException, FileNotFoundException, IOException {
         String regionName = "ap-southeast-2";
         String accessKey = System.getProperty("accessKey");
         String secretKey = System.getProperty("secretKey");
@@ -66,7 +72,7 @@ public final class ClientMain {
             }
 
             {
-                Response r = s3.path(bucketName , "notThere").response();
+                Response r = s3.path(bucketName, "notThere").response();
                 System.out.println("ok=" + r.isOk() + ", statusCode=" + r.statusCode()
                         + ", message=" + r.contentUtf8());
             }
@@ -79,7 +85,8 @@ public final class ClientMain {
             }
             {
                 // read bucket object as stream
-                byte[] bytes = Util.readBytesAndClose(s3.path(bucketName, objectName).responseInputStream());
+                byte[] bytes = Util
+                        .readBytesAndClose(s3.path(bucketName, objectName).responseInputStream());
                 System.out.println(new String(bytes, StandardCharsets.UTF_8));
                 System.out.println("presignedUrl="
                         + s3.path("amsa-xml-in" + "/" + objectName).presignedUrl(1, TimeUnit.DAYS));
@@ -172,6 +179,23 @@ public final class ClientMain {
                     .execute();
 
             System.out.println("all actions complete on " + queueUrl);
+        }
+        {
+            // test chunked response
+            if (false) {
+                try (ResponseInputStream in = s3
+                        .path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi")
+                        .responseInputStream()) {
+                    try (OutputStream out = new BufferedOutputStream(
+                            new FileOutputStream("target/thing.mobi"))) {
+                        byte[] buffer = new byte[8192];
+                        int n;
+                        while ((n = in.read(buffer)) != -1) {
+                            out.write(buffer, 0, n);
+                        }
+                    }
+                }
+            }
         }
     }
 }

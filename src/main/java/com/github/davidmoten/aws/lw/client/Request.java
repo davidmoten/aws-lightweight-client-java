@@ -124,8 +124,8 @@ public final class Request {
      * exception is <b>not</b> thrown (unlike the other methods .response*). The
      * caller <b>must close</b> the InputStream when finished with it.
      * 
-     * @return all response information, the caller must close the
-     *         InputStream when finished with it
+     * @return all response information, the caller must close the InputStream when
+     *         finished with it
      */
     public ResponseInputStream responseInputStream() {
         String u = calculateUrl(url, client.serviceName(), region, queries,
@@ -149,8 +149,18 @@ public final class Request {
      */
     public Response response() {
         ResponseInputStream r = responseInputStream();
-        byte[] bytes = Util.readBytesAndClose(r);
+        final byte[] bytes;
+        if (hasBody(r)) {
+            bytes = Util.readBytesAndClose(r);
+        } else {
+            bytes = new byte[0];
+        }
         return new Response(r.headers(), bytes, r.statusCode());
+    }
+
+    private static boolean hasBody(ResponseInputStream r) {
+        return r.header("Content-Length").isPresent()
+                || r.header("Transfer-Encoding").orElse("").equalsIgnoreCase("chunked");
     }
 
     private static String calculateUrl(String url, String serviceName, String region,
@@ -206,8 +216,8 @@ public final class Request {
         String u = calculateUrl(url, client.serviceName(), region, queries,
                 Arrays.asList(pathSegments));
         return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                region, client.credentials(), connectTimeoutMs, readTimeoutMs,
+                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
+                client.credentials(), connectTimeoutMs, readTimeoutMs,
                 unit.toSeconds(expiryDuration));
     }
 
