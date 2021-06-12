@@ -1,6 +1,7 @@
 package com.github.davidmoten.aws.lw.client.internal.util;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -96,6 +97,16 @@ public class UtilTest {
         } catch (UncheckedIOException e) {
             // expected
         }
+    }
+    
+    @Test
+    public void testCanonicalMetadata() {
+        assertEquals("abc123", Util.canonicalMetadataKey("abc123"));
+    }
+    
+    @Test
+    public void testCanonicalMetadataIgnoresDisallowedCharacters() {
+        assertEquals("abc123", Util.canonicalMetadataKey("abc123@!"));
     }
 
 }
