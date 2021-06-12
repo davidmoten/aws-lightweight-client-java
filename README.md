@@ -3,12 +3,12 @@
 [![codecov](https://codecov.io/gh/davidmoten/aws-lightweight-client-java/branch/master/graph/badge.svg)](https://codecov.io/gh/davidmoten/aws-lightweight-client-java)<br/>
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java)<br/>
 
-This is a really lightweight standalone artifact (about 56K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
+This is a really lightweight standalone artifact (about 57K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
 
 Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive for mobile device developers (Android especially). 
 
 **Features**
-* small standalone artifact (56K)
+* small standalone artifact (57K)
 * concise fluent api
 * signs requests with AWS Signature Version 4
 * generates presigned urls
@@ -22,7 +22,7 @@ Aside from cold-start runtime improvements in AWS Lambda, the small artifact siz
 
 Maven [reports](https://davidmoten.github.io/aws-lightweight-client-java/index.html) including [javadocs](https://davidmoten.github.io/aws-lightweight-client-java/apidocs/index.html)
 
-For example with the 56K standalone artifact you can download an object from an S3 bucket:
+For example with the 57K standalone artifact you can download an object from an S3 bucket:
 
 ```java
 Client s3 = Client.s3()
