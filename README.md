@@ -26,7 +26,7 @@ For example with the 57K standalone artifact you can download an object from an 
 
 ```java
 Client s3 = Client.s3()
-  .regionName("ap-southeast-2")
+  .region("ap-southeast-2")
   .accessKey(accessKey)
   .secretKey(secretKey)
   .build();
@@ -131,7 +131,7 @@ Outside of lambda you might specify your credentials explicitly:
 ```java
 Client s3 = Client
   .s3()
-  .regionName("ap-southeast-2")
+  .region("ap-southeast-2")
   .accessKey(accessKey)
   .secretKey(secretKey)
   .build()
@@ -141,7 +141,7 @@ There are a number of other options that can be set when building the Client:
 ```java
 Client iam = Client
     .serviceName("iam") 
-    .regionName(regionName) 
+    .region(region) 
     .accessKey(accessKey)
     .secretKey(secretKey)
     .exceptionFactory(myExceptionFactory)
@@ -187,7 +187,7 @@ String bucketName = "temp-bucket-" + System.currentTimeMillis();
 
 String createXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         + "<CreateBucketConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
-        + "   <LocationConstraint>" + regionName + "</LocationConstraint>\n"
+        + "   <LocationConstraint>" + region + "</LocationConstraint>\n"
         + "</CreateBucketConfiguration>";
 s3.path(bucketName)
     .method(HttpMethod.PUT)
@@ -230,7 +230,7 @@ System.out.println("category=" + r.metadata("category").orElse(""));
 ///////////////////////////////////
 
 List<String> keys = s3
-    .url("https://" + bucketName + ".s3." + regionName + ".amazonaws.com")
+    .url("https://" + bucketName + ".s3." + region + ".amazonaws.com")
     .query("list-type", "2")
     .responseAsXml()
     .childrenWithName("Contents")
