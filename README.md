@@ -88,7 +88,9 @@ I took the AWS SDK v1 and Lightweight lambdas and tested them with different mem
 | 512MB  | 0.3s           | 0.3s |
 | 2GB    | 0.1s           | 0.1s |
 
-Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Much more data was gathered for the 2GB case below.
+Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Much more data was gathered for the 2GB case below. 
+
+Note that for AWS SDK v2 I followed the coding recommendations of https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/lambda-optimize-starttime.html.
 
 **Lambda runtimes for 2GB Memory in seconds**
 
