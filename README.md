@@ -327,7 +327,7 @@ sqs.url(queueUrl)
 ```
 
 ### Attributes
-Some of the AWS API services (like SQS) represent property maps in the query string like this `?Attribute.Name.1=size&Attribute.Value.1=large&Attribute.Name.2=color&Attribute.Value.3=red`. The request builder has helper methods to do this for you:
+Some of the AWS API services (like SQS) represent property maps in the query string like this `?Attribute.Name.1=size&Attribute.Value.1=large&Attribute.Name.2=color&Attribute.Value.2=red`. The request builder has helper methods to do this for you:
 
 ```java
 // Create a FIFO queue
