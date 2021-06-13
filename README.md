@@ -68,6 +68,8 @@ The conclusion from the comparison is that with this scenario Lambdas using *aws
 
 Here are the comparison details:
 
+I took the AWS SDK v1 and Lightweight lambdas and tested them with different memory allocations. The configured memory also affects the CPU allocation. At 2GB memory a full VCPU is allocated and CPU allocation is proportional to memory allocation.
+
 **Cold Start Runtimes (average)**
 
 | Memory | SDK v1 | Lightweight |
@@ -86,7 +88,7 @@ Here are the comparison details:
 | 512MB  | 0.3s           | 0.3s |
 | 2GB    | 0.1s           | 0.1s |
 
-Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. More data was gathered for the 2GB case below.
+Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Much more data was gathered for the 2GB case below.
 
 **Lambda runtimes for 2GB Memory in seconds**
 
@@ -97,8 +99,6 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 | max     | 4.315 | 2.941 |1.30 | ? | ? | ?|
 | min     | 2.471 | 1.976 | 0.91 | 0.057 | 0.068 | 0.048 | 
 | samples | 24 | 30 | 25 | 216 | 270 | 225 |
-
-Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for mobile device developers (Android especially). 
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
 
