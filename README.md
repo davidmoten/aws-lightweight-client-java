@@ -102,6 +102,11 @@ Except for the 2GB case I measured cold-start runtimes several times and then 5-
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
 
+## Lambda and API Gateway
+When you use API Gateway integrated with Lambda, say as a JSON service, what is the cost of the integration plus the lambda runtime? This is a particularly relevant question if you want to use a setup like this for something user-facing. Across 25 cold start samples with the Lightweight client the average request time was 1.995s (stdev 0.273s) and an average cold-start overhead from APIG integration of 0.952s. I'm not sure why that figure is that high. However, for some of my use cases an occasional cold-start request time of 2s is acceptable and I don't need to keep my Lambdas warm (using another scheduled Lambda for instance).
+
+Warm start sample request times were on average 0.25s.
+
 ## Getting started
 Add this dependency to your pom.xml:
 
