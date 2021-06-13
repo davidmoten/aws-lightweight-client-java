@@ -148,8 +148,8 @@ Client iam = Client
 	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"),
 	    x -> new PolicyDoesNotExistException(x.contentUtf8()))
     .httpClient(myHttpClient) 
-    .connectTimeoutMs(30000)
-    .readTimeoutMs(120000)
+    .connectTimeout(30000, TimeUnit.MILLISECONDS)
+    .readTimeout(120000, TimeUnit.MILLISECONDS)
     .build();
 ```
 A client can be copied from another client to pick up same configuration (but with a different service name):
