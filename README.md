@@ -157,6 +157,23 @@ A client can be copied from another client to pick up same configuration (but wi
 ```java
 Client sqs = Client.from(iam).build();
 ```
+### Timeouts
+Timeouts can be set in the client builder and also for each request. Here's an example:
+
+```java
+Client s3 = Client
+    .s3() 
+    .defaultClient()
+    .connectTimeout(30, TimeUnit.SECONDS)
+    .readTimeout(60, TimeUnit.SECONDS)
+    .build();
+    
+ String content = s3
+  .path("myBucket", "myObject.txt")
+  .connectTimeout(5, TimeUnit.SECONDS)
+  .readTimeout(5, TimeUnit.SECONDS)
+  .responseAsUtf8();
+```
 ### Presigned URLs
 Presigned URLs are generated as follows (with a specified expiry duration):
 
