@@ -66,6 +66,8 @@ The conclusion from the comparison is that with this scenario Lambdas using *aws
 
 <img width="500" src="src/docs/graph.jpeg"/>
 
+Update 15 June 2001: I've noticed dramatic improvements in cold start with the Lightweight client just making the client variables static fields. I'll do the same with sdk v1 and v2 and get some more stats. I'll also include links to the source code used for each test.
+
 Here are the comparison details:
 
 I took the AWS SDK v1 and Lightweight lambdas and tested them with different memory allocations. The configured memory also affects the CPU allocation. At 2GB memory a full VCPU is allocated and CPU allocation is proportional to memory allocation.
