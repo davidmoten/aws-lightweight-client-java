@@ -29,7 +29,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
  */
 public final class AwsSignatureVersion4 {
 
-    private static final String ALGORITHM_HMAC_SHA256 = "HmacSHA256";
+    static final String ALGORITHM_HMAC_SHA256 = "HmacSHA256";
     /** SHA256 hash of an empty request body **/
     public static final String EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
     public static final String UNSIGNED_PAYLOAD = "UNSIGNED-PAYLOAD";
@@ -327,14 +327,8 @@ public final class AwsSignatureVersion4 {
         String path = endpoint.getPath();
         if (path.isEmpty()) {
             return "/";
-        }
-
-        String encodedPath = Util.urlEncode(path, true);
-        if (encodedPath.startsWith("/")) {
-            return encodedPath;
         } else {
-            // TODO impossible?
-            return "/".concat(encodedPath);
+            return Util.urlEncode(path, true);
         }
     }
 
@@ -372,8 +366,12 @@ public final class AwsSignatureVersion4 {
     }
 
     static byte[] sign(String stringData, byte[] key) {
+        return sign(stringData, key, ALGORITHM_HMAC_SHA256);
+    }
+    
+    // VisibleForTesting
+    static byte[] sign(String stringData, byte[] key, String algorithm) {
         try {
-            String algorithm = ALGORITHM_HMAC_SHA256;
             byte[] data = stringData.getBytes(StandardCharsets.UTF_8);
             Mac mac = Mac.getInstance(algorithm);
             mac.init(new SecretKeySpec(key, algorithm));

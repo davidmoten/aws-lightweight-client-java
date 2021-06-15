@@ -3,28 +3,30 @@
 [![codecov](https://codecov.io/gh/davidmoten/aws-lightweight-client-java/branch/master/graph/badge.svg)](https://codecov.io/gh/davidmoten/aws-lightweight-client-java)<br/>
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java/badge.svg?style=flat)](https://maven-badges.herokuapp.com/maven-central/com.github.davidmoten/aws-lightweight-client-java)<br/>
 
-This is a really lightweight standalone artifact (about 55K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
+This is a really lightweight standalone artifact (about 57K) that performs authentication (signing requests with AWS Signature Version 4) and helps you build requests against the AWS API. It includes nice concise builders, a lightweight inbuilt xml parser (to parse responses), and useful convenience methods. 
+
+Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive for mobile device developers (Android especially). 
 
 **Features**
-* small standalone artifact (55K)
+* small standalone artifact (57K)
 * concise fluent api
 * signs requests with AWS Signature Version 4
 * generates presigned urls
 * supports throwing custom exceptions
 * metadata and attributes support
 * xml response parsing support
-* high level of unit test coverage
+* 100% unit test coverage
 * reduces average Lambda cold start time significantly
 
 **Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
 Maven [reports](https://davidmoten.github.io/aws-lightweight-client-java/index.html) including [javadocs](https://davidmoten.github.io/aws-lightweight-client-java/apidocs/index.html)
 
-For example with the 55K standalone artifact you can download an object from an S3 bucket:
+For example with the 57K standalone artifact you can download an object from an S3 bucket:
 
 ```java
 Client s3 = Client.s3()
-  .regionName("ap-southeast-2")
+  .region("ap-southeast-2")
   .accessKey(accessKey)
   .secretKey(secretKey)
   .build();
@@ -51,24 +53,28 @@ sqs.url(queueUrl)
 ```
 
 ## Lambda performance
-You can see that usage is still pretty concise compared to using the AWS SDK v1 for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
+You can see that usage is still pretty concise compared to using the AWS SDK v1 or v2 for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
 
 The test Lambda that I used does this:
 * puts a 240B object into an S3 bucket with metadata
 * creates an SQS queue 
 * sends the queue a small message (16 bytes).
 
-Using AWS SDK the shaded minimized jar deployed to Lambda is 5.1MB, with *aws-lightweight-client-java* the jar is 80K.
+Using AWS SDK v1 the shaded minimized jar deployed to Lambda is 5.1MB (7.2MB unminimized), with AWS SDK v2 unminimized jar is 6.9MB (couldn't figure out the shade rules to minimize!) and with *aws-lightweight-client-java* the jar is 80K.
 
 The conclusion from the comparison is that with this scenario Lambdas using *aws-lightweight-client* run their cold-start on average in **40% of the time** as using AWS SDK v1, **45% of the time** as using AWS SDK v2. Not only that but there does seem be a minor advantage in warm runtime (~10% faster).
 
-<img src="src/docs/graph.svg"/>
+<img width="500" src="src/docs/graph.jpeg"/>
+
+Update 15 June 2001: I've noticed dramatic improvements in cold start with the Lightweight client just making the client variables static fields. I'll do the same with sdk v1 and v2 and get some more stats. I'll also include links to the source code used for each test.
 
 Here are the comparison details:
 
+I took the AWS SDK v1 and Lightweight lambdas and tested them with different memory allocations. The configured memory also affects the CPU allocation. At 2GB memory a full VCPU is allocated and CPU allocation is proportional to memory allocation.
+
 **Cold Start Runtimes (average)**
 
-| Memory | SDK | Lightweight |
+| Memory | SDK v1 | Lightweight |
 |--------|-----|-------------|
 | 128MB  | Metaspace error | 19s |
 | 256MB  | 21s             | 8.1s |
@@ -77,31 +83,28 @@ Here are the comparison details:
 
 **Warm Runtimes (average)**
 
-| Memory | SDK | Lightweight |
+| Memory | SDK v1 | Lightweight |
 |--------|-----|-------------|
 | 128MB  | Metaspace error | 2.4s |
 | 256MB  | 0.6s             | 0.5s |
 | 512MB  | 0.3s           | 0.3s |
 | 2GB    | 0.1s           | 0.1s |
 
-Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. More data was gathered for the 2GB case below.
+Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Much more data was gathered for the 2GB case below. 
+
+Note that for AWS SDK v2 I followed the coding recommendations of https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/lambda-optimize-starttime.html.
 
 **Lambda runtimes for 2GB Memory in seconds**
 
-|          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK v1 Warm | Lightweight Warm |
-|----------|--------|------|-------|-------|-----|
-| average | 2.772 | 2.307 |1.04 |0.116 |0.101|
-| stdev   | 0.448 | 0.128 | 0.116 |0.017|0.014|
-| max     | 4.315 | 2.941 |1.30 | ? | ? |
-| min     | 2.471 | 0.77 | 0.91 | 0.057 | 0.048 | 
-| samples | 24 | 12 | 25 | 216 | 225 |
-
-Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive also for Android developers. s3 + sqs dependency chain for AWS SDK v1 is 7.2MB, for AWS SDK v2 is 6.9MB.
+|          | SDK v1 Cold| SDK v2 Cold |Lightweight Cold| SDK v1 Warm | SDK v2 Warm |Lightweight Warm |
+|----------|--------|------|-------|-------|-----|-----|
+| average | 2.772 | 2.289 |1.04 |0.116 |0.130| 0.101|
+| stdev   | 0.448 | 0.130 | 0.116 |0.017|0.016| 0.014|
+| max     | 4.315 | 2.941 |1.30 | ? | ? | ?|
+| min     | 2.471 | 1.976 | 0.91 | 0.057 | 0.068 | 0.048 | 
+| samples | 24 | 30 | 25 | 216 | 270 | 225 |
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
-
-### Comparison with AWS SDK v2
-Some simple testing (running a main method that gets a bucket object only) indicates (using JVM arg `-verbose:class`) that AWS SDK v2 loads ~50% more classes than *aws-lightweight-client-java* and looks to take 0.8s longer to get to the point where the request is made of the AWS API. v2 does look to be quicker from cold start than AWS SDK v1 (I think it was one of the aims of the new version) but still at a disadvantage to *aws-lightweight-client-java*.
 
 ## Getting started
 Add this dependency to your pom.xml:
@@ -129,7 +132,7 @@ Outside of lambda you might specify your credentials explicitly:
 ```java
 Client s3 = Client
   .s3()
-  .regionName("ap-southeast-2")
+  .region("ap-southeast-2")
   .accessKey(accessKey)
   .secretKey(secretKey)
   .build()
@@ -139,7 +142,7 @@ There are a number of other options that can be set when building the Client:
 ```java
 Client iam = Client
     .serviceName("iam") 
-    .regionName(regionName) 
+    .region(region) 
     .accessKey(accessKey)
     .secretKey(secretKey)
     .exceptionFactory(myExceptionFactory)
@@ -147,14 +150,31 @@ Client iam = Client
 	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"),
 	    x -> new PolicyDoesNotExistException(x.contentUtf8()))
     .httpClient(myHttpClient) 
-    .connectTimeoutMs(30000)
-    .readTimeoutMs(120000)
+    .connectTimeout(30000, TimeUnit.MILLISECONDS)
+    .readTimeout(120000, TimeUnit.MILLISECONDS)
     .build();
 ```
 A client can be copied from another client to pick up same configuration (but with a different service name):
 
 ```java
 Client sqs = Client.from(iam).build();
+```
+### Timeouts
+Timeouts can be set in the client builder and also for each request. Here's an example:
+
+```java
+Client s3 = Client
+    .s3() 
+    .defaultClient()
+    .connectTimeout(30, TimeUnit.SECONDS)
+    .readTimeout(60, TimeUnit.SECONDS)
+    .build();
+    
+ String content = s3
+  .path("myBucket", "myObject.txt")
+  .connectTimeout(5, TimeUnit.SECONDS)
+  .readTimeout(5, TimeUnit.SECONDS)
+  .responseAsUtf8();
 ```
 ### Presigned URLs
 Presigned URLs are generated as follows (with a specified expiry duration):
@@ -185,7 +205,7 @@ String bucketName = "temp-bucket-" + System.currentTimeMillis();
 
 String createXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
         + "<CreateBucketConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
-        + "   <LocationConstraint>" + regionName + "</LocationConstraint>\n"
+        + "   <LocationConstraint>" + region + "</LocationConstraint>\n"
         + "</CreateBucketConfiguration>";
 s3.path(bucketName)
     .method(HttpMethod.PUT)
@@ -228,7 +248,7 @@ System.out.println("category=" + r.metadata("category").orElse(""));
 ///////////////////////////////////
 
 List<String> keys = s3
-    .url("https://" + bucketName + ".s3." + regionName + ".amazonaws.com")
+    .url("https://" + bucketName + ".s3." + region + ".amazonaws.com")
     .query("list-type", "2")
     .responseAsXml()
     .childrenWithName("Contents")
@@ -327,6 +347,26 @@ sqs.url(queueUrl)
     .execute();
 ```
 
+### Attributes
+Some of the AWS API services (like SQS) represent property maps in the query string like this `?Attribute.Name.1=size&Attribute.Value.1=large&Attribute.Name.2=color&Attribute.Value.2=red`. The request builder has helper methods to do this for you:
+
+```java
+// Create a FIFO queue
+String queueUrl = sqs.query("Action", "CreateQueue") 
+  .query("QueueName", queueName(applicationName, key)) 
+  .attribute("FifoQueue", "true") 
+  .attribute("ContentBasedDeduplication", "true") 
+  .attribute("MessageRetentionPeriod", String.valueOf(TimeUnit.DAYS.toSeconds(14))) 
+  .attribute("VisibilityTimeout", "30") 
+  .responseAsXml() 
+  .content("CreateQueueResult", "QueueUrl");
+```
+
+When the prefix of the attribute is different, say "MessageProperty" instead of "Attribute" then you can use the `.attributePrefix(String)` method before calling `.attribute(String)`.
+
+### Metadata
+To set a header `x-amz-meta-KEY:VALUE` use the builder method `.metadata(KEY, VALUE)`.
+
 ### Error handling
 Let's look at a simple one, reading an object in an S3 bucket.
 
@@ -378,4 +418,5 @@ throw a `ServiceException` (in those circumstances where exceptions are thrown, 
 
 ## TODO
 * Can a faster cold-start be had using Bouncy Castle TLS library?
-* Compare with AWS SDK v2
+* add debug logging?
+* chunked upload helpers

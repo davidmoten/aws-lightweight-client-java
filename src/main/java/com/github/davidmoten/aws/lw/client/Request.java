@@ -1,5 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +19,7 @@ import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 public final class Request {
 
     private final Client client;
-    private String regionName;
+    private String region;
     private String url;
     private HttpMethod method = HttpMethod.GET;
     private final Map<String, List<String>> headers = new HashMap<>();
@@ -33,7 +35,7 @@ public final class Request {
         this.client = client;
         this.url = url;
         this.pathSegments = pathSegments;
-        this.regionName = client.regionName();
+        this.region = client.region();
         this.connectTimeoutMs = client.connectTimeoutMs();
         this.readTimeoutMs = client.readTimeoutMs();
     }
@@ -97,9 +99,9 @@ public final class Request {
         return requestBody(requestBody.getBytes(StandardCharsets.UTF_8));
     }
 
-    public Request regionName(String regionName) {
-        Preconditions.checkNotNull(regionName);
-        this.regionName = regionName;
+    public Request region(String region) {
+        Preconditions.checkNotNull(region);
+        this.region = region;
         return this;
     }
 
@@ -117,28 +119,59 @@ public final class Request {
 
     /**
      * Opens a connection and makes the request. This method returns all the
-     * response information including headers, status code, request body. If an
-     * error status code is encountered (outside 200-299) then an exception is
-     * <b>not</b> thrown (unlike the other methods .response*).
+     * response information including headers, status code, request body as an
+     * InputStream. If an error status code is encountered (outside 200-299) then an
+     * exception is <b>not</b> thrown (unlike the other methods .response*). The
+     * caller <b>must close</b> the InputStream when finished with it.
+     * 
+     * @return all response information, the caller must close the InputStream when
+     *         finished with it
+     */
+    public ResponseInputStream responseInputStream() {
+        String u = calculateUrl(url, client.serviceName(), region, queries,
+                Arrays.asList(pathSegments));
+        try {
+            return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
+                    RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
+                    region, client.credentials(), connectTimeoutMs, readTimeoutMs);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /**
+     * Opens a connection and makes the request. This method returns all the
+     * response information including headers, status code, request body as a byte
+     * array. If an error status code is encountered (outside 200-299) then an
+     * exception is <b>not</b> thrown (unlike the other methods .response*).
      * 
      * @return all response information
      */
     public Response response() {
-        String u = calculateUrl(url, client.serviceName(), regionName, queries,
-                Arrays.asList(pathSegments));
-        return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs);
+        ResponseInputStream r = responseInputStream();
+        final byte[] bytes;
+        if (hasBody(r)) {
+            bytes = Util.readBytesAndClose(r);
+        } else {
+            bytes = new byte[0];
+        }
+        return new Response(r.headers(), bytes, r.statusCode());
     }
 
-    private static String calculateUrl(String url, String serviceName, String regionName,
+    // VisibleForTesting
+    static boolean hasBody(ResponseInputStream r) {
+        return r.header("Content-Length").isPresent()
+                || r.header("Transfer-Encoding").orElse("").equalsIgnoreCase("chunked");
+    }
+
+    private static String calculateUrl(String url, String serviceName, String region,
             List<NameValue> queries, List<String> pathSegments) {
         String u = url;
         if (u == null) {
             u = "https://" //
                     + serviceName //
                     + "." //
-                    + regionName //
+                    + region //
                     + ".amazonaws.com/" //
                     + pathSegments //
                             .stream() //
@@ -181,11 +214,11 @@ public final class Request {
     }
 
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
-        String u = calculateUrl(url, client.serviceName(), regionName, queries,
+        String u = calculateUrl(url, client.serviceName(), region, queries,
                 Arrays.asList(pathSegments));
         return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                regionName, client.credentials(), connectTimeoutMs, readTimeoutMs,
+                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
+                client.credentials(), connectTimeoutMs, readTimeoutMs,
                 unit.toSeconds(expiryDuration));
     }
 

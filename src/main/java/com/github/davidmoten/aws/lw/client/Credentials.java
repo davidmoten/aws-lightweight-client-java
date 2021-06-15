@@ -16,9 +16,13 @@ public interface Credentials {
     static Credentials of(String accessKey, String secretKey) {
         return new CredentialsImpl(accessKey, secretKey, Optional.empty());
     }
+    
+    static Credentials of(String accessKey, String secretKey, String sessionToken) {
+        return new CredentialsImpl(accessKey, secretKey, Optional.of(sessionToken));
+    }
 
     static Credentials fromEnvironment() {
-        return Environment.DEFAULT.credentials();
+        return Environment.instance().credentials();
     }
     
     static Credentials fromSystemProperties() {

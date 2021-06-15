@@ -1,6 +1,5 @@
 package com.github.davidmoten.aws.lw.client.internal;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -11,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.github.davidmoten.aws.lw.client.HttpClient;
-import com.github.davidmoten.aws.lw.client.Response;
+import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 public final class HttpClientDefault implements HttpClient {
@@ -22,52 +21,48 @@ public final class HttpClientDefault implements HttpClient {
     }
 
     @Override
-    public Response request(URL endpointUrl, String httpMethod, Map<String, String> headers,
-            byte[] requestBody, int connectTimeoutMs, int readTimeoutMs) {
+    public ResponseInputStream request(URL endpointUrl, String httpMethod,
+            Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,
+            int readTimeoutMs) throws IOException {
         HttpURLConnection connection = Util.createHttpConnection(endpointUrl, httpMethod, headers,
                 connectTimeoutMs, readTimeoutMs);
+        return request(connection, requestBody);
+    }
+
+    // VisibleForTesting
+    static ResponseInputStream request(HttpURLConnection connection, byte[] requestBody) {
+        int responseCode;
+        Map<String, List<String>> responseHeaders;
+        InputStream is;
         try {
             if (requestBody != null) {
                 OutputStream out = connection.getOutputStream();
                 out.write(requestBody);
                 out.flush();
             }
-            Map<String, List<String>> responseHeaders = connection.getHeaderFields();
-            int responseCode = connection.getResponseCode();
-            InputStream is;
+            responseHeaders = connection.getHeaderFields();
+            responseCode = connection.getResponseCode();
             if (isOk(responseCode)) {
                 is = connection.getInputStream();
             } else {
                 is = connection.getErrorStream();
             }
-            final byte[] bytes;
             if (is == null) {
-                bytes = new byte[0];
-            } else {
-                bytes = readBytes(is);
+                is = Util.EMPTY_INPUT_STREAM;
             }
-            return new Response(responseHeaders, bytes, responseCode);
         } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        } finally {
-            if (connection != null) {
+            try {
                 connection.disconnect();
+            } catch (Throwable e2) {
+                // ignore
             }
+            throw new UncheckedIOException(e);
         }
+        return new ResponseInputStream(connection, responseCode, responseHeaders, is);
     }
 
     private static boolean isOk(int responseCode) {
         return responseCode >= 200 && responseCode <= 299;
-    }
-
-    private static byte[] readBytes(InputStream in) throws IOException {
-        byte[] buffer = new byte[8192];
-        int n;
-        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-        while ((n = in.read(buffer)) != -1) {
-            bytes.write(buffer, 0, n);
-        }
-        return bytes.toByteArray();
     }
 
 }

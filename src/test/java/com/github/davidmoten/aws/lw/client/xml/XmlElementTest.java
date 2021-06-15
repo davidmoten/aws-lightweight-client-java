@@ -6,9 +6,12 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.UncheckedIOException;
+import java.io.Writer;
 import java.util.NoSuchElementException;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class XmlElementTest {
@@ -50,7 +53,7 @@ public class XmlElementTest {
             public void close() throws IOException {
                 // do nothings
             }
-        });
+        }, true);
     }
 
     @Test
@@ -60,9 +63,34 @@ public class XmlElementTest {
     }
 
     @Test
+    public void testLineNumber() {
+        try {
+            XmlElement.parse("<?xml>\n\n\n<a>");
+        } catch (XmlParseException e) {
+            assertEquals(4, e.lineNumber());
+        }
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testWithPreamble7() {
+        XmlElement x = XmlElement.parse("<?xml<>\n<a/>");
+        assertEquals("a", x.name());
+    }
+
+    @Test
     public void testWithPreamble2() {
         XmlElement x = XmlElement.parse("<?[xml]>\n<a/>");
         assertEquals("a", x.name());
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testOnlyPreamble() {
+        XmlElement.parse("<?xml>  ");
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testOnlyPreamble2() {
+        XmlElement.parse("<?xml>  adfda");
     }
 
     @Test
@@ -86,6 +114,18 @@ public class XmlElementTest {
     @Test
     public void testWithPreamble6() {
         XmlElement x = XmlElement.parse("<?-]xml>\n<a/>");
+        assertEquals("a", x.name());
+    }
+
+    @Test
+    public void testWithPreambleAndVersionDoubleQuote() {
+        XmlElement x = XmlElement.parse("<?XML version=\"1.0\"?><a/>");
+        assertEquals("a", x.name());
+    }
+
+    @Test
+    public void testWithPreambleAndVersionSingleQuote() {
+        XmlElement x = XmlElement.parse("<?XML version='1.0'?><a/>");
         assertEquals("a", x.name());
     }
 
@@ -165,6 +205,11 @@ public class XmlElementTest {
     }
 
     @Test(expected = XmlParseException.class)
+    public void testSyntaxErrorBadComment6() {
+        XmlElement.parse("<a><b>boo</b><!-- hi there ---Z +</a>");
+    }
+
+    @Test(expected = XmlParseException.class)
     public void testSyntaxBadEntity() {
         XmlElement.parse("<a>&#x^;</a>");
     }
@@ -181,7 +226,84 @@ public class XmlElementTest {
 
     @Test
     public void testSyntaxGoodEntity() {
-        XmlElement.parse("<a>&#100;</a>");
+        XmlElement x = XmlElement.parse("<a>&#100;</a>");
+        assertEquals("d", x.content());
+    }
+
+    @Test
+    public void testSyntaxGoodEntityFollowedByComment() {
+        XmlElement x = XmlElement.parse("<a>&#100;<!-- boo --></a>");
+        assertEquals("d", x.content());
+    }
+
+    @Test
+    public void testUnchecked() {
+        XmlElement x = XmlElement.parse("<a/>");
+        try {
+            x.writeUnchecked(new Writer() {
+
+                @Override
+                public void write(char[] cbuf, int off, int len) throws IOException {
+                    throw new IOException("boo");
+
+                }
+
+                @Override
+                public void flush() throws IOException {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                public void close() throws IOException {
+                    // TODO Auto-generated method stub
+
+                }
+            });
+            Assert.fail();
+        } catch (UncheckedIOException e) {
+            assertEquals("boo", e.getCause().getMessage());
+        } catch (Throwable t) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testUnchecked2() {
+        XmlElement x = XmlElement.parse("<a/>");
+        try {
+            x.writeUnchecked(new Writer() {
+
+                @Override
+                public void write(char[] cbuf, int off, int len) throws IOException {
+                    throw new IOException("boo");
+
+                }
+
+                @Override
+                public void flush() throws IOException {
+                    // TODO Auto-generated method stub
+
+                }
+
+                @Override
+                public void close() throws IOException {
+                    throw new IOException("boo2");
+
+                }
+            });
+            Assert.fail();
+        } catch (UncheckedIOException e) {
+            assertEquals("boo2", e.getCause().getMessage());
+        } catch (Throwable t) {
+            Assert.fail();
+        }
+    }
+
+    @Test
+    public void testWriter() {
+        XmlElement x = XmlElement.parse("<a/>");
+        assertEquals("<a/>", x.toString());
     }
 
     @Test
@@ -197,6 +319,21 @@ public class XmlElementTest {
         assertFalse(x.hasChildren());
         assertTrue(x.attributeNames().isEmpty());
         assertEquals("", x.content());
+    }
+
+    @Test
+    public void testEmptyContent2() {
+        XmlElement x = XmlElement.parse("<a><b></b></a>", false);
+        assertEquals("a", x.name());
+        assertTrue(x.hasChildren());
+    }
+
+    @Test
+    public void testParseReader() throws XmlParseException, IOException {
+        try (StringReader reader = new StringReader("<a> hi </a>")) {
+            XmlElement x = XmlElement.parse(reader);
+            assertEquals("hi", x.content());
+        }
     }
 
     @Test
@@ -259,6 +396,40 @@ public class XmlElementTest {
     }
 
     @Test
+    public void testComment3() {
+        XmlElement x = XmlElement.parse("<a><![hi there]>boo</a>");
+        assertEquals("boo", x.content());
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testComment4() {
+        XmlElement.parse("<a><!<hey/><b></a>");
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testBadAttribute() {
+        XmlElement.parse("<a x={}/>");
+    }
+
+    @Test
+    public void testAttributeSingleQuote() {
+        XmlElement x = XmlElement.parse("<a x='hi'/>");
+        assertEquals("hi", x.attribute("x"));
+    }
+
+    @Test
+    public void testAttributeDoubleQuote() {
+        XmlElement x = XmlElement.parse("<a x=\"hi\"/>");
+        assertEquals("hi", x.attribute("x"));
+    }
+
+    @Test
+    public void testAttributeEntity() {
+        XmlElement x = XmlElement.parse("<a x='&amp;'/>");
+        assertEquals("&", x.attribute("x"));
+    }
+
+    @Test
     public void testCData() {
         XmlElement x = XmlElement
                 .parse("<a><![CDATA[\n" + "Within this Character Data block I can\n"
@@ -272,4 +443,51 @@ public class XmlElementTest {
         assertTrue(s.contains("as I want (along with <, &, '"));
     }
 
+    @Test(expected = XmlParseException.class)
+    public void testCDataTooManyBracketLevels() {
+        XmlElement.parse("<a><![CDATA[[hi there]]]></a>");
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testCDataNotEnoughClosingBrackets() {
+        XmlElement.parse("<a><![CDATA[[hi there]></a>");
+    }
+
+    @Test(expected = XmlParseException.class)
+    public void testCDataNotEnoughClosingBrackets2() {
+        XmlElement.parse("<a><![CDATA[[hi there]aa></a>");
+    }
+
+    @Test
+    public void testPreserveWhitespace() {
+        XmlElement x = XmlElement.parse("<a> hi </a>", false);
+        assertEquals(" hi ", x.content());
+    }
+
+    @Test
+    public void testSkipWhitespace() {
+        XmlElement x = XmlElement.parse("<a> \r\t\nhi</a>");
+        assertEquals("hi", x.content());
+    }
+
+    @Test
+    public void testIsValidIdentifierChar() {
+        assertTrue(XmlElement.isValidIdentifierCharacter('A'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('B'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('Y'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('Z'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('a'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('b'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('y'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('z'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('0'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('9'));
+        assertFalse(XmlElement.isValidIdentifierCharacter('@'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('_'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('-'));
+        assertTrue(XmlElement.isValidIdentifierCharacter(':'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('.'));
+        assertFalse(XmlElement.isValidIdentifierCharacter('\u007E'));
+        assertTrue(XmlElement.isValidIdentifierCharacter('\u007F'));
+    }
 }
