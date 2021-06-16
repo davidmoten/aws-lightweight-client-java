@@ -114,11 +114,16 @@ By moving the clients into static final fields (so that they get instantiated on
 
 The clue that the Lukewarm state is present is that the first invocation of the lightweight lambda is about 1s but every supposedly cold invocation on the hour after that runs in about 180ms (~30ms more than the warm invocation). Using sdkv2 the cold invocations on the hour all run in about 1.3s (no reduction after the first).
 
-My theory is that after a time (say 20 minutes, I haven't measured it) when a lambda goes from warm to lukewarm the reference to the ClassLoader picking up classes from the deployed jar is thrown away. If there are no static references in the handler then all classes loaded by that ClassLoader are unloaded and the ClassLoader can be garbage collected. If there are static references then all classes still referred to are kept loaded but in the case of sdk v2 it's probable that a large number of dependent classes (like Jackson) are unloaded and will be loaded in the next invocation by a new ClassLoader. I'd also posit that the ClassLoader used for the system classes used for TLS and making connections is a different ClassLoader and are not touched. 
+My theory is that after a time (say 20 minutes, I haven't measured it) when a lambda goes from warm to lukewarm the reference to the ClassLoader picking up classes from the deployed jar is thrown away. If there are no static references in the handler then all classes loaded by that ClassLoader are unloaded and the ClassLoader can be garbage collected. If there are static references then all classes still referred to are kept loaded but in the case of sdk v2 it's probable that a large number of dependent classes (like Jackson) are unloaded (customized ClassLoader behaviour) and will be loaded in the next invocation by a new ClassLoader. I'd also posit that the large number of classes that perform TLS and http connections are loaded by the system ClassLoader and are not touched.
 
 So in the case of the lightweight client when it goes from warm to lukewarm, some but not all of its not very many classes are unloaded and a call to the lukewarm lambda will load a small number of classes taking only around 30ms.
 
-I'm collecting more stats.
+I'm collecting more stats but I'll leave a draft conclusion:
+
+* SDK v2 cold start run time is 1.320s (n=1)
+* SDK v2 average lukewarm run time is 1.294s (sd=0.141s, n = 11)
+* Lightweight cold start run time is 1.01s (n=1)
+* Lightweight average lukewarm run time is **0.159s** (sd=0.16s, n=21)
 
 ## Getting started
 Add this dependency to your pom.xml:

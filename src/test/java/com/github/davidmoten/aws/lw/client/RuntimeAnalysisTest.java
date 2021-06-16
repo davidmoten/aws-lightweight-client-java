@@ -90,6 +90,7 @@ public class RuntimeAnalysisTest {
         lines("src/test/resources/one-time-link-lambda-runtimes-sdk-v2-2.txt") //
                 .filter(line -> line.startsWith("C")) //
                 .map(line -> line.split(",")) //
+                .skip(1) //
                 .map(items -> Double.parseDouble(items[2])) //
                 .statistics(x -> x).println().go();
         lines("src/test/resources/one-time-link-lambda-runtimes-sdk-v2-2.txt") //
