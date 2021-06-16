@@ -66,8 +66,6 @@ The conclusion from the comparison is that with this scenario Lambdas using *aws
 
 <img width="500" src="src/docs/graph.jpeg"/>
 
-Update 15 June 2001: I've noticed dramatic improvements in cold start with the Lightweight client just making the client variables static fields. I'll do the same with sdk v1 and v2 and get some more stats. I'll also include links to the source code used for each test.
-
 Here are the comparison details:
 
 I took the AWS SDK v1 and Lightweight lambdas and tested them with different memory allocations. The configured memory also affects the CPU allocation. At 2GB memory a full VCPU is allocated and CPU allocation is proportional to memory allocation.
@@ -105,6 +103,22 @@ Note that for AWS SDK v2 I followed the coding recommendations of https://docs.a
 | samples | 24 | 30 | 25 | 216 | 270 | 225 |
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
+
+**Update 15 June 2021**: I've noticed dramatic improvements in cold start with the Lightweight client just making the client variables static fields. I'll do the same with sdk v1 and v2 and get some more stats. I'll also include links to the source code used for each test.
+
+### Moving clients to fields in the Lambda handler, wow!
+
+By moving the clients into static final fields (so that they get instantiated only once for the lifetime of a lambda instance) performance is improved dramatically for all clients, **especially for the lightweight client**. Moreover, once we start using static final fields it appears that there is an additional effective state of Lukewarm.
+
+<img src="src/docs/state.svg"/>
+
+The clue that the Lukewarm state is present is that the first invocation of the lightweight lambda is about 1s but every supposedly cold invocation on the hour after that runs in about 180ms (~30ms more than the warm invocation). Using sdkv2 the cold invocations on the hour all run in about 1.3s (no reduction after the first).
+
+My theory is that after a time (say 20 minutes, I haven't measured it) when a lambda goes from warm to lukewarm the reference to the ClassLoader picking up classes from the deployed jar is thrown away. If there are no static references in the handler then all classes loaded by that ClassLoader are unloaded and the ClassLoader can be garbage collected. If there are static references then all classes still referred to are kept loaded but in the case of sdk v2 it's probable that a large number of dependent classes (like Jackson) are unloaded and will be loaded in the next invocation by a new ClassLoader. I'd also posit that the ClassLoader used for the system classes used for TLS and making connections is a different ClassLoader and are not touched. 
+
+So in the case of the lightweight client when it goes from warm to lukewarm, some but not all of its not very many classes are unloaded and a call to the lukewarm lambda will load a small number of classes taking only around 30ms.
+
+I'm collecting more stats.
 
 ## Getting started
 Add this dependency to your pom.xml:
