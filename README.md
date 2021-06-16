@@ -116,7 +116,7 @@ The clue that the Lukewarm state is present is that the first invocation of the 
 
 My theory is that after a time (say 20 minutes, I haven't measured it) when a lambda goes from warm to lukewarm the reference to the ClassLoader picking up classes from the deployed jar is thrown away. If there are no static references in the handler then all classes loaded by that ClassLoader are unloaded and the ClassLoader can be garbage collected. If there are static references then all classes still referred to are kept loaded but in the case of sdk v2 it's probable that a large number of dependent classes (like Jackson) are unloaded (customized ClassLoader behaviour) and will be loaded in the next invocation by a new ClassLoader. I'd also posit that the large number of classes that perform TLS and http connections are loaded by the system ClassLoader and are not touched.
 
-So in the case of the lightweight client when it goes from warm to lukewarm, some but not all of its not very many classes are unloaded and a call to the lukewarm lambda will load a small number of classes taking only around 30ms.
+So in the case of the lightweight client when it goes from warm to lukewarm, some but not all of its not-very-many classes are unloaded and a call to the lukewarm lambda will load a small number of classes taking only around 30ms.
 
 I'm collecting more stats but I'll leave a draft conclusion:
 
