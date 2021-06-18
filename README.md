@@ -104,7 +104,7 @@ Note that for AWS SDK v2 I followed the coding recommendations of https://docs.a
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
 
-**Update 15 June 2021**: I've noticed dramatic improvements in cold start with the Lightweight client just making the client variables static fields. I'll do the same with sdk v1 and v2 and get some more stats. I'll also include links to the source code used for each test.
+**Update 18 June 2021**: I've noticed dramatic improvements in cold start billable durations with all the clients just moving client variables into static fields. However, the overall response time of the cold lambda has not changed. This is presumable because we are billed on the Handler method call and not the actual instantiation of a Handler (happening on cold start). I'll get some more stats. I'll also include links to the source code used for each test.
 
 ## Getting started
 Add this dependency to your pom.xml:
