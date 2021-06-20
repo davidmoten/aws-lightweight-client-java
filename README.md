@@ -113,9 +113,9 @@ I ran three lambdas once an hour (cold-start) and 10 times in succession immedia
 * AWS SDK v2 handler, commit 
 * Lightweight client handler, commit 
 
-These are the results:
+When you want to gather some statistics about the initialization phase as well as the billable runtime then you need to enable trace logging and the AWS XRay service to explore them. Unfortunately mucking about with XRay and trace logging is a bit painful when you want to look at longer than 6 hours so I've opted for another approach where I simply measure the full response time for an API Gateway + Lambda integration.
 
-TBA
+TODO present results
 
 ## Getting started
 Add this dependency to your pom.xml:
