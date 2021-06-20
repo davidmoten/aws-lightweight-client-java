@@ -118,13 +118,9 @@ When you want to gather some statistics about the initialization phase as well a
 ** Request times (seconds) API Gateway + Lambda 2GB Memory**
 | | Average | Stdev | Min | Max | n |
 |-------|-------|-------|------|-------|
-| AWS SDK v1 | 3.986642857142857 | 0.3198400509055577 | 3.583 | 5.28 | 28
-| | Average | Stdev | Min | Max | n |
-|-------|-------|-------|------|-------|
-| AWS SDK v2 | 3.153285714285715 | 0.2666784925098826 | 2.918 | 4.06 | 28
-| | Average | Stdev | Min | Max | n |
-|-------|-------|-------|------|-------|
-| lightweight | 1.9375357142857144 | 0.1490497237604306 | 1.739 | 2.376 | 28
+| AWS SDK v1 | 3.986642857142857 | 0.3198400509055577 | 3.583 | 5.28 | 28 |
+| AWS SDK v2 | 3.153285714285715 | 0.2666784925098826 | 2.918 | 4.06 | 28 |
+| lightweight | 1.9375357142857144 | 0.1490497237604306 | 1.739 | 2.376 | 28 |
 
 ## Getting started
 Add this dependency to your pom.xml:
