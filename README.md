@@ -107,7 +107,7 @@ Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* get
 ### Instantiating client objects as static fields
 One optimization suggested by AWS advice is to instantiate client objects (like `AwsS3Client`) in static fields so that the creation of the handler object brings about the once-only instantiation of the client objects. This doesn't have an effect on cold start time in terms of the total request time to the lambda but it does affect the billable runtime (it reduces it a lot). AWS charges for the runtime of the handler method call and the instantiation of the handler object is not part of that. Thus the reasonably lengthy period of class loading that happens on instantiation of the first client is associated with the initiatlization phase of the lambda and is outside the billable runtime.
 
-I ran three lambdas once an hour (cold-start) and 10 times in succession immediately after the cold-start (warm invocations) and gathered some stats over a 24 hour period. The three lambdas are:
+I ran three lambdas once an hour (cold-start) and 10 times in succession immediately after the cold-start (warm invocations) and gathered some stats over at least a 24 hour period. The three lambdas are:
 
 * AWS SDK v1 [handler](https://github.com/davidmoten/one-time-link-aws/blob/f3a11547c187216e2e1477d27726a3432348a73a/src/main/java/com/github/davidmoten/onetimelink/lambda/Handler.java)
 * AWS SDK v2 [handler](https://github.com/davidmoten/one-time-link-aws/blob/891e09ecc2c4019d00c33993be39098b8e91bfc4/src/main/java/com/github/davidmoten/onetimelink/lambda/Handler.java)
