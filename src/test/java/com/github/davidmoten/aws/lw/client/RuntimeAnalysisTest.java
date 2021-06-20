@@ -2,8 +2,11 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
+import org.davidmoten.kool.Statistics;
 import org.davidmoten.kool.Stream;
 import org.junit.Test;
 
@@ -107,17 +110,71 @@ public class RuntimeAnalysisTest {
         reportRequestTimeStats("lightweight", 2);
     }
 
+    @Test
+    public void testStaticFields2() {
+//        lines(
+//                "src/test/resources/one-time-link-hourly-store-request-times-raw.txt").skip(1) //
+//                        .bufferUntil((list, x) -> x.contains("AEST"), true) //
+//                        .map(x -> x.subList(1, x.size())) //
+//                        .println().go();
+        Stream<HashMap<Integer, List<String>>> o = lines(
+                "src/test/resources/one-time-link-hourly-store-request-times-raw.txt").skip(1) //
+                        .bufferUntil((list, x) -> x.contains("AEST"), true) //
+                        .map(list -> list.subList(1, list.size())) //
+                        .map(list -> Stream.from(list).map(y -> y.substring(10, y.length() - 1))
+                                .toList().get()) //
+                        .filter(list -> !list.stream().anyMatch(x -> Double.parseDouble(x) > 10))
+                        .map(x -> Stream.from(x) //
+                                .mapWithIndex() //
+                                .groupByList( //
+                                        HashMap::new, //
+                                        y -> y.index() % 3, //
+                                        y -> y.value())
+                                .get());
+
+        System.out.println("cold start");
+        for (int i = 0; i < 3; i++) {
+            int j = i;
+            o.map(x -> x.get(j)).map(x -> x.get(0)).statistics(Double::parseDouble).println().go();
+        }
+
+        System.out.println("warm start");
+        Statistics light = o.map(x -> x.get(0)).flatMap(x -> Stream.from(x.subList(1, x.size())))
+                .statistics(Double::parseDouble).get();
+        for (int i = 0; i < 3; i++) {
+            int j = i;
+            Statistics stats = o.map(x -> x.get(j))
+                    .flatMap(x -> Stream.from(x.subList(1, x.size())))
+                    .statistics(Double::parseDouble).println().get();
+            System.out.println("z score=" + Math.abs(light.mean() - stats.mean())
+                    / stats.standardDeviation() * Math.sqrt(light.count()));
+        }
+        for (int i = 0; i < 3; i++) {
+            int j = i;
+            o.map(x -> x.get(j)).flatMap(x -> Stream //
+                    .from(x.subList(1, x.size()))) //
+                    .statistics(Double::parseDouble) //
+                    .map(x -> markdownRow(j + "", x)) //
+                    .println().go();
+        }
+    }
+
     private static void reportRequestTimeStats(String name, int index) {
         DecimalFormat df = new DecimalFormat("0.000");
         lines("src/test/resources/one-time-link-hourly-store-request-times.txt") //
                 .map(line -> line.split("\\s+")) //
                 .map(items -> Double.parseDouble(items[index])) //
                 .statistics(x -> x) //
-                .map(x -> "| **" + name + "** | " + df.format(x.mean()) + " | "
-                        + df.format(x.standardDeviation()) + " | " + df.format(x.min()) + " | "
-                        + df.format(x.max()) + " | " + x.count() + " |") //
+                .map(x -> markdownRow(name, x)) //
                 .println() //
                 .go();
+    }
+
+    public static String markdownRow(String name, Statistics x) {
+        DecimalFormat df = new DecimalFormat("0.000");
+        return "| **" + name + "** | " + df.format(x.mean()) + " | "
+                + df.format(x.standardDeviation()) + " | " + df.format(x.min()) + " | "
+                + df.format(x.max()) + " | " + x.count() + " |";
     }
 
 }
