@@ -90,7 +90,7 @@ I took the AWS SDK v1 and Lightweight lambdas and tested them with different mem
 
 Except for the 2GB case I measured cold-start runtimes several times and then 5-10 or so warm runtimes for each case. Much more data was gathered for the 2GB case below. 
 
-Note that for AWS SDK v2 I followed the coding recommendations of https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/lambda-optimize-starttime.html.
+Note that for AWS SDK v2 I followed the coding recommendations of https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/lambda-optimize-starttime.html. Once exception to the AWS advice is that client objects were created in the handler method rather than instantiated as static fields.
 
 **Lambda runtimes for 2GB Memory in seconds**
 
@@ -104,7 +104,18 @@ Note that for AWS SDK v2 I followed the coding recommendations of https://docs.a
 
 Note that testing shows that using *com.amazonaws:aws-java-sdk-s3:1.11.1032* getting an object from an S3 bucket requires loading of 4203 classes yet using *aws-lightweight-client-java:0.1.3* requires loading of 2350 classes (56%). Using the AWS SDK v2 *software.amazon.awssdk:s3:2.16.78* still uses 3639 classes.
 
-**Update 18 June 2021**: I've noticed dramatic improvements in cold start billable durations with all the clients just moving client variables into static fields. However, the overall response time of the cold lambda has not changed. This is presumable because we are billed on the Handler method call and not the actual instantiation of a Handler (happening on cold start). I'll get some more stats. I'll also include links to the source code used for each test.
+### Instantiating client objects as static fields
+One optimization suggested by AWS advice is to instantiate client objects (like `AwsS3Client`) in static fields so that the creation of the handler object brings about the instantiation of the client objects. This doesn't have an effect on cold start time in terms of the total request time to the lambda but it does affect the billable runtime (it reduces it a lot). AWS charges for the runtime of the handler method call and the instantiation of the handler object is not part of that. Thus the reasonably lengthy period of class loading that happens on instantiation of the first client is associated with the initiatlization phase of the lambda and is outside the billable runtime.
+
+I ran three lambdas once an hour (cold-start) and 10 times in succession immediately after the cold-start (warm invocations) and gathered some stats over a 24 hour period. The three lambdas are:
+
+* AWS SDK v1 handler, commit 
+* AWS SDK v2 handler, commit 
+* Lightweight client, commit 
+
+These are the results:
+
+TBA
 
 ## Getting started
 Add this dependency to your pom.xml:
