@@ -119,9 +119,10 @@ When you want to gather some statistics about the initialization phase as well a
 
 | | Average | Stdev | Min | Max | n |
 |-------|-------|-------|------|-------|------|
-| AWS SDK v1 | 3.987 | 0.320 | 3.583 | 5.280 | 28 |
-| AWS SDK v2 | 3.153 | 0.267 | 2.918 | 4.060 | 28 |
-| lightweight | 1.938 | 0.149 | 1.739 | 2.376 | 28 |
+| **AWS SDK v1** | 3.987 | 0.320 | 3.583 | 5.280 | 28 |
+| **AWS SDK v2** | 3.153 | 0.267 | 2.918 | 4.060 | 28 |
+| **lightweight** | 1.938 | 0.149 | 1.739 | 2.376 | 28 |
+
 
 ## Getting started
 Add this dependency to your pom.xml:
