@@ -111,7 +111,7 @@ I ran three lambdas once an hour (cold-start) and 10 times in succession immedia
 
 * AWS SDK v1 handler, commit 
 * AWS SDK v2 handler, commit 
-* Lightweight client, commit 
+* Lightweight client handler, commit 
 
 These are the results:
 
