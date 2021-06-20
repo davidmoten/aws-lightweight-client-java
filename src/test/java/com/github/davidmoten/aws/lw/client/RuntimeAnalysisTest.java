@@ -1,7 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
 import java.io.File;
-import java.util.Arrays;
+import java.text.DecimalFormat;
 import java.util.List;
 
 import org.davidmoten.kool.Stream;
@@ -98,6 +98,26 @@ public class RuntimeAnalysisTest {
                 .map(line -> line.split(",")) //
                 .map(items -> Double.parseDouble(items[2])) //
                 .statistics(x -> x).println().go();
+
+        System.out.println("request time analysis with static fields");
+        System.out.println("| | Average | Stdev | Min | Max | n |");
+        System.out.println("|-------|-------|-------|------|-------|------|");
+        reportRequestTimeStats("AWS SDK v1", 0);
+        reportRequestTimeStats("AWS SDK v2", 1);
+        reportRequestTimeStats("lightweight", 2);
+    }
+
+    private static void reportRequestTimeStats(String name, int index) {
+        DecimalFormat df = new DecimalFormat("0.000");
+        lines("src/test/resources/one-time-link-hourly-store-request-times.txt") //
+                .map(line -> line.split("\\s+")) //
+                .map(items -> Double.parseDouble(items[index])) //
+                .statistics(x -> x) //
+                .map(x -> "| **" + name + "** | " + df.format(x.mean()) + " | "
+                        + df.format(x.standardDeviation()) + " | " + df.format(x.min()) + " | "
+                        + df.format(x.max()) + " | " + x.count() + " |") //
+                .println() //
+                .go();
     }
 
 }
