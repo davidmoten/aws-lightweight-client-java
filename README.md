@@ -109,9 +109,9 @@ One optimization suggested by AWS advice is to instantiate client objects (like 
 
 I ran three lambdas once an hour (cold-start) and 10 times in succession immediately after the cold-start (warm invocations) and gathered some stats over a 24 hour period. The three lambdas are:
 
-* AWS SDK v1 handler, commit 
-* AWS SDK v2 handler, commit 
-* Lightweight client handler, commit 
+* AWS SDK v1 [handler](https://github.com/davidmoten/one-time-link-aws/blob/f3a11547c187216e2e1477d27726a3432348a73a/src/main/java/com/github/davidmoten/onetimelink/lambda/Handler.java)
+* AWS SDK v2 [handler](https://github.com/davidmoten/one-time-link-aws/blob/891e09ecc2c4019d00c33993be39098b8e91bfc4/src/main/java/com/github/davidmoten/onetimelink/lambda/Handler.java)
+* Lightweight client [handler](https://github.com/davidmoten/one-time-link-aws/blob/1.0.19/src/main/java/com/github/davidmoten/onetimelink/lambda/Handler.java)
 
 When you want to gather some statistics about the initialization phase as well as the billable runtime then you need to enable trace logging and the AWS XRay service to explore them. Unfortunately mucking about with XRay and trace logging is a bit painful when you want to look at longer than 6 hours so I've opted for another approach where I simply measure the full response time for an API Gateway + Lambda integration.
 
