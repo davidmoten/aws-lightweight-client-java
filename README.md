@@ -123,6 +123,8 @@ When you want to gather some statistics about the initialization phase as well a
 | **AWS SDK v2** | 3.153 | 0.267 | 2.918 | 4.060 | 28 |
 | **lightweight** | 1.938 | 0.149 | 1.739 | 2.376 | 28 |
 
+Note that these requests were made from my not-very-snappy home internet connection. The deltas are informative though given all requests had the same payload and response body.
+
 TODO warm invocation analysis
 
 ## Getting started
