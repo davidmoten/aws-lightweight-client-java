@@ -48,9 +48,12 @@ public final class Request {
 
     public Request query(String name, String value) {
         Preconditions.checkNotNull(name);
-        Preconditions.checkNotNull(value);
         queries.add(new NameValue(name, value));
         return this;
+    }
+
+    public Request query(String name) {
+        return query(name, null);
     }
 
     public Request attributePrefix(String attributePrefix) {
@@ -186,7 +189,11 @@ public final class Request {
             if (!u.endsWith("?")) {
                 u += "&";
             }
-            u += Util.urlEncode(nv.name, false) + "=" + Util.urlEncode(nv.value, false);
+            if (nv.value != null) {
+                u += Util.urlEncode(nv.name, false) + "=" + Util.urlEncode(nv.value, false);
+            } else {
+                u += Util.urlEncode(nv.name, false);
+            }
         }
         return u;
     }

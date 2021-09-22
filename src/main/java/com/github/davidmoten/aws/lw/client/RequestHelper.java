@@ -113,8 +113,9 @@ final class RequestHelper {
         }
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
-        Map<String, String> q = parameters.stream()
-                .collect(Collectors.toMap(p -> p.name, p -> p.value));
+        // don't use Collectors.toMap because it doesn't accept null values in map
+        Map<String, String> q = new HashMap<>();
+        parameters.forEach(p -> q.put(p.name, p.value));
         String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(
                 endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());
@@ -180,9 +181,8 @@ final class RequestHelper {
 
                 index = parameterSeparatorIndex + 1;
             }
-            if (value != null) {
-                results.add(parameter(name, value, "UTF-8"));
-            }
+            // note that value = null is valid as we can have a parameter without a value in a query string (legal http)
+            results.add(parameter(name, value, "UTF-8"));
         }
         return results;
     }
@@ -191,7 +191,7 @@ final class RequestHelper {
     static Parameter parameter(String name, String value, String charset) {
         try {
             return new Parameter(URLDecoder.decode(name, charset),
-                    URLDecoder.decode(value, charset));
+                    value == null? value: URLDecoder.decode(value, charset));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }

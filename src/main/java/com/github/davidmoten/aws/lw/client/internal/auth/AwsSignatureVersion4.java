@@ -349,14 +349,18 @@ public final class AwsSignatureVersion4 {
 
         for (Entry<String, String> pair : parameters.entrySet()) {
             sorted.put(Util.urlEncode(pair.getKey(), false),
-                    Util.urlEncode(pair.getValue(), false));
+                    pair.getValue() == null ? null : Util.urlEncode(pair.getValue(), false));
         }
 
         return sorted //
                 .entrySet() //
                 .stream() //
-                .map(pair -> pair.getKey() + "=" + pair.getValue())
+                .map(pair -> pair.getKey() + "=" + blankIfNull(pair.getValue()))
                 .collect(Collectors.joining("&"));
+    }
+
+    private static String blankIfNull(String s) {
+        return s == null ? "" : s;
     }
 
     static String getStringToSign(String scheme, String algorithm, String dateTime, String scope,
@@ -368,7 +372,7 @@ public final class AwsSignatureVersion4 {
     static byte[] sign(String stringData, byte[] key) {
         return sign(stringData, key, ALGORITHM_HMAC_SHA256);
     }
-    
+
     // VisibleForTesting
     static byte[] sign(String stringData, byte[] key, String algorithm) {
         try {
@@ -380,4 +384,5 @@ public final class AwsSignatureVersion4 {
             throw new RuntimeException(e);
         }
     }
+
 }

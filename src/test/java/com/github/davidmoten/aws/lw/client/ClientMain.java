@@ -6,12 +6,17 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
+import com.github.davidmoten.aws.lw.client.xml.Xml;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 
 public final class ClientMain {
@@ -51,6 +56,69 @@ public final class ClientMain {
                     .headers();
             System.out.println("put object completed, headers:");
             h.entrySet().stream().forEach(x -> System.out.println("  " + x));
+
+            try {
+                String uploadId = s3 //
+                        .path(bucketName, objectName) //
+                        .query("uploads") //
+                        .method(HttpMethod.POST) //
+                        .responseAsXml() //
+                        .content("UploadId");
+                // upload part 1
+                String tag1 = s3.path(bucketName, objectName) //
+                        .method(HttpMethod.PUT) //
+                        .query("partNumber", "1") //
+                        .query("uploadId", uploadId) //
+                        .requestBody("hello ") //
+                        .response() //
+                        .headers() //
+                        .get("ETag") //
+                        .get(0);
+                // upload part 2
+                String tag2 = s3.path(bucketName, objectName) //
+                        .method(HttpMethod.PUT) //
+                        .query("partNumber", "2") //
+                        .query("uploadId", uploadId) //
+                        .requestBody("there") //
+                        .response() //
+                        .headers() //
+                        .get("ETag") //
+                        .get(0);
+                System.out.println("tags=" + tag1 + " " + tag2);
+                String xml = Xml //
+                        .root("CompleteMultipartUpload") //
+                        .attribute("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
+                        .element("Part") //
+                        .element("ETag").content(tag1.substring(1, tag1.length() - 1)) //
+                        .up() //
+                        .element("PartNumber").content("1") //
+                        .up().up() //
+                        .element("Part") //
+                        .element("ETag").content(tag2.substring(1, tag2.length() - 1)) //
+                        .up() //
+                        .element("PartNumber").content("2") //
+                        .toString();
+                System.out.println(xml);
+                
+                s3.path(bucketName, objectName) //
+                        .method(HttpMethod.POST) //
+                        .query("uploadId", uploadId) //
+                        .requestBody(xml) //
+                        .execute();
+
+            } catch (Throwable e) {
+                e.printStackTrace();
+            }
+
+//            {
+//                Response r = s3.path(bucketName, objectName) //
+//                        .method(HttpMethod.HEAD) //
+//                        .response();
+//                DateTimeFormatter dtf = DateTimeFormatter.ofPattern("E, d MMM Y hh:mm:ss z",Locale.ENGLISH).withZone(ZoneId.of("GMT"));
+//                System.out.println("parsed=" + dtf.parse(r.headers().get("Last-Modified").get(0)));
+//                System.exit(0);
+//                
+//            }
 
             try {
                 s3.path(bucketName + "/" + "not-there") //
