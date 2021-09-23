@@ -28,7 +28,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
  * Common methods and properties for all AWS4 signer variants
  */
 public final class AwsSignatureVersion4 {
-
+    
     static final String ALGORITHM_HMAC_SHA256 = "HmacSHA256";
     /** SHA256 hash of an empty request body **/
     public static final String EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -113,9 +113,6 @@ public final class AwsSignatureVersion4 {
         String canonicalRequest = getCanonicalRequest(endpointUrl, httpMethod,
                 canonicalizedQueryParameters, canonicalizedHeaderNames, canonicalizedHeaders,
                 bodyHash);
-//        System.out.println("--------- Canonical request --------");
-//        System.out.println(canonicalRequest);
-//        System.out.println("------------------------------------");
 
         // construct the string to be signed
         String stringToSign = getStringToSign(SCHEME, ALGORITHM, dateTimeStamp, scope,
@@ -199,6 +196,8 @@ public final class AwsSignatureVersion4 {
 
         // if any query string parameters have been supplied, canonicalize them
         String canonicalizedQueryParameters = getCanonicalizedQueryString(queryParameters);
+//        System.out.println("--------- Canonical query string --------");
+//        System.out.println(canonicalizedQueryParameters);
 
         // canonicalize the various components of the request
         String canonicalRequest = getCanonicalRequest(endpointUrl, httpMethod,
@@ -349,14 +348,18 @@ public final class AwsSignatureVersion4 {
 
         for (Entry<String, String> pair : parameters.entrySet()) {
             sorted.put(Util.urlEncode(pair.getKey(), false),
-                    Util.urlEncode(pair.getValue(), false));
+                    pair.getValue() == null ? null : Util.urlEncode(pair.getValue(), false));
         }
 
         return sorted //
                 .entrySet() //
                 .stream() //
-                .map(pair -> pair.getKey() + "=" + pair.getValue())
+                .map(pair -> pair.getKey() + "=" + blankIfNull(pair.getValue()))
                 .collect(Collectors.joining("&"));
+    }
+
+    private static String blankIfNull(String s) {
+        return s == null ? "" : s;
     }
 
     static String getStringToSign(String scheme, String algorithm, String dateTime, String scope,
@@ -368,7 +371,7 @@ public final class AwsSignatureVersion4 {
     static byte[] sign(String stringData, byte[] key) {
         return sign(stringData, key, ALGORITHM_HMAC_SHA256);
     }
-    
+
     // VisibleForTesting
     static byte[] sign(String stringData, byte[] key, String algorithm) {
         try {
@@ -380,4 +383,5 @@ public final class AwsSignatureVersion4 {
             throw new RuntimeException(e);
         }
     }
+
 }

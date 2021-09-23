@@ -42,7 +42,7 @@ final class RequestHelper {
 
     static String presignedUrl(Clock clock, String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, Credentials credentials,
-            int connectTimeoutMs, int readTimeoutMs, long expirySeconds) {
+            int connectTimeoutMs, int readTimeoutMs, long expirySeconds, boolean signPayload) {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl = Util.toUrl(url);
@@ -52,6 +52,9 @@ final class RequestHelper {
         if (isEmpty(requestBody)) {
             contentHashString = AwsSignatureVersion4.UNSIGNED_PAYLOAD;
             h.put("x-amz-content-sha256", "");
+        } else if (!signPayload) {
+            contentHashString = AwsSignatureVersion4.UNSIGNED_PAYLOAD;
+            h.put("x-amz-content-sha256", contentHashString);
         } else {
             // compute hash of the body content
             byte[] contentHash = Util.sha256(requestBody);
@@ -90,9 +93,9 @@ final class RequestHelper {
     }
 
     static ResponseInputStream request(Clock clock, HttpClient httpClient, String url,
-            String method, Map<String, String> headers, byte[] requestBody, String serviceName,
-            String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs)
-            throws IOException {
+            HttpMethod method, Map<String, String> headers, byte[] requestBody, String serviceName,
+            String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs, //
+            boolean signPayload) throws IOException {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl = Util.toUrl(url);
@@ -102,9 +105,13 @@ final class RequestHelper {
         if (isEmpty(requestBody)) {
             contentHashString = AwsSignatureVersion4.EMPTY_BODY_SHA256;
         } else {
-            // compute hash of the body content
-            byte[] contentHash = Util.sha256(requestBody);
-            contentHashString = Util.toHex(contentHash);
+            if (!signPayload) {
+                contentHashString = AwsSignatureVersion4.UNSIGNED_PAYLOAD;
+            } else {
+                // compute hash of the body content
+                byte[] contentHash = Util.sha256(requestBody);
+                contentHashString = Util.toHex(contentHash);
+            }
             h.put("content-length", "" + requestBody.length);
         }
         h.put("x-amz-content-sha256", contentHashString);
@@ -113,16 +120,17 @@ final class RequestHelper {
         }
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
-        Map<String, String> q = parameters.stream()
-                .collect(Collectors.toMap(p -> p.name, p -> p.value));
+        // don't use Collectors.toMap because it doesn't accept null values in map
+        Map<String, String> q = new HashMap<>();
+        parameters.forEach(p -> q.put(p.name, p.value));
         String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(
-                endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
-                credentials.accessKey(), credentials.secretKey());
+                endpointUrl, method.toString(), serviceName, regionName, clock, h, q,
+                contentHashString, credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header
         // and call S3
         h.put("Authorization", authorization);
-        return httpClient.request(endpointUrl, method, h, requestBody, connectTimeoutMs,
+        return httpClient.request(endpointUrl, method.toString(), h, requestBody, connectTimeoutMs,
                 readTimeoutMs);
     }
 
@@ -180,9 +188,9 @@ final class RequestHelper {
 
                 index = parameterSeparatorIndex + 1;
             }
-            if (value != null) {
-                results.add(parameter(name, value, "UTF-8"));
-            }
+            // note that value = null is valid as we can have a parameter without a value in
+            // a query string (legal http)
+            results.add(parameter(name, value, "UTF-8"));
         }
         return results;
     }
@@ -191,7 +199,7 @@ final class RequestHelper {
     static Parameter parameter(String name, String value, String charset) {
         try {
             return new Parameter(URLDecoder.decode(name, charset),
-                    URLDecoder.decode(value, charset));
+                    value == null ? value : URLDecoder.decode(value, charset));
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }

@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.List;
@@ -36,14 +37,14 @@ public class RequestHelperTest {
     }
 
     @Test
-    public void testExtractQueryParametersNoEquals() {
+    public void testExtractQueryParametersDoesNotHaveToHaveValue() {
         List<Parameter> list = RequestHelper.extractQueryParameters("hello");
-        assertTrue(list.isEmpty());
+        assertEquals("hello", list.get(0).name);
+        assertNull(list.get(0).value);
     }
 
     @Test(expected = RuntimeException.class)
     public void testEncoding() {
         RequestHelper.parameter("name", "fred", "");
     }
-
 }

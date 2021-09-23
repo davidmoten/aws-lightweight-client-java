@@ -30,6 +30,7 @@ public final class Request {
     private String attributePrefix = "Attribute";
     private String[] pathSegments;
     private final List<NameValue> queries = new ArrayList<>();
+    private boolean signPayload = true;
 
     Request(Client client, String url, String... pathSegments) {
         this.client = client;
@@ -48,9 +49,12 @@ public final class Request {
 
     public Request query(String name, String value) {
         Preconditions.checkNotNull(name);
-        Preconditions.checkNotNull(value);
         queries.add(new NameValue(name, value));
         return this;
+    }
+
+    public Request query(String name) {
+        return query(name, null);
     }
 
     public Request attributePrefix(String attributePrefix) {
@@ -71,6 +75,15 @@ public final class Request {
         Preconditions.checkNotNull(value);
         RequestHelper.put(headers, name, value);
         return this;
+    }
+    
+    public Request signPayload(boolean signPayload) {
+        this.signPayload= signPayload;
+        return this;
+    }
+    
+    public Request unsignedPayload() {
+        return signPayload(false);
     }
 
     /**
@@ -131,9 +144,9 @@ public final class Request {
         String u = calculateUrl(url, client.serviceName(), region, queries,
                 Arrays.asList(pathSegments));
         try {
-            return RequestHelper.request(client.clock(), client.httpClient(), u, method.toString(),
+            return RequestHelper.request(client.clock(), client.httpClient(), u, method,
                     RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                    region, client.credentials(), connectTimeoutMs, readTimeoutMs);
+                    region, client.credentials(), connectTimeoutMs, readTimeoutMs, signPayload);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -186,7 +199,11 @@ public final class Request {
             if (!u.endsWith("?")) {
                 u += "&";
             }
-            u += Util.urlEncode(nv.name, false) + "=" + Util.urlEncode(nv.value, false);
+            if (nv.value != null) {
+                u += Util.urlEncode(nv.name, false) + "=" + Util.urlEncode(nv.value, false);
+            } else {
+                u += Util.urlEncode(nv.name, false);
+            }
         }
         return u;
     }
@@ -219,7 +236,7 @@ public final class Request {
         return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
                 RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
                 client.credentials(), connectTimeoutMs, readTimeoutMs,
-                unit.toSeconds(expiryDuration));
+                unit.toSeconds(expiryDuration), signPayload);
     }
 
     // VisibleForTesting
