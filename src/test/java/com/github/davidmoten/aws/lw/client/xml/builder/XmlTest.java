@@ -80,6 +80,12 @@ public class XmlTest {
         assertEquals(
                 "<root>\t\n\rabc</root>", Xml.create("root").excludePrelude().content("\t\n\rabc").toString());
     }
+    
+    @Test
+    public void testUnusualCharacters3() {
+        assertEquals(
+                "<root>&#x103ff;&#xfffd;&#xfffd;&#xefff;&#xd7ff;</root>", Xml.create("root").excludePrelude().content("" + (char) 0xd800  + (char) 0xdfff  + (char)0xfffe + (char) 0xffff + (char) 0xefff + (char) 0xd7ff).toString());
+    }
 
 
 }
