@@ -6,14 +6,13 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
+import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import org.davidmoten.kool.Stream;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.xml.Xml;
@@ -64,22 +63,27 @@ public final class ClientMain {
                         .method(HttpMethod.POST) //
                         .responseAsXml() //
                         .content("UploadId");
+                System.out.println("uploadId=" + uploadId);
+                
                 // upload part 1
+                String text1 = Stream.repeatElement("hello").take(1200000).join(" ").get();
                 String tag1 = s3.path(bucketName, objectName) //
                         .method(HttpMethod.PUT) //
                         .query("partNumber", "1") //
                         .query("uploadId", uploadId) //
-                        .requestBody("hello ") //
+                        .requestBody(text1) //
                         .response() //
                         .headers() //
                         .get("ETag") //
                         .get(0);
+
                 // upload part 2
+                String text2 = Stream.repeatElement("there").take(1200000).join(" ").get();
                 String tag2 = s3.path(bucketName, objectName) //
                         .method(HttpMethod.PUT) //
                         .query("partNumber", "2") //
                         .query("uploadId", uploadId) //
-                        .requestBody("there") //
+                        .requestBody(text2) //
                         .response() //
                         .headers() //
                         .get("ETag") //
@@ -103,6 +107,8 @@ public final class ClientMain {
                 s3.path(bucketName, objectName) //
                         .method(HttpMethod.POST) //
                         .query("uploadId", uploadId) //
+                        .header("Content-Type", "application/xml") //
+                        .unsignedPayload() //
                         .requestBody(xml) //
                         .execute();
 

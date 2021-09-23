@@ -47,5 +47,4 @@ public class RequestHelperTest {
     public void testEncoding() {
         RequestHelper.parameter("name", "fred", "");
     }
-
 }

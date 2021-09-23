@@ -42,14 +42,14 @@ final class RequestHelper {
 
     static String presignedUrl(Clock clock, String url, String method, Map<String, String> headers,
             byte[] requestBody, String serviceName, String regionName, Credentials credentials,
-            int connectTimeoutMs, int readTimeoutMs, long expirySeconds) {
+            int connectTimeoutMs, int readTimeoutMs, long expirySeconds, boolean signPayload) {
 
         // the region-specific endpoint to the target object expressed in path style
         URL endpointUrl = Util.toUrl(url);
 
         Map<String, String> h = new HashMap<>(headers);
         final String contentHashString;
-        if (isEmpty(requestBody)) {
+        if (isEmpty(requestBody) || !signPayload) {
             contentHashString = AwsSignatureVersion4.UNSIGNED_PAYLOAD;
             h.put("x-amz-content-sha256", "");
         } else {
@@ -90,8 +90,9 @@ final class RequestHelper {
     }
 
     static ResponseInputStream request(Clock clock, HttpClient httpClient, String url,
-            String method, Map<String, String> headers, byte[] requestBody, String serviceName,
-            String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs)
+            HttpMethod method, Map<String, String> headers, byte[] requestBody, String serviceName,
+            String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs, //
+            boolean signPayload)
             throws IOException {
 
         // the region-specific endpoint to the target object expressed in path style
@@ -101,6 +102,8 @@ final class RequestHelper {
         final String contentHashString;
         if (isEmpty(requestBody)) {
             contentHashString = AwsSignatureVersion4.EMPTY_BODY_SHA256;
+        } else if (!signPayload) {
+            contentHashString = AwsSignatureVersion4.UNSIGNED_PAYLOAD;
         } else {
             // compute hash of the body content
             byte[] contentHash = Util.sha256(requestBody);
@@ -117,13 +120,13 @@ final class RequestHelper {
         Map<String, String> q = new HashMap<>();
         parameters.forEach(p -> q.put(p.name, p.value));
         String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(
-                endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
+                endpointUrl, method.toString(), serviceName, regionName, clock, h, q, contentHashString,
                 credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header
         // and call S3
         h.put("Authorization", authorization);
-        return httpClient.request(endpointUrl, method, h, requestBody, connectTimeoutMs,
+        return httpClient.request(endpointUrl, method.toString(), h, requestBody, connectTimeoutMs,
                 readTimeoutMs);
     }
 
