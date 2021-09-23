@@ -196,25 +196,25 @@ public final class AwsSignatureVersion4 {
 
         // if any query string parameters have been supplied, canonicalize them
         String canonicalizedQueryParameters = getCanonicalizedQueryString(queryParameters);
-        System.out.println("--------- Canonical query string --------");
-        System.out.println(canonicalizedQueryParameters);
+//        System.out.println("--------- Canonical query string --------");
+//        System.out.println(canonicalizedQueryParameters);
 
         // canonicalize the various components of the request
         String canonicalRequest = getCanonicalRequest(endpointUrl, httpMethod,
                 canonicalizedQueryParameters, canonicalizedHeaderNames, canonicalizedHeaders,
                 bodyHash);
-        System.out.println("--------- Canonical request --------");
-        System.out.println(canonicalRequest);
-        System.out.println("------------------------------------");
+//        System.out.println("--------- Canonical request --------");
+//        System.out.println(canonicalRequest);
+//        System.out.println("------------------------------------");
 
         // construct the string to be signed
         String dateStamp = dateStampFormat.format(now);
         String scope = dateStamp + "/" + regionName + "/" + serviceName + "/" + TERMINATOR;
         String stringToSign = getStringToSign(SCHEME, ALGORITHM, dateTimeStamp, scope,
                 canonicalRequest);
-        System.out.println("--------- String to sign -----------");
-        System.out.println(stringToSign);
-        System.out.println("------------------------------------");
+//        System.out.println("--------- String to sign -----------");
+//        System.out.println(stringToSign);
+//        System.out.println("------------------------------------");
 
         // compute the signing key
         byte[] kSecret = (SCHEME + awsSecretKey).getBytes(StandardCharsets.UTF_8);

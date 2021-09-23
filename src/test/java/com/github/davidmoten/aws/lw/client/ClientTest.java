@@ -72,6 +72,52 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
+    
+    @Test
+    public void testUnsignedPayload() {
+        Client client = Client //
+                .s3() //
+                .region("us-west-1") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(hc) //
+                .build();
+        // create a bucket
+        client //
+                .path("MyBucket") //
+                .metadata("category", "something") //
+                .query("type", "thing") //
+                .attribute("color", "red") //
+                .attribute("color", "blue") //
+                .attributePrefix("Message") //
+                .attribute("name", "hi") //
+                .attribute("name", "there") //
+                .method(HttpMethod.PUT) //
+                .requestBody("hi there") //
+                .unsignedPayload() //
+                .region("ap-southeast-2") //
+                .connectTimeout(5, TimeUnit.SECONDS) //
+                .readTimeout(6, TimeUnit.SECONDS) //
+                .execute();
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&Attribute.1.Name=color&Attribute.1.Value=red&Attribute.2.Name=color&Attribute.2.Value=blue&Message.1.Name=name&Message.1.Value=hi&Message.2.Name=name&Message.2.Value=there",
+                hc.endpointUrl.toString());
+        assertEquals("PUT", hc.httpMethod);
+        assertEquals("UNSIGNED-PAYLOAD",
+                hc.headers.get("x-amz-content-sha256"));
+        String authorization = hc.headers.get("Authorization");
+        assertTrue(authorization.startsWith("AWS4-HMAC-SHA256 Credential="));
+        assertTrue(authorization.contains(
+                "/ap-southeast-2/s3/aws4_request, SignedHeaders=content-length;host;x-amz-content-sha256;x-amz-date;x-amz-meta-category"));
+        assertEquals("8", hc.headers.get("content-length"));
+        assertEquals("s3.ap-southeast-2.amazonaws.com", hc.headers.get("Host"));
+        assertTrue(hc.headers.get("x-amz-date").endsWith("Z"));
+        assertEquals("something", hc.headers.get("x-amz-meta-category"));
+        assertEquals("hi there", hc.requestBodyString());
+        assertEquals(5000, hc.connectTimeoutMs);
+        assertEquals(6000, hc.readTimeoutMs);
+    }
+
 
     @Test(expected = IllegalArgumentException.class)
     public void testBadConnectTimeout() {
@@ -387,6 +433,29 @@ public class ClientTest {
                 .presignedUrl(5, TimeUnit.DAYS);
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=content-length;host;x-amz-content-sha256&X-Amz-Signature=3f27d3fe5e595d787990866d05112cd73e21be2275bf02269b640bc9b7c35ec6",
+                presignedUrl);
+    }
+    
+    @Test
+    public void testPresignedUrlWithRequestBodyUnsignedPayload() {
+        Client client = Client //
+                .s3() //
+                .region("us-west-1") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        // create a bucket
+        String presignedUrl = client //
+                .path("MyBucket") //
+                .query("type", "thing") //
+                .method(HttpMethod.PUT) //
+                .requestBody("hi there") //
+                .region("ap-southeast-2") //
+                .unsignedPayload() //
+                .presignedUrl(5, TimeUnit.DAYS);
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=7cf6d7fe3bab3b9f23c08aec974bd8007a1c93d8e5009d4d77d0b742f3a3dcb2",
                 presignedUrl);
     }
 
