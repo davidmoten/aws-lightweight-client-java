@@ -26,7 +26,7 @@ public class Xml {
         this.parent = parent;
     }
 
-    public static Xml root(String name) {
+    public static Xml create(String name) {
         return new Xml(name);
     }
 
@@ -73,7 +73,7 @@ public class Xml {
         return parent;
     }
 
-    private void checkPresent(String s, String name) {
+    private static void checkPresent(String s, String name) {
         if (s == null || s.trim().isEmpty()) {
             throw new IllegalArgumentException(name + " must be non-null and non-blank");
         }

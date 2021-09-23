@@ -89,7 +89,7 @@ public final class ClientMain {
                         .get(0);
                 System.out.println("tags=" + tag1 + " " + tag2);
                 String xml = Xml //
-                        .root("CompleteMultipartUpload") //
+                        .create("CompleteMultipartUpload") //
                         .attribute("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
                         .element("Part") //
                         .element("ETag").content(tag1.substring(1, tag1.length() - 1)) //
