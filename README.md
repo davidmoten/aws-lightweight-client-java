@@ -53,6 +53,8 @@ sqs.url(queueUrl)
     .execute();
 ```
 
+See [Recipes](https://github.com/davidmoten/aws-lightweight-client-java/wiki/Recipes.md) for many more examples.
+
 ## Lambda performance
 You can see that usage is still pretty concise compared to using the AWS SDK v1 or v2 for Java. There's a significant advantage in using the lightweight client in a Java Lambda. 
 
@@ -369,6 +371,9 @@ sqs.url(queueUrl)
     .query("Action", "DeleteQueue") 
     .execute();
 ```
+
+### Recipes
+See [Recipes](https://github.com/davidmoten/aws-lightweight-client-java/wiki/Recipes.md) for many more examples.
 
 ### Attributes
 Some of the AWS API services (like SQS) represent property maps in the query string like this `?Attribute.Name.1=size&Attribute.Value.1=large&Attribute.Name.2=color&Attribute.Value.2=red`. The request builder has helper methods to do this for you:
