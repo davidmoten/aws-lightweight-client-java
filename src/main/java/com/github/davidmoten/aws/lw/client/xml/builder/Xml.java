@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
-public class Xml {
+public final class Xml {
 
     private final String name;
     private final Xml parent;
@@ -22,6 +22,7 @@ public class Xml {
     }
 
     private Xml(String name, Xml parent) {
+        checkPresent(name, "name");
         this.name = name;
         this.parent = parent;
     }

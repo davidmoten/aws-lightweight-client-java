@@ -10,20 +10,50 @@ public class XmlTest {
     public void test() {
         String xml = Xml //
                 .create("CompleteMultipartUpload") //
-                .attribute("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
-                .attribute("weird", "&<>'\"") //
-                .element("Part") //
-                .element("ETag").content("1234&") //
+                .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
+                .a("weird", "&<>'\"") //
+                .e("Part") //
+                .e("ETag").content("1234&") //
                 .up() //
-                .element("PartNumber").content("1") //
+                .e("PartNumber").content("1") //
                 .toString();
         assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
                 + "<CompleteMultipartUpload weird=\"&amp;&lt;&gt;&apos;&quot;\" xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
-                + "  <Part>\n"
-                + "    <ETag>1234&amp;</ETag>\n"
-                + "    <PartNumber>1</PartNumber>\n"
-                + "  </Part>\n"
-                + "</CompleteMultipartUpload>", xml);
+                + "  <Part>\n" + "    <ETag>1234&amp;</ETag>\n" + "    <PartNumber>1</PartNumber>\n"
+                + "  </Part>\n" + "</CompleteMultipartUpload>", xml);
     }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testContentAndChild() {
+        Xml.create("root").content("boo").element("child");
+    }
+
+    @Test
+    public void testPrelude() {
+        assertEquals("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" + "<root>\n" + "</root>",
+                Xml.create("root").toString());
+    }
+
+    @Test
+    public void testNoPrelude() {
+        assertEquals("<root>\n" + "</root>", Xml.create("root").excludePrelude().toString());
+    }
+
+    @Test
+    public void testNoPreludeOnChild() {
+        assertEquals("<root>\n  <thing></thing>\n" + "</root>",
+                Xml.create("root").element("thing").content("").excludePrelude().toString());
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNullName() {
+        Xml.create(null);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testBlankName() {
+        Xml.create("  ");
+    }
+
 
 }
