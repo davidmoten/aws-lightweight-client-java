@@ -224,10 +224,11 @@ String bucketName = "temp-bucket-" + System.currentTimeMillis();
 // create bucket
 ///////////////////////
 
-String createXml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-        + "<CreateBucketConfiguration xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
-        + "   <LocationConstraint>" + region + "</LocationConstraint>\n"
-        + "</CreateBucketConfiguration>";
+String createXml = Xml
+  .create("CreateBucketConfiguration")
+  .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/")
+  .e("LocationConstraint").content(region)
+  .toString();       
 s3.path(bucketName)
     .method(HttpMethod.PUT)
     .requestBody(createXml)
