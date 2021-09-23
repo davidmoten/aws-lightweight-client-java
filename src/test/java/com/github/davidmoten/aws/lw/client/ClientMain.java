@@ -19,6 +19,8 @@ import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 
 public final class ClientMain {
 
+    private static final boolean TEST_CHUNKED = false;
+
     public static void main(String[] args)
             throws InterruptedException, FileNotFoundException, IOException {
         String regionName = "ap-southeast-2";
@@ -255,7 +257,7 @@ public final class ClientMain {
         }
         {
             // test chunked response
-            if (false) {
+            if (TEST_CHUNKED) {
                 try (ResponseInputStream in = s3
                         .path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi")
                         .responseInputStream()) {

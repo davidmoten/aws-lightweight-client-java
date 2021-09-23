@@ -3,7 +3,6 @@ package com.github.davidmoten.aws.lw.client;
 import java.io.File;
 import java.text.DecimalFormat;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.davidmoten.kool.Statistics;
@@ -160,7 +159,6 @@ public class RuntimeAnalysisTest {
     }
 
     private static void reportRequestTimeStats(String name, int index) {
-        DecimalFormat df = new DecimalFormat("0.000");
         lines("src/test/resources/one-time-link-hourly-store-request-times.txt") //
                 .map(line -> line.split("\\s+")) //
                 .map(items -> Double.parseDouble(items[index])) //
