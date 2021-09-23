@@ -54,6 +54,32 @@ public class XmlTest {
     public void testBlankName() {
         Xml.create("  ");
     }
+    
+    @Test
+    public void testUnusualCharacters1() {
+        assertEquals(
+                "<root>&#x10461;bc</root>", Xml.create("root").excludePrelude().content("" + (char) 0xd801 + "abc").toString());
+        assertEquals(
+                "<root>&#xfffd;</root>", Xml.create("root").excludePrelude().content("" + (char) 0xd801).toString());
+    }
+    
+    @Test
+    public void testUnusualCharacters2() {
+        assertEquals(
+                "<root>&#xfffd;abc</root>", Xml.create("root").excludePrelude().content("" + (char) 0xdc00 + "abc").toString());
+    }
+    
+    @Test
+    public void testIllegalCharacters() {
+        assertEquals(
+                "<root>&#xfffd;abc</root>", Xml.create("root").excludePrelude().content("" + (char) 0x00 + "abc").toString());
+    }
+    
+    @Test
+    public void testLegalWhitespace() {
+        assertEquals(
+                "<root>\t\n\rabc</root>", Xml.create("root").excludePrelude().content("\t\n\rabc").toString());
+    }
 
 
 }

@@ -92,7 +92,10 @@ public final class Xml {
         b.append(String.format("%s<%s%s>", indent, name, atts));
         if (content != null) {
             b.append(encodeXml(content, false));
-            b.append(String.format("</%s>\n", name));
+            b.append(String.format("</%s>", name));
+            if (parent != null) {
+                b.append("\n");
+            }
         } else {
             b.append("\n");
             for (Xml xml : children) {
