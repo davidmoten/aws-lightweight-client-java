@@ -15,6 +15,7 @@ Aside from cold-start runtime improvements in AWS Lambda, the small artifact siz
 * supports throwing custom exceptions
 * metadata and attributes support
 * xml response parsing support
+* xml builder
 * 100% unit test coverage
 * reduces average Lambda cold start time significantly
 
