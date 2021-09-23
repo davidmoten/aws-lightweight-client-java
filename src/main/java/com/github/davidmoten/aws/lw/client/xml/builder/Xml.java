@@ -1,4 +1,4 @@
-package com.github.davidmoten.aws.lw.client.xml;
+package com.github.davidmoten.aws.lw.client.xml.builder;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,19 +85,22 @@ public class Xml {
             b.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
         }
         // TODO encode attributes and content for xml
-        String atts = attributes.entrySet().stream()
-                .map(entry -> " " + entry.getKey() + "=\"" + entry.getValue() + "\"")
+        String atts = attributes.entrySet().stream().map(
+                entry -> " " + entry.getKey() + "=\"" + encodeXml(entry.getValue(), true) + "\"")
                 .collect(Collectors.joining());
         b.append(String.format("%s<%s%s>", indent, name, atts));
         if (content != null) {
-            b.append(content);
+            b.append(encodeXml(content, false));
             b.append(String.format("</%s>\n", name));
         } else {
             b.append("\n");
             for (Xml xml : children) {
                 b.append(xml.toString(indent + "  "));
             }
-            b.append(String.format("%s</%s>\n", indent, name));
+            b.append(String.format("%s</%s>", indent, name));
+            if (parent != null) {
+                b.append("\n");
+            }
         }
         return b.toString();
     }
@@ -108,6 +111,64 @@ public class Xml {
             xml = xml.parent;
         }
         return xml.toString("");
+    }
+
+    private static final Map<Integer, String> CONTENT_CHARACTER_MAP = createContentCharacterMap();
+    private static final Map<Integer, String> ATTRIBUTE_CHARACTER_MAP = createAttributeCharacterMap();
+
+    private static Map<Integer, String> createContentCharacterMap() {
+        Map<Integer, String> m = new HashMap<>();
+        m.put((int) '&', "&amp;");
+        m.put((int) '>', "&gt;");
+        m.put((int) '<', "&lt;");
+        return m;
+    }
+
+    private static Map<Integer, String> createAttributeCharacterMap() {
+        Map<Integer, String> m = new HashMap<>();
+        m.put((int) '\'', "&apos;");
+        m.put((int) '\"', "&quot;");
+        return m;
+    }
+
+    private static String encodeXml(CharSequence s, boolean isAttribute) {
+        StringBuilder b = new StringBuilder();
+        int len = s.length();
+        for (int i = 0; i < len; i++) {
+            int c = s.charAt(i);
+            if (c >= 0xd800 && c <= 0xdbff && i + 1 < len) {
+                c = ((c - 0xd7c0) << 10) | (s.charAt(++i) & 0x3ff); // UTF16 decode
+            }
+            if (c < 0x80) { // ASCII range: test most common case first
+                if (c < 0x20 && (c != '\t' && c != '\r' && c != '\n')) {
+                    // Illegal XML character, even encoded. Skip or substitute
+                    b.append("&#xfffd;"); // Unicode replacement character
+                } else {
+                    String r = CONTENT_CHARACTER_MAP.get(c);
+                    if (r != null) {
+                        b.append(r);
+                    } else if (isAttribute) {
+                        String r2 = ATTRIBUTE_CHARACTER_MAP.get(c);
+                        if (r2 != null) {
+                            b.append(r2);
+                        } else {
+                            b.append((char) c);
+                        }
+                    } else {
+                        b.append((char) c);
+                    }
+
+                }
+            } else if ((c >= 0xd800 && c <= 0xdfff) || c == 0xfffe || c == 0xffff) {
+                // Illegal XML character, even encoded. Skip or substitute
+                b.append("&#xfffd;"); // Unicode replacement character
+            } else {
+                b.append("&#x");
+                b.append(Integer.toHexString(c));
+                b.append(';');
+            }
+        }
+        return b.toString();
     }
 
 }

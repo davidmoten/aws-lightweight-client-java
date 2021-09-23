@@ -8,15 +8,14 @@ import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.davidmoten.kool.Stream;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
-import com.github.davidmoten.aws.lw.client.xml.Xml;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
+import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 
 public final class ClientMain {
 
