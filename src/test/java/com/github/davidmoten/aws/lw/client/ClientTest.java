@@ -72,7 +72,35 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
-    
+
+    @Test
+    public void testQueryParameterWithoutValue() {
+        Client client = Client //
+                .s3() //
+                .region("us-west-1") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(hc) //
+                .build();
+        client //
+                .path("mybucket", "myobject") //
+                .query("uploads") //
+                .method(HttpMethod.POST) //
+                .execute(); // normally returns uploadId but just want to check url and signature
+                            // right
+        assertEquals("https://s3.us-west-1.amazonaws.com/mybucket/myobject?uploads",
+                hc.endpointUrl.toString());
+        assertEquals("POST", hc.httpMethod);
+        assertEquals("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+                hc.headers.get("x-amz-content-sha256"));
+        String authorization = hc.headers.get("Authorization");
+        assertTrue(authorization.startsWith("AWS4-HMAC-SHA256 Credential="));
+        assertTrue(authorization.contains(
+                "/us-west-1/s3/aws4_request, SignedHeaders=host;x-amz-content-sha256;x-amz-date"));
+        assertEquals("s3.us-west-1.amazonaws.com", hc.headers.get("Host"));
+        assertTrue(hc.headers.get("x-amz-date").endsWith("Z"));
+    }
+
     @Test
     public void testUnsignedPayload() {
         Client client = Client //
@@ -103,8 +131,7 @@ public class ClientTest {
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&Attribute.1.Name=color&Attribute.1.Value=red&Attribute.2.Name=color&Attribute.2.Value=blue&Message.1.Name=name&Message.1.Value=hi&Message.2.Name=name&Message.2.Value=there",
                 hc.endpointUrl.toString());
         assertEquals("PUT", hc.httpMethod);
-        assertEquals("UNSIGNED-PAYLOAD",
-                hc.headers.get("x-amz-content-sha256"));
+        assertEquals("UNSIGNED-PAYLOAD", hc.headers.get("x-amz-content-sha256"));
         String authorization = hc.headers.get("Authorization");
         assertTrue(authorization.startsWith("AWS4-HMAC-SHA256 Credential="));
         assertTrue(authorization.contains(
@@ -117,7 +144,6 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
-
 
     @Test(expected = IllegalArgumentException.class)
     public void testBadConnectTimeout() {
@@ -435,7 +461,7 @@ public class ClientTest {
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=content-length;host;x-amz-content-sha256&X-Amz-Signature=3f27d3fe5e595d787990866d05112cd73e21be2275bf02269b640bc9b7c35ec6",
                 presignedUrl);
     }
-    
+
     @Test
     public void testPresignedUrlWithRequestBodyUnsignedPayload() {
         Client client = Client //
