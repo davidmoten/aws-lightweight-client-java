@@ -1,8 +1,6 @@
 package com.github.davidmoten.aws.lw.client.internal.auth;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
