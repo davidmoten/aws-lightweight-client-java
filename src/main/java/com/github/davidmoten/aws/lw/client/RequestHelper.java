@@ -66,8 +66,10 @@ final class RequestHelper {
         includeTokenIfPresent(credentials, h);
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
-        Map<String, String> q = parameters.stream()
-                .collect(Collectors.toMap(p -> p.name, p -> p.value));
+        // don't use Collectors.toMap because it doesn't accept null values in map
+        Map<String, String> q = new HashMap<>();
+        parameters.forEach(p -> q.put(p.name, p.value));
+        
         // construct the query parameter string to accompany the url
 
         // for SignatureV4, the max expiry for a presigned url is 7 days,
@@ -119,7 +121,7 @@ final class RequestHelper {
             h.put("content-length", "" + requestBody.length);
         }
         h.put("x-amz-content-sha256", contentHashString);
-        
+
         includeTokenIfPresent(credentials, h);
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
