@@ -1,6 +1,8 @@
 package com.github.davidmoten.aws.lw.client.internal.auth;
 
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -29,7 +31,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Util;
  * Common methods and properties for all AWS4 signer variants
  */
 public final class AwsSignatureVersion4 {
-    
+
     static final String ALGORITHM_HMAC_SHA256 = "HmacSHA256";
     /** SHA256 hash of an empty request body **/
     public static final String EMPTY_BODY_SHA256 = "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855";
@@ -66,7 +68,7 @@ public final class AwsSignatureVersion4 {
      *                        'X-Amz-Content-SHA256' for non-streaming uploads.
      * @param awsAccessKey    The user's AWS Access Key.
      * @param awsSecretKey    The user's AWS Secret Key.
-     * @param sessionToken 
+     * @param sessionToken
      * @return The computed authorization string for the request. This value needs
      *         to be set as the header 'Authorization' on the subsequent HTTP
      *         request.
@@ -142,7 +144,7 @@ public final class AwsSignatureVersion4 {
         authString.append("&X-Amz-SignedHeaders=" + queryParameters.get("X-Amz-SignedHeaders"));
         authString.append("&X-Amz-Signature=" + Util.toHex(signature));
         if (sessionToken.isPresent()) {
-            authString.append("&X-Amz-Security-Token=" + sessionToken.get());
+            authString.append("&X-Amz-Security-Token=" + Util.urlEncode(sessionToken.get(), false));
         }
         return authString.toString();
     }

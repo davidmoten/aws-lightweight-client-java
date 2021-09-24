@@ -76,7 +76,7 @@ final class RequestHelper {
 
         String authorizationQueryParameters = AwsSignatureVersion4.computeSignatureForQueryAuth(
                 endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
-                credentials.accessKey(), credentials.secretKey(),credentials.sessionToken());
+                credentials.accessKey(), credentials.secretKey(), credentials.sessionToken());
 
         // build the presigned url to incorporate the authorization elements as query
         // parameters
