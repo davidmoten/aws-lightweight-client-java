@@ -1,6 +1,7 @@
 package com.github.davidmoten.aws.lw.client;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.nio.charset.StandardCharsets;
@@ -57,6 +58,36 @@ public class ResponseTest {
     public void testResponseCode300() {
         Response r = new Response(Collections.emptyMap(), new byte[0], 300);
         assertTrue(!r.isOk());
+    }
+    
+    @Test
+    public void testExists200() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 200);
+        assertTrue(r.exists());
+    }
+    
+    @Test
+    public void testExists299() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 299);
+        assertTrue(r.exists());
+    }
+    
+    @Test
+    public void testExists404() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 404);
+        assertFalse(r.exists());
+    }
+    
+    @Test(expected=ServiceException.class)
+    public void testExists500() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 500);
+        r.exists();
+    }
+    
+    @Test(expected=ServiceException.class)
+    public void testExists100() {
+        Response r = new Response(Collections.emptyMap(), new byte[0], 100);
+        r.exists();
     }
     
 }

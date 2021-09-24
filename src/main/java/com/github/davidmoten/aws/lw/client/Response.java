@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
@@ -60,6 +61,23 @@ public final class Response {
 
     public boolean isOk() {
         return statusCode >= 200 && statusCode <= 299;
+    }
+
+    /**
+     * Returns true if and only if status code is 2xx. Returns false if status code
+     * is 404 (NOT_FOUND) and throws a RuntimeException otherwise.
+     * 
+     * @return true if status code 2xx, false if 404 otherwise throws ServiceException
+     * @throws ServiceException if status code other than 2xx or 404
+     */
+    public boolean exists() {
+        if (statusCode >= 200 && statusCode <= 299) {
+            return true;
+        } else if (statusCode == HttpURLConnection.HTTP_NOT_FOUND) {
+            return false;
+        } else {
+            throw new ServiceException(statusCode, "call failed");
+        }
     }
 
     // TODO add toString method
