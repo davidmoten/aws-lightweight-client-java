@@ -341,6 +341,21 @@ public class ClientTest {
     }
 
     @Test
+    public void testResponseExists() throws IOException {
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .build();
+        try (Server server = Server.start()) {
+            server.response().body("hello").statusCode(404).add();
+            assertFalse(client.url(server.baseUrl()).exists()); //
+        }
+    }
+
+    @Test
     public void testServerErrorCustomExceptions() throws IOException {
         Client client = Client //
                 .s3() //
