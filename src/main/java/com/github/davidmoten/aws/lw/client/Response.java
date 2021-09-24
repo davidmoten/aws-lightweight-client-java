@@ -65,7 +65,7 @@ public final class Response {
 
     /**
      * Returns true if and only if status code is 2xx. Returns false if status code
-     * is 404 (NOT_FOUND) and throws a RuntimeException otherwise.
+     * is 404 (NOT_FOUND) and throws a {@link ServiceException} otherwise.
      * 
      * @return true if status code 2xx, false if 404 otherwise throws ServiceException
      * @throws ServiceException if status code other than 2xx or 404
