@@ -63,9 +63,9 @@ final class RequestHelper {
             h.put("x-amz-content-sha256", contentHashString);
         }
 
-//        if (credentials.sessionToken().isPresent()) {
-//            h.put("x-amz-security-token", credentials.sessionToken().get());
-//        }
+        if (credentials.sessionToken().isPresent()) {
+            h.put("x-amz-security-token", credentials.sessionToken().get());
+        }
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
