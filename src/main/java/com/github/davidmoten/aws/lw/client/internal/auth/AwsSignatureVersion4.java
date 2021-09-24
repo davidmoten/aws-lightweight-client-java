@@ -106,6 +106,10 @@ public final class AwsSignatureVersion4 {
         queryParameters.put("X-Amz-Date", dateTimeStamp);
 
         queryParameters.put("X-Amz-SignedHeaders", canonicalizedHeaderNames);
+        
+        if (sessionToken.isPresent()) {
+            queryParameters.put("X-Amz-Security-Token", sessionToken.get());
+        }
 
         // build the expanded canonical query parameter string that will go into the
         // signature computation
@@ -314,9 +318,12 @@ public final class AwsSignatureVersion4 {
     static String getCanonicalRequest(URL endpoint, String httpMethod,
             String canonicalQueryParameters, String canonicalizedHeaderNames,
             String canonicalizedHeaders, String bodyHash) {
-        return httpMethod + "\n" + getCanonicalizedResourcePath(endpoint) + "\n"
-                + canonicalQueryParameters + "\n" + canonicalizedHeaders + "\n"
-                + canonicalizedHeaderNames + "\n" + bodyHash;
+        return httpMethod + "\n" //
+                + getCanonicalizedResourcePath(endpoint) + "\n" //
+                + canonicalQueryParameters + "\n" //
+                + canonicalizedHeaders + "\n" //
+                + canonicalizedHeaderNames + "\n" //
+                + bodyHash;
     }
 
     /**

@@ -63,8 +63,6 @@ final class RequestHelper {
             h.put("x-amz-content-sha256", contentHashString);
         }
 
-        includeTokenIfPresent(credentials, h);
-
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         // don't use Collectors.toMap because it doesn't accept null values in map
         Map<String, String> q = new HashMap<>();
