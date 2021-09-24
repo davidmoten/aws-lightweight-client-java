@@ -507,6 +507,26 @@ public class ClientTest {
     }
 
     @Test
+    public void testPresignedUrlWithoutRequestBodyWithSessionToken() {
+        Client client = Client //
+                .s3() //
+                .region("us-west-1") //
+                .credentials(Credentials.of("123", "456", "abc")) //
+                .clock(() -> 1622695846902L) //
+                .build();
+        // create a bucket
+        String presignedUrl = client //
+                .path("MyBucket") //
+                .query("type", "thing") //
+                .method(HttpMethod.PUT) //
+                .region("ap-southeast-2") //
+                .presignedUrl(5, TimeUnit.DAYS);
+        assertEquals(
+                "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=123/20210603/ap-southeast-2/s3/aws4_request&X-Amz-Date=20210603T045046Z&X-Amz-Expires=432000&X-Amz-SignedHeaders=host;x-amz-content-sha256&X-Amz-Signature=93dd388b414d719042afedc24393baeaf1d7d37bfe6394f125a26aa2b29d3426&X-Amz-Security-Token=abc",
+                presignedUrl);
+    }
+
+    @Test
     public void testPresignedUrlWhenUrlHasPort() {
         Client client = Client //
                 .s3() //
