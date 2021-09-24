@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.SimpleTimeZone;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -65,6 +66,7 @@ public final class AwsSignatureVersion4 {
      *                        'X-Amz-Content-SHA256' for non-streaming uploads.
      * @param awsAccessKey    The user's AWS Access Key.
      * @param awsSecretKey    The user's AWS Secret Key.
+     * @param sessionToken 
      * @return The computed authorization string for the request. This value needs
      *         to be set as the header 'Authorization' on the subsequent HTTP
      *         request.
@@ -72,7 +74,7 @@ public final class AwsSignatureVersion4 {
     public static String computeSignatureForQueryAuth(URL endpointUrl, String httpMethod,
             String serviceName, String regionName, Clock clock, Map<String, String> headers,
             Map<String, String> queryParameters, String bodyHash, String awsAccessKey,
-            String awsSecretKey) {
+            String awsSecretKey, Optional<String> sessionToken) {
         // first get the date and time for the subsequent request, and convert
         // to ISO 8601 format for use in signature generation
         Date now = new Date(clock.time());
@@ -139,7 +141,9 @@ public final class AwsSignatureVersion4 {
         authString.append("&X-Amz-Expires=" + queryParameters.get("X-Amz-Expires"));
         authString.append("&X-Amz-SignedHeaders=" + queryParameters.get("X-Amz-SignedHeaders"));
         authString.append("&X-Amz-Signature=" + Util.toHex(signature));
-
+        if (sessionToken.isPresent()) {
+            authString.append("&X-Amz-Security-Token=" + sessionToken.get());
+        }
         return authString.toString();
     }
 

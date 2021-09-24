@@ -63,9 +63,7 @@ final class RequestHelper {
             h.put("x-amz-content-sha256", contentHashString);
         }
 
-        if (credentials.sessionToken().isPresent()) {
-            h.put("x-amz-security-token", credentials.sessionToken().get());
-        }
+        includeTokenIfPresent(credentials, h);
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         Map<String, String> q = parameters.stream()
@@ -78,7 +76,7 @@ final class RequestHelper {
 
         String authorizationQueryParameters = AwsSignatureVersion4.computeSignatureForQueryAuth(
                 endpointUrl, method, serviceName, regionName, clock, h, q, contentHashString,
-                credentials.accessKey(), credentials.secretKey());
+                credentials.accessKey(), credentials.secretKey(),credentials.sessionToken());
 
         // build the presigned url to incorporate the authorization elements as query
         // parameters
@@ -90,6 +88,12 @@ final class RequestHelper {
             presignedUrl = u + "?" + authorizationQueryParameters;
         }
         return presignedUrl;
+    }
+
+    private static void includeTokenIfPresent(Credentials credentials, Map<String, String> h) {
+        if (credentials.sessionToken().isPresent()) {
+            h.put("x-amz-security-token", credentials.sessionToken().get());
+        }
     }
 
     static ResponseInputStream request(Clock clock, HttpClient httpClient, String url,
@@ -115,9 +119,8 @@ final class RequestHelper {
             h.put("content-length", "" + requestBody.length);
         }
         h.put("x-amz-content-sha256", contentHashString);
-        if (credentials.sessionToken().isPresent()) {
-            h.put("x-amz-security-token", credentials.sessionToken().get());
-        }
+        
+        includeTokenIfPresent(credentials, h);
 
         List<Parameter> parameters = extractQueryParameters(endpointUrl);
         // don't use Collectors.toMap because it doesn't accept null values in map

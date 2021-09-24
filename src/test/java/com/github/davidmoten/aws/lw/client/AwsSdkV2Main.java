@@ -27,6 +27,7 @@ public class AwsSdkV2Main {
                 .credentialsProvider(SystemPropertyCredentialsProvider.create()) //
                 .httpClient(UrlConnectionHttpClient.builder().build())
                 .build();
+        client.getObject(GetObjectRequest.builder().bucket("mybucket").key("mykey").build());
         String r = IoUtils.toUtf8String(client.getObject(GetObjectRequest.builder().bucket("amsa-xml-in").key("ExampleObject.txt").build()));
         System.out.println(r);
         CompletedPart part = CompletedPart.builder().eTag("et123").partNumber(1).build();
