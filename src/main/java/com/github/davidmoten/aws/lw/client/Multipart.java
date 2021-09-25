@@ -1,5 +1,8 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -15,6 +18,7 @@ import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 public final class Multipart {
 
     public static Builder s3(Client s3) {
+        Preconditions.checkNotNull(s3);
         return new Builder(s3);
     }
 
@@ -30,7 +34,7 @@ public final class Multipart {
         public int retryIntervalMs = 30000;
         public int partSize = 5 * 1024 * 1024;
 
-        public Builder(Client s3) {
+        Builder(Client s3) {
             this.s3 = s3;
         }
 
@@ -45,7 +49,7 @@ public final class Multipart {
 
         private final Builder b;
 
-        public Builder2(Builder b) {
+        Builder2(Builder b) {
             this.b = b;
         }
 
@@ -60,11 +64,12 @@ public final class Multipart {
 
         private final Builder b;
 
-        public Builder3(Builder b) {
+        Builder3(Builder b) {
             this.b = b;
         }
 
         public Builder3 executor(ExecutorService executor) {
+            Preconditions.checkNotNull(executor);
             b.executor = executor;
             return this;
         }
@@ -87,28 +92,32 @@ public final class Multipart {
 
         public Builder3 transformCreateRequest(
                 Function<? super Request, ? extends Request> transform) {
+            Preconditions.checkNotNull(transform);
             b.transform = transform;
             return this;
         }
-        
+
         public void upload(byte[] bytes, int offset, int length) {
+            Preconditions.checkNotNull(bytes);
             try (OutputStream out = outputStream()) {
                 out.write(bytes, offset, length);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
         }
-        
+
         public void upload(byte[] bytes) {
-            try (OutputStream out = outputStream()) {
-                out.write(bytes, 0, bytes.length);
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
-            }
+            upload(bytes, 0, bytes.length);
         }
-        
-        public void upload(Callable<? extends InputStream> inputStream) {
-            try (InputStream in = inputStream.call(); MultipartOutputStream out = outputStream()) {
+
+        public void upload(File file) {
+            Preconditions.checkNotNull(file);
+            upload(() -> new BufferedInputStream(new FileInputStream(file)));
+        }
+
+        public void upload(Callable<? extends InputStream> factory) {
+            Preconditions.checkNotNull(factory);
+            try (InputStream in = factory.call(); MultipartOutputStream out = outputStream()) {
                 copy(in, out);
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
@@ -117,14 +126,6 @@ public final class Multipart {
             }
         }
 
-        private static void copy(InputStream in, OutputStream out) throws IOException {
-            byte[] buffer = new byte[8192];
-            int n;
-            while ((n = in.read(buffer)) != -1) {
-                out.write(buffer, 0, n);
-            }
-        }
-        
         public MultipartOutputStream outputStream() {
             if (b.executor == null) {
                 b.executor = Executors.newCachedThreadPool();
@@ -133,4 +134,13 @@ public final class Multipart {
                     b.timeoutMs, b.maxAttempts, b.retryIntervalMs, b.partSize);
         }
     }
+    
+    private static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[8192];
+        int n;
+        while ((n = in.read(buffer)) != -1) {
+            out.write(buffer, 0, n);
+        }
+    }
+
 }

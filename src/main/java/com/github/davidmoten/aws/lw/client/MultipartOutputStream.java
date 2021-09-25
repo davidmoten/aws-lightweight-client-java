@@ -34,12 +34,12 @@ public final class MultipartOutputStream extends OutputStream {
     private int nextPart = 1;
 
     MultipartOutputStream(Client s3, String bucket, String key,
-            Function<? super Request, ? extends Request> createTransform, ExecutorService executor,
+            Function<? super Request, ? extends Request> transformCreate, ExecutorService executor,
             long partTimeoutMs, int maxAttempts, long retryIntervalMs, int partSize) {
         Preconditions.checkNotNull(s3);
         Preconditions.checkNotNull(bucket);
         Preconditions.checkNotNull(key);
-        Preconditions.checkNotNull(createTransform);
+        Preconditions.checkNotNull(transformCreate);
         Preconditions.checkNotNull(executor);
         Preconditions.checkArgument(partTimeoutMs > 0);
         Preconditions.checkArgument(maxAttempts >= 1);
@@ -55,7 +55,7 @@ public final class MultipartOutputStream extends OutputStream {
         this.partSize = partSize;
         this.bytes = new ByteArrayOutputStream();
         this.etags = new ArrayList<>();
-        this.uploadId = createTransform.apply(s3 //
+        this.uploadId = transformCreate.apply(s3 //
                 .path(bucket, key) //
                 .query("uploads") //
                 .method(HttpMethod.POST)) //

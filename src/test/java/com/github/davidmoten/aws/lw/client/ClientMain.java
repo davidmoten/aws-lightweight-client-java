@@ -1,12 +1,10 @@
 package com.github.davidmoten.aws.lw.client;
 
-import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -19,8 +17,6 @@ import org.davidmoten.kool.Stream;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
-
-import software.amazon.awssdk.utils.IoUtils;
 
 public final class ClientMain {
 
@@ -46,8 +42,7 @@ public final class ClientMain {
                     .s3(s3) //
                     .bucket("moten-fixes") //
                     .key("part001.json") //
-                    .upload(() -> new BufferedInputStream(
-                            new FileInputStream("/home/dave/part001.json")));
+                    .upload(new File("/home/dave/part001.json"));
             System.out.println("completed upload");
             System.exit(0);
         }
