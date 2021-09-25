@@ -69,13 +69,14 @@ public final class Multipart {
         }
 
         public Builder3 executor(ExecutorService executor) {
-            Preconditions.checkNotNull(executor);
+            Preconditions.checkNotNull(executor, "executor cannot be null");
             b.executor = executor;
             return this;
         }
 
         public Builder3 partTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration > 0);
+            Preconditions.checkNotNull(unit, "unit cannot be null");
             b.timeoutMs = unit.toMillis(duration);
             return this;
         }
@@ -92,13 +93,13 @@ public final class Multipart {
 
         public Builder3 transformCreateRequest(
                 Function<? super Request, ? extends Request> transform) {
-            Preconditions.checkNotNull(transform);
+            Preconditions.checkNotNull(transform, "transform cannot be null");
             b.transform = transform;
             return this;
         }
 
         public void upload(byte[] bytes, int offset, int length) {
-            Preconditions.checkNotNull(bytes);
+            Preconditions.checkNotNull(bytes, "bytes cannot be null");
             try (OutputStream out = outputStream()) {
                 out.write(bytes, offset, length);
             } catch (IOException e) {
@@ -111,12 +112,12 @@ public final class Multipart {
         }
 
         public void upload(File file) {
-            Preconditions.checkNotNull(file);
+            Preconditions.checkNotNull(file, "file cannot be null");
             upload(() -> new BufferedInputStream(new FileInputStream(file)));
         }
 
         public void upload(Callable<? extends InputStream> factory) {
-            Preconditions.checkNotNull(factory);
+            Preconditions.checkNotNull(factory, "factory cannot be null");
             try (InputStream in = factory.call(); MultipartOutputStream out = outputStream()) {
                 copy(in, out);
             } catch (IOException e) {
@@ -134,7 +135,7 @@ public final class Multipart {
                     b.timeoutMs, b.maxAttempts, b.retryIntervalMs, b.partSize);
         }
     }
-    
+
     private static void copy(InputStream in, OutputStream out) throws IOException {
         byte[] buffer = new byte[8192];
         int n;
