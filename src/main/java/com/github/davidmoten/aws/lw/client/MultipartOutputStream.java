@@ -29,7 +29,7 @@ public final class MultipartOutputStream extends OutputStream {
     private final ByteArrayOutputStream bytes;
     private final List<String> etags;
     private final byte[] singleByte = new byte[1]; // for reuse in write(int) method
-    private final long timeoutMs;
+    private final long partTimeoutMs;
     private final int maxAttempts;
     private final long retryIntervalMs;
     private final List<Future<?>> futures = new CopyOnWriteArrayList<>();
@@ -37,20 +37,20 @@ public final class MultipartOutputStream extends OutputStream {
 
     private MultipartOutputStream(Client s3, String bucket, String key,
             Function<? super Request, ? extends Request> createTransform, ExecutorService executor,
-            long timeoutMs, int maxAttempts, long retryIntervalMs) {
+            long partTimeoutMs, int maxAttempts, long retryIntervalMs) {
         Preconditions.checkNotNull(s3);
         Preconditions.checkNotNull(bucket);
         Preconditions.checkNotNull(key);
         Preconditions.checkNotNull(createTransform);
         Preconditions.checkNotNull(executor);
-        Preconditions.checkArgument(timeoutMs > 0);
+        Preconditions.checkArgument(partTimeoutMs > 0);
         Preconditions.checkArgument(maxAttempts >= 1);
         Preconditions.checkArgument(retryIntervalMs >= 0);
         this.s3 = s3;
         this.bucket = bucket;
         this.key = key;
         this.executor = executor;
-        this.timeoutMs = timeoutMs;
+        this.partTimeoutMs = partTimeoutMs;
         this.maxAttempts = maxAttempts;
         this.retryIntervalMs = retryIntervalMs;
         this.bytes = new ByteArrayOutputStream();
@@ -117,7 +117,7 @@ public final class MultipartOutputStream extends OutputStream {
             return this;
         }
 
-        public Builder3 timeout(long duration, TimeUnit unit) {
+        public Builder3 partTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration > 0);
             b.timeoutMs = unit.toMillis(duration);
             return this;
@@ -165,20 +165,18 @@ public final class MultipartOutputStream extends OutputStream {
             String etag;
             while (true) {
                 try {
-                    System.out.println("starting upload of part " + part);
                     etag = s3 //
                             .path(bucket, key) //
                             .method(HttpMethod.PUT) //
                             .query("partNumber", "" + part) //
                             .query("uploadId", uploadId) //
                             .requestBody(body) //
-                            .readTimeout(1, TimeUnit.HOURS) //
+                            .readTimeout(partTimeoutMs, TimeUnit.MILLISECONDS) //
                             .response() //
                             .headers() //
                             .get("ETag") //
                             .get(0) //
                             .replace("\"", "");
-                    System.out.println("finished upload of part " + part);
                     break;
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -214,8 +212,6 @@ public final class MultipartOutputStream extends OutputStream {
                 throw new RuntimeException(e);
             }
         }
-        System.out.println("finished parts upload, completing");
-        System.out.println(etags);
         Xml xml = Xml //
                 .create("CompleteMultipartUpload") //
                 .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
@@ -227,7 +223,6 @@ public final class MultipartOutputStream extends OutputStream {
                     .element("PartNumber").content(String.valueOf(i + 1)) //
                     .up().up();
         }
-        System.out.println(xml);
         s3.path(bucket, key) //
                 .method(HttpMethod.POST) //
                 .query("uploadId", uploadId) //
@@ -235,11 +230,9 @@ public final class MultipartOutputStream extends OutputStream {
                 .unsignedPayload() //
                 .requestBody(xml.toString()) //
                 .execute();
-        System.out.println("completed");
     }
 
     private synchronized void setEtag(int part, String etag) {
-        System.out.println("etag for part " + part + "=" + etag);
         // part is one-based
 
         // ensure etags is big enough
