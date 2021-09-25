@@ -5,17 +5,16 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 
+// NotThreadSafe
 public final class MultipartOutputStream extends OutputStream {
 
     private final Client s3;
@@ -110,22 +109,26 @@ public final class MultipartOutputStream extends OutputStream {
                             .get() //
                             .replace("\"", "");
                 } catch (Throwable e) {
-                    // Note could do using ScheduledExecutorService rather than blocking the
-                    // thread here
-                    try {
-                        Thread.sleep(retryIntervalMs);
-                    } catch (InterruptedException e1) {
-                        // ignore
-                    }
                     attempt++;
                     if (attempt > maxAttempts) {
-                        throw new RuntimeException(
+                        throw new MaxAttemptsExceededException(
                                 "exceeded max attempts " + maxAttempts + " on part " + part, e);
                     }
+                    // Note could do using ScheduledExecutorService rather than blocking the
+                    // thread here
+                    sleep(retryIntervalMs);
                 }
             }
         });
         futures.add(future);
+    }
+
+    private static void sleep(long duration) {
+        try {
+            Thread.sleep(duration);
+        } catch (InterruptedException e) {
+            // do nothing
+        }
     }
 
     @Override
@@ -134,14 +137,10 @@ public final class MultipartOutputStream extends OutputStream {
         if (bytes.size() > 0) {
             submitPart();
         }
-        List<String> etags = futures.stream().map(future -> {
-            try {
-                return future.get(partTimeoutMs, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException | ExecutionException | TimeoutException e1) {
-                abort();
-                throw new RuntimeException(e1);
-            }
-        }).collect(Collectors.toList());
+        List<String> etags = futures //
+                .stream() //
+                .map(future -> getResult(future)) //
+                .collect(Collectors.toList());
 
         Xml xml = Xml //
                 .create("CompleteMultipartUpload") //
@@ -162,6 +161,15 @@ public final class MultipartOutputStream extends OutputStream {
                 .unsignedPayload() //
                 .requestBody(xml.toString()) //
                 .execute();
+    }
+
+    private String getResult(Future<String> future) {
+        try {
+            return future.get(partTimeoutMs, TimeUnit.MILLISECONDS);
+        } catch (Throwable e) {
+            abort();
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

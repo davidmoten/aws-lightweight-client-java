@@ -5,6 +5,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
@@ -20,6 +21,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -647,190 +649,6 @@ public class ClientTest {
         assertEquals("sns", Client.sns().from(s3).build().serviceName());
         assertEquals("sqs", Client.sqs().from(s3).build().serviceName());
         assertEquals("hi", Client.service("hi").from(s3).build().serviceName());
-    }
-
-    @Test
-    public void testMultipart() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
-        Client s3 = Client //
-                .s3() //
-                .region("ap-southeast-2") //
-                .accessKey("123") //
-                .secretKey("456") //
-                .httpClient(h) //
-                .build();
-        {
-            // response for start multipart upload
-            String responseXml = Xml.create("InitiateMultipartUploadResult") //
-                    .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
-                    .e("Bucket").content("mybucket") //
-                    .up() //
-                    .e("Key").content("mykey") //
-                    .up() //
-                    .e("UploadId").content("abcde") //
-                    .toString();
-            byte[] bytes = responseXml.getBytes(StandardCharsets.UTF_8);
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            responseHeaders.put("Content-Length", Arrays.asList("" + bytes.length));
-            InputStream result = new ByteArrayInputStream(
-                    responseXml.getBytes(StandardCharsets.UTF_8));
-            h.add(new ResponseInputStream(() -> {
-            }, 200, responseHeaders, result));
-        }
-        {
-            // response for submit part 1
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            responseHeaders.put("Content-Length", Arrays.asList("0"));
-            responseHeaders.put("ETag", Arrays.asList("\"etag1\""));
-            InputStream result = new ByteArrayInputStream(new byte[0]);
-            h.add(new ResponseInputStream(() -> {
-            }, 200, responseHeaders, result));
-        }
-        {
-            // response for submit part 2 - fails
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            responseHeaders.put("Content-Length", Arrays.asList("0"));
-            responseHeaders.put("ETag", Arrays.asList("\"etag2\""));
-            InputStream result = new ByteArrayInputStream(new byte[0]);
-            h.add(new ResponseInputStream(() -> {
-            }, 500, responseHeaders, result));
-        }
-        {
-            // response for submit part 2
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            responseHeaders.put("Content-Length", Arrays.asList("0"));
-            responseHeaders.put("ETag", Arrays.asList("\"etag2\""));
-            InputStream result = new ByteArrayInputStream(new byte[0]);
-            h.add(new ResponseInputStream(() -> {
-            }, 200, responseHeaders, result));
-        }
-        {
-            // response for completion
-            // actually includes xml response but we don't read it
-            // so we don't simulate it
-            Map<String, List<String>> responseHeaders = new HashMap<>();
-            responseHeaders.put("Content-Length", Arrays.asList("0"));
-            InputStream result = new ByteArrayInputStream(new byte[0]);
-            h.add(new ResponseInputStream(() -> {
-            }, 200, responseHeaders, result));
-        }
-
-        try (MultipartOutputStream out = Multipart.s3(s3) //
-                .bucket("mybucket") //
-                .key("mykey") //
-                .executor(immediate()) //
-                .retryIntervalMs(1) //
-                .outputStream()) {
-            for (int i = 0; i < 600000; i++) {
-                out.write("0123456789".getBytes(StandardCharsets.UTF_8));
-            }
-        }
-    }
-
-    private static ExecutorService immediate() {
-        return new ExecutorService() {
-
-            @Override
-            public void execute(Runnable r) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean awaitTermination(long arg0, TimeUnit arg1) throws InterruptedException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> arg0)
-                    throws InterruptedException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> arg0, long arg1,
-                    TimeUnit arg2) throws InterruptedException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public <T> T invokeAny(Collection<? extends Callable<T>> arg0)
-                    throws InterruptedException, ExecutionException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public <T> T invokeAny(Collection<? extends Callable<T>> arg0, long arg1, TimeUnit arg2)
-                    throws InterruptedException, ExecutionException, TimeoutException {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean isShutdown() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public boolean isTerminated() {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public void shutdown() {
-
-            }
-
-            @Override
-            public List<Runnable> shutdownNow() {
-                return Collections.emptyList();
-            }
-
-            @Override
-            public <T> Future<T> submit(Callable<T> callable) {
-                return new Future<T>() {
-
-                    @Override
-                    public boolean cancel(boolean mayInterruptIfRunning) {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
-                    public T get() throws InterruptedException, ExecutionException {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
-                    public T get(long timeout, TimeUnit unit)
-                            throws InterruptedException, ExecutionException, TimeoutException {
-                        try {
-                            return callable.call();
-                        } catch (Exception e) {
-                            throw new RuntimeException(e);
-                        }
-                    }
-
-                    @Override
-                    public boolean isCancelled() {
-                        throw new UnsupportedOperationException();
-                    }
-
-                    @Override
-                    public boolean isDone() {
-                        throw new UnsupportedOperationException();
-                    }
-                };
-            }
-
-            @Override
-            public Future<?> submit(Runnable r) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
-            public <T> Future<T> submit(Runnable arg0, T arg1) {
-                throw new UnsupportedOperationException();
-            }
-
-        };
     }
 
 }
