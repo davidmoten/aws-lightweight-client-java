@@ -7,7 +7,14 @@ import java.time.temporal.TemporalAccessor;
 
 import org.junit.Test;
 
+import com.github.davidmoten.junit.Asserts;
+
 public class FormatsTest {
+    
+    @Test
+    public void isUtilityClass() {
+        Asserts.assertIsUtilityClass(Formats.class);
+    }
     
     @Test
     public void testFullDate() {
