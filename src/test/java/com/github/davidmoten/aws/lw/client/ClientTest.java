@@ -4,13 +4,25 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -634,6 +646,148 @@ public class ClientTest {
         assertEquals("sns", Client.sns().from(s3).build().serviceName());
         assertEquals("sqs", Client.sqs().from(s3).build().serviceName());
         assertEquals("hi", Client.service("hi").from(s3).build().serviceName());
+    }
+
+    @Test
+    public void testMultipart() throws IOException {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        {
+
+            String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
+                    + "            <InitiateMultipartUploadResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
+                    + "              <Bucket>mybucket</Bucket>\n"
+                    + "              <Key>mykey</Key>\n"
+                    + "              <UploadId>abcde</UploadId>\n"
+                    + "            </InitiateMultipartUploadResult>";
+            byte[] bytes = xml.getBytes(StandardCharsets.UTF_8);
+            Map<String, List<String>> headers = new HashMap<>();
+            headers.put("Content-Length", Arrays.asList("" + bytes.length));
+            InputStream result = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+            h.responseInputStream = new ResponseInputStream(() -> {
+            }, 200, headers, result);
+        }
+        MultipartOutputStream out = Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .executor(immediate()) //
+                .outputStream();
+        for (int i = 0; i < 600000; i++) {
+            out.write("0123456789".getBytes(StandardCharsets.UTF_8));
+        }
+        out.close();
+    }
+
+    private static ExecutorService immediate() {
+        return new ExecutorService() {
+
+            @Override
+            public void execute(Runnable r) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean awaitTermination(long arg0, TimeUnit arg1) throws InterruptedException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> arg0)
+                    throws InterruptedException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> arg0, long arg1,
+                    TimeUnit arg2) throws InterruptedException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> T invokeAny(Collection<? extends Callable<T>> arg0)
+                    throws InterruptedException, ExecutionException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> T invokeAny(Collection<? extends Callable<T>> arg0, long arg1, TimeUnit arg2)
+                    throws InterruptedException, ExecutionException, TimeoutException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean isShutdown() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public boolean isTerminated() {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public void shutdown() {
+
+            }
+
+            @Override
+            public List<Runnable> shutdownNow() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public <T> Future<T> submit(Callable<T> callable) {
+                return new Future<T>() {
+
+                    @Override
+                    public boolean cancel(boolean mayInterruptIfRunning) {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public T get() throws InterruptedException, ExecutionException {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public T get(long timeout, TimeUnit unit)
+                            throws InterruptedException, ExecutionException, TimeoutException {
+                        try {
+                            return callable.call();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+
+                    @Override
+                    public boolean isCancelled() {
+                        throw new UnsupportedOperationException();
+                    }
+
+                    @Override
+                    public boolean isDone() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+
+            @Override
+            public Future<?> submit(Runnable r) {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public <T> Future<T> submit(Runnable arg0, T arg1) {
+                throw new UnsupportedOperationException();
+            }
+
+        };
     }
 
 }

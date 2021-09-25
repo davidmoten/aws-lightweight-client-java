@@ -3,7 +3,6 @@ package com.github.davidmoten.aws.lw.client;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
@@ -12,6 +11,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
@@ -24,13 +24,12 @@ public final class MultipartOutputStream extends OutputStream {
     private final String uploadId;
     private final ExecutorService executor;
     private final ByteArrayOutputStream bytes;
-    private final List<String> etags;
     private final byte[] singleByte = new byte[1]; // for reuse in write(int) method
     private final long partTimeoutMs;
     private final int maxAttempts;
     private final long retryIntervalMs;
     private final int partSize;
-    private final List<Future<?>> futures = new CopyOnWriteArrayList<>();
+    private final List<Future<String>> futures = new CopyOnWriteArrayList<>();
     private int nextPart = 1;
 
     MultipartOutputStream(Client s3, String bucket, String key,
@@ -54,7 +53,6 @@ public final class MultipartOutputStream extends OutputStream {
         this.retryIntervalMs = retryIntervalMs;
         this.partSize = partSize;
         this.bytes = new ByteArrayOutputStream();
-        this.etags = new ArrayList<>();
         this.uploadId = transformCreate.apply(s3 //
                 .path(bucket, key) //
                 .query("uploads") //
@@ -85,18 +83,22 @@ public final class MultipartOutputStream extends OutputStream {
             }
         }
     }
+    
+    @Override
+    public void write(byte[] b) throws IOException {
+        write(b, 0, b.length);
+    }
 
     private void submitPart() {
         int part = nextPart;
         nextPart++;
         byte[] body = bytes.toByteArray();
         bytes.reset();
-        Future<?> future = executor.submit(() -> {
+        Future<String> future = executor.submit(() -> {
             int attempt = 1;
-            String etag;
             while (true) {
                 try {
-                    etag = s3 //
+                    return s3 //
                             .path(bucket, key) //
                             .method(HttpMethod.PUT) //
                             .query("partNumber", "" + part) //
@@ -108,7 +110,6 @@ public final class MultipartOutputStream extends OutputStream {
                             .get("ETag") //
                             .get(0) //
                             .replace("\"", "");
-                    break;
                 } catch (Throwable e) {
                     e.printStackTrace();
                     // Note could do using ScheduledExecutorService rather than blocking the
@@ -125,7 +126,6 @@ public final class MultipartOutputStream extends OutputStream {
                     }
                 }
             }
-            setEtag(part, etag);
         });
         futures.add(future);
     }
@@ -136,14 +136,15 @@ public final class MultipartOutputStream extends OutputStream {
         if (bytes.size() > 0) {
             submitPart();
         }
-        for (Future<?> future : futures) {
+        List<String> etags = futures.stream().map(future -> {
             try {
-                future.get(1, TimeUnit.HOURS);
-            } catch (ExecutionException | TimeoutException | InterruptedException e) {
+                return future.get(partTimeoutMs, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException | ExecutionException | TimeoutException e1) {
                 abort();
-                throw new RuntimeException(e);
+                throw new RuntimeException(e1);
             }
-        }
+        }).collect(Collectors.toList());
+        
         Xml xml = Xml //
                 .create("CompleteMultipartUpload") //
                 .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
@@ -155,6 +156,7 @@ public final class MultipartOutputStream extends OutputStream {
                     .element("PartNumber").content(String.valueOf(i + 1)) //
                     .up().up();
         }
+        
         s3.path(bucket, key) //
                 .method(HttpMethod.POST) //
                 .query("uploadId", uploadId) //
@@ -162,17 +164,6 @@ public final class MultipartOutputStream extends OutputStream {
                 .unsignedPayload() //
                 .requestBody(xml.toString()) //
                 .execute();
-    }
-
-    private synchronized void setEtag(int part, String etag) {
-        // part is one-based
-
-        // ensure etags is big enough
-        int extra = part - etags.size();
-        for (int i = 0; i < extra; i++) {
-            etags.add("not set");
-        }
-        etags.set(part - 1, etag);
     }
 
     @Override

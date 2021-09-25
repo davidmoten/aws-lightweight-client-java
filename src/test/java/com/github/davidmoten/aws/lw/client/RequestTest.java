@@ -29,7 +29,7 @@ public class RequestTest {
     public void testHasBodyWhenContentLengthPresent() throws IOException {
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("content-length", Collections.singletonList("3"));
-        try (ResponseInputStream r = new ResponseInputStream(null, 200, headers,
+        try (ResponseInputStream r = new ResponseInputStream(() ->{}, 200, headers,
                 new ByteArrayInputStream(new byte[] { 1, 2, 3 }))) {
             assertTrue(Request.hasBody(r));
         }
@@ -39,7 +39,7 @@ public class RequestTest {
     public void testHasBodyWhenChunked() throws IOException {
         Map<String, List<String>> headers = new HashMap<>();
         headers.put("transfer-encoding", Collections.singletonList("chunkeD"));
-        try (ResponseInputStream r = new ResponseInputStream(null, 200, headers,
+        try (ResponseInputStream r = new ResponseInputStream(() ->{}, 200, headers,
                 new ByteArrayInputStream(new byte[] { 1, 2, 3 }))) {
             assertTrue(Request.hasBody(r));
         }
@@ -48,7 +48,7 @@ public class RequestTest {
     @Test
     public void testHasBodyButNoHeader() throws IOException {
         Map<String, List<String>> headers = new HashMap<>();
-        try (ResponseInputStream r = new ResponseInputStream(null, 200, headers,
+        try (ResponseInputStream r = new ResponseInputStream(() ->{}, 200, headers,
                 new ByteArrayInputStream(new byte[] { 1, 2, 3 }))) {
             assertFalse(Request.hasBody(r));
         }
