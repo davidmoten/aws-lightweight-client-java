@@ -90,8 +90,24 @@ public final class Multipart {
             b.transform = transform;
             return this;
         }
-
-        public void copy(Callable<? extends InputStream> inputStream) {
+        
+        public void upload(byte[] bytes, int offset, int length) {
+            try (OutputStream out = outputStream()) {
+                out.write(bytes, offset, length);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        
+        public void upload(byte[] bytes) {
+            try (OutputStream out = outputStream()) {
+                out.write(bytes, 0, bytes.length);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        
+        public void upload(Callable<? extends InputStream> inputStream) {
             try (InputStream in = inputStream.call(); MultipartOutputStream out = outputStream()) {
                 copy(in, out);
             } catch (IOException e) {
@@ -108,7 +124,7 @@ public final class Multipart {
                 out.write(buffer, 0, n);
             }
         }
-
+        
         public MultipartOutputStream outputStream() {
             if (b.executor == null) {
                 b.executor = Executors.newCachedThreadPool();

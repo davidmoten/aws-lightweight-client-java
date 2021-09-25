@@ -46,7 +46,7 @@ public final class ClientMain {
                     .s3(s3) //
                     .bucket("moten-fixes") //
                     .key("part001.json") //
-                    .copy(() -> new BufferedInputStream(
+                    .upload(() -> new BufferedInputStream(
                             new FileInputStream("/home/dave/part001.json")));
             System.out.println("completed upload");
             System.exit(0);
