@@ -226,6 +226,7 @@ public final class MultipartOutputStream extends OutputStream {
                     .element("PartNumber").content("" + i + 1) //
                     .up().up();
         }
+        System.out.println(xml);
         s3.path(bucket, key) //
                 .method(HttpMethod.POST) //
                 .query("uploadId", uploadId) //
@@ -237,10 +238,12 @@ public final class MultipartOutputStream extends OutputStream {
     }
 
     private synchronized void setEtag(int part, String etag) {
+        System.out.println("etag for part " + part + "=" + etag);
         // part is one-based
 
         // ensure etags is big enough
-        for (int i = 0; i < part - etags.size(); i++) {
+        int extra = part - etags.size();
+        for (int i = 0; i < extra; i++) {
             etags.add("not set");
         }
         etags.set(part - 1, etag);
