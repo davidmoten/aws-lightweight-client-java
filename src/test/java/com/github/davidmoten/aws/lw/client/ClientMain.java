@@ -51,6 +51,7 @@ public final class ClientMain {
                             .build();) {
                 IoUtils.copy(in, multipart);
             }
+            System.out.println("completed upload");
             System.exit(0);
         }
         {
