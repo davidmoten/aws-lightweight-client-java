@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
@@ -28,6 +32,7 @@ public final class MultipartOutputStream extends OutputStream {
     private final long timeoutMs;
     private final int maxAttempts;
     private final long retryIntervalMs;
+    private final List<Future<?>> futures = new CopyOnWriteArrayList<>();
     private int nextPart = 1;
 
     private MultipartOutputStream(Client s3, String bucket, String key,
@@ -155,9 +160,9 @@ public final class MultipartOutputStream extends OutputStream {
         nextPart++;
         byte[] body = bytes.toByteArray();
         bytes.reset();
-        executor.submit(() -> {
+        Future<?> future = executor.submit(() -> {
             int attempt = 1;
-            while (attempt <= maxAttempts) {
+            while (true) {
                 try {
                     System.out.println("starting upload of part " + part);
                     String etag = s3 //
@@ -184,52 +189,56 @@ public final class MultipartOutputStream extends OutputStream {
                         // ignore
                     }
                     attempt++;
+                    if (attempt > maxAttempts) {
+                        throw new RuntimeException(
+                                "exceeded max attempts " + maxAttempts + " on part " + part);
+                    }
                 }
             }
         });
+        futures.add(future);
     }
 
     @Override
     public void close() throws IOException {
-        try {
-            // submit whatever's left
-            if (bytes.size() > 0) {
-                submitPart();
-            }
-            if (executor.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS)) {
-                System.out.println("finished parts upload, completing");
-                Xml xml = Xml //
-                        .create("CompleteMultipartUpload") //
-                        .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
-                for (int i = 0; i < etags.size(); i++) {
-                    xml = xml //
-                            .element("Part") //
-                            .element("ETag").content(etags.get(i)) //
-                            .up() //
-                            .element("PartNumber").content("" + i + 1) //
-                            .up().up();
-                }
-                s3.path(bucket, key) //
-                        .method(HttpMethod.POST) //
-                        .query("uploadId", uploadId) //
-                        .header("Content-Type", "application/xml") //
-                        .unsignedPayload() //
-                        .requestBody(xml.toString()) //
-                        .execute();
-                System.out.println("completed");
-            } else {
-                throw new IOException("exceeded timeout of " + timeoutMs + "ms");
-            }
-        } catch (InterruptedException e) {
-            // ignore
+        // submit whatever's left
+        if (bytes.size() > 0) {
+            submitPart();
         }
+        for (Future<?> future : futures) {
+            try {
+                future.get(1, TimeUnit.HOURS);
+            } catch (ExecutionException | TimeoutException | InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        System.out.println("finished parts upload, completing");
+        Xml xml = Xml //
+                .create("CompleteMultipartUpload") //
+                .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
+        for (int i = 0; i < etags.size(); i++) {
+            xml = xml //
+                    .element("Part") //
+                    .element("ETag").content(etags.get(i)) //
+                    .up() //
+                    .element("PartNumber").content("" + i + 1) //
+                    .up().up();
+        }
+        s3.path(bucket, key) //
+                .method(HttpMethod.POST) //
+                .query("uploadId", uploadId) //
+                .header("Content-Type", "application/xml") //
+                .unsignedPayload() //
+                .requestBody(xml.toString()) //
+                .execute();
+        System.out.println("completed");
     }
 
     private synchronized void setEtag(int part, String etag) {
         // part is one-based
 
         // ensure etags is big enough
-        for (int i = 0; i < part - etags.size()+ 1; i++) {
+        for (int i = 0; i < part - etags.size(); i++) {
             etags.add(null);
         }
         etags.set(part - 1, etag);
