@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
 
 import org.junit.Test;
@@ -62,8 +61,7 @@ public class MultipartTest {
         h.add(startMultipartUpload());
         h.add(submitPart1());
         h.add(submitPart2Fails());
-        h.add(submitPart2());
-        h.add(completeMultipartUpload());
+        h.add(abortMultipartUpload());
 
         try (MultipartOutputStream out = Multipart.s3(s3) //
                 .bucket("mybucket") //
@@ -87,6 +85,15 @@ public class MultipartTest {
     }
 
     private static ResponseInputStream completeMultipartUpload() {
+        // response for completion
+        // actually includes xml response but we don't read it
+        // so we don't simulate it
+        Map<String, List<String>> responseHeaders = new HashMap<>();
+        responseHeaders.put("Content-Length", Arrays.asList("0"));
+        return new ResponseInputStream(DO_NOTHING, 200, responseHeaders, emptyInputStream());
+    }
+    
+    private static ResponseInputStream abortMultipartUpload() {
         // response for completion
         // actually includes xml response but we don't read it
         // so we don't simulate it
