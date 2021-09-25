@@ -13,7 +13,7 @@ import java.util.function.Function;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 
-public final class S3MultipartOutputStream extends OutputStream {
+public final class MultipartOutputStream extends OutputStream {
 
     private static final int THRESHOLD = 5 * 1024 * 1024;
 
@@ -26,16 +26,28 @@ public final class S3MultipartOutputStream extends OutputStream {
     private final List<String> etags;
     private final byte[] singleByte = new byte[1]; // for reuse in write(int) method
     private final long timeoutMs;
+    private final int maxAttempts;
+    private final long retryIntervalMs;
     private int nextPart = 1;
 
-    private S3MultipartOutputStream(Client s3, String bucket, String key,
+    private MultipartOutputStream(Client s3, String bucket, String key,
             Function<? super Request, ? extends Request> createTransform, ExecutorService executor,
-            long timeoutMs) {
+            long timeoutMs, int maxAttempts, long retryIntervalMs) {
+        Preconditions.checkNotNull(s3);
+        Preconditions.checkNotNull(bucket);
+        Preconditions.checkNotNull(key);
+        Preconditions.checkNotNull(createTransform);
+        Preconditions.checkNotNull(executor);
+        Preconditions.checkArgument(timeoutMs > 0);
+        Preconditions.checkArgument(maxAttempts >= 1);
+        Preconditions.checkArgument(retryIntervalMs >= 0);
         this.s3 = s3;
         this.bucket = bucket;
         this.key = key;
         this.executor = executor;
         this.timeoutMs = timeoutMs;
+        this.maxAttempts = maxAttempts;
+        this.retryIntervalMs = retryIntervalMs;
         this.bytes = new ByteArrayOutputStream();
         this.etags = new ArrayList<>();
         this.uploadId = createTransform.apply(s3 //
@@ -56,8 +68,10 @@ public final class S3MultipartOutputStream extends OutputStream {
         private String bucket;
         public String key;
         public ExecutorService executor;
-        public long timeoutMs;
-        public Function<? super Request, ? extends Request> transform;
+        public long timeoutMs = TimeUnit.HOURS.toMillis(1);
+        public Function<? super Request, ? extends Request> transform = x -> x;
+        public int maxAttempts = 3;
+        public int retryIntervalMs = 30000;
 
         public Builder(Client s3) {
             this.s3 = s3;
@@ -110,19 +124,22 @@ public final class S3MultipartOutputStream extends OutputStream {
             return this;
         }
 
-        public S3MultipartOutputStream build() {
+        public MultipartOutputStream build() {
             if (b.executor == null) {
                 b.executor = Executors.newCachedThreadPool();
             }
-            if (b.timeoutMs == 0) {
-                b.timeoutMs = TimeUnit.HOURS.toMillis(1);
-            }
-            if (b.transform == null) {
-                b.transform = x -> x;
-            }
-            return new S3MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor,
-                    b.timeoutMs);
+            return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor,
+                    b.timeoutMs, b.maxAttempts, b.retryIntervalMs);
         }
+    }
+
+    public void abort() {
+        s3 //
+                .path(bucket, key) //
+                .query("uploadId", uploadId) //
+                .method(HttpMethod.DELETE) //
+                .execute();
+        executor.shutdownNow();
     }
 
     @Override
@@ -134,18 +151,32 @@ public final class S3MultipartOutputStream extends OutputStream {
             byte[] body = bytes.toByteArray();
             bytes.reset();
             executor.submit(() -> {
-                // TODO set retry headers
-                String etag = s3 //
-                        .path(bucket, key) //
-                        .method(HttpMethod.PUT) //
-                        .query("partNumber", "1") //
-                        .query("uploadId", uploadId) //
-                        .requestBody(body) //
-                        .response() //
-                        .headers() //
-                        .get("ETag") //
-                        .get(0);
-                setEtag(part, etag);
+                int attempt = 1;
+                while (attempt <= maxAttempts) {
+                    try {
+                        String etag = s3 //
+                                .path(bucket, key) //
+                                .method(HttpMethod.PUT) //
+                                .query("partNumber", "" + part) //
+                                .query("uploadId", uploadId) //
+                                .requestBody(body) //
+                                .response() //
+                                .headers() //
+                                .get("ETag") //
+                                .get(0);
+                        setEtag(part, etag);
+                        break;
+                    } catch (Throwable e) {
+                        // Note could do using ScheduledExecutorService rather than blocking the
+                        // thread here
+                        try {
+                            Thread.sleep(retryIntervalMs);
+                        } catch (InterruptedException e1) {
+                            // ignore
+                        }
+                        attempt++;
+                    }
+                }
             });
         }
     }
