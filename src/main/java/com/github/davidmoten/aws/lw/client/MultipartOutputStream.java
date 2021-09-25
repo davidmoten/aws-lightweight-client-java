@@ -229,7 +229,7 @@ public final class MultipartOutputStream extends OutputStream {
         // part is one-based
 
         // ensure etags is big enough
-        for (int i = 0; i < part - etags.size(); i++) {
+        for (int i = 0; i < part - etags.size()+ 1; i++) {
             etags.add(null);
         }
         etags.set(part - 1, etag);
