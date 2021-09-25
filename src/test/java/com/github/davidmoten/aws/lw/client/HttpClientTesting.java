@@ -24,7 +24,7 @@ public final class HttpClientTesting implements HttpClient {
     private HttpClientTesting(boolean throwing) {
         this.throwing = throwing;
     }
-
+    
     @Override
     public ResponseInputStream request(URL endpointUrl, String httpMethod,
             Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,

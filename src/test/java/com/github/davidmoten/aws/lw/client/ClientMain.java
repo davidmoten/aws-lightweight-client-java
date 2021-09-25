@@ -1,7 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
 import java.io.BufferedOutputStream;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -37,15 +36,6 @@ public final class ClientMain {
         Client s3 = Client.s3().from(sqs).build();
         System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5,
                 TimeUnit.MINUTES));
-        {
-            Multipart //
-                    .s3(s3) //
-                    .bucket("moten-fixes") //
-                    .key("part001.json") //
-                    .upload(new File("/home/dave/part001.json"));
-            System.out.println("completed upload");
-            System.exit(0);
-        }
         {
             // create bucket
             String bucketName = "temp-bucket-" + System.currentTimeMillis();
