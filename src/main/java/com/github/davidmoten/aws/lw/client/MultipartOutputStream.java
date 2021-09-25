@@ -176,7 +176,8 @@ public final class MultipartOutputStream extends OutputStream {
                             .response() //
                             .headers() //
                             .get("ETag") //
-                            .get(0);
+                            .get(0) //
+                            .replace("\"", "");
                     System.out.println("finished upload of part " + part);
                     break;
                 } catch (Throwable e) {
@@ -223,7 +224,7 @@ public final class MultipartOutputStream extends OutputStream {
                     .element("Part") //
                     .element("ETag").content(etags.get(i)) //
                     .up() //
-                    .element("PartNumber").content("" + i + 1) //
+                    .element("PartNumber").content(String.valueOf(i + 1)) //
                     .up().up();
         }
         System.out.println(xml);
