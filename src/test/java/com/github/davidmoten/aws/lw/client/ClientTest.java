@@ -660,6 +660,7 @@ public class ClientTest {
                 .httpClient(h) //
                 .build();
         {
+            // response for start multipart upload
             String responseXml = Xml.create("InitiateMultipartUploadResult") //
                     .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
                     .e("Bucket").content("mybucket") //
@@ -677,6 +678,7 @@ public class ClientTest {
             }, 200, responseHeaders, result));
         }
         {
+            // response for submit part 1
             Map<String, List<String>> responseHeaders = new HashMap<>();
             responseHeaders.put("Content-Length", Arrays.asList("0"));
             responseHeaders.put("ETag", Arrays.asList("\"etag1\""));
@@ -685,6 +687,16 @@ public class ClientTest {
             }, 200, responseHeaders, result));
         }
         {
+            // response for submit part 2 - fails
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            responseHeaders.put("Content-Length", Arrays.asList("0"));
+            responseHeaders.put("ETag", Arrays.asList("\"etag2\""));
+            InputStream result = new ByteArrayInputStream(new byte[0]);
+            h.add(new ResponseInputStream(() -> {
+            }, 500, responseHeaders, result));
+        }
+        {
+            // response for submit part 2
             Map<String, List<String>> responseHeaders = new HashMap<>();
             responseHeaders.put("Content-Length", Arrays.asList("0"));
             responseHeaders.put("ETag", Arrays.asList("\"etag2\""));
@@ -693,6 +705,9 @@ public class ClientTest {
             }, 200, responseHeaders, result));
         }
         {
+            // response for completion
+            // actually includes xml response but we don't read it
+            // so we don't simulate it
             Map<String, List<String>> responseHeaders = new HashMap<>();
             responseHeaders.put("Content-Length", Arrays.asList("0"));
             InputStream result = new ByteArrayInputStream(new byte[0]);
@@ -700,15 +715,16 @@ public class ClientTest {
             }, 200, responseHeaders, result));
         }
 
-        MultipartOutputStream out = Multipart.s3(s3) //
+        try (MultipartOutputStream out = Multipart.s3(s3) //
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(immediate()) //
-                .outputStream();
-        for (int i = 0; i < 600000; i++) {
-            out.write("0123456789".getBytes(StandardCharsets.UTF_8));
+                .retryIntervalMs(1) //
+                .outputStream()) {
+            for (int i = 0; i < 600000; i++) {
+                out.write("0123456789".getBytes(StandardCharsets.UTF_8));
+            }
         }
-        out.close();
     }
 
     private static ExecutorService immediate() {

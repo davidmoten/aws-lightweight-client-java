@@ -16,7 +16,7 @@ public class HttpClientTesting2 implements HttpClient {
     }
     
     @Override
-    public ResponseInputStream request(URL endpointUrl, String httpMethod,
+    public synchronized ResponseInputStream request(URL endpointUrl, String httpMethod,
             Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,
             int readTimeoutMs) throws IOException {
         System.out.println(endpointUrl);

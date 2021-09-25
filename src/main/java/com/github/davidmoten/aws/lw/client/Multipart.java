@@ -31,7 +31,7 @@ public final class Multipart {
         public long timeoutMs = TimeUnit.HOURS.toMillis(1);
         public Function<? super Request, ? extends Request> transform = x -> x;
         public int maxAttempts = 3;
-        public int retryIntervalMs = 30000;
+        public long retryIntervalMs = 30000;
         public int partSize = 5 * 1024 * 1024;
 
         Builder(Client s3) {
@@ -89,6 +89,16 @@ public final class Multipart {
 
         public Builder3 partSizeMb(int partSizeMb) {
             return partSize(partSizeMb * 1024 * 1024);
+        }
+        
+        public Builder3 maxAttemptsPerPart(int maxAttempts) {
+            b.maxAttempts = maxAttempts;
+            return this;
+        }
+        
+        public Builder3 retryIntervalMs(long retryIntervalMs) {
+            b.retryIntervalMs = retryIntervalMs;
+            return this;
         }
 
         public Builder3 transformCreateRequest(

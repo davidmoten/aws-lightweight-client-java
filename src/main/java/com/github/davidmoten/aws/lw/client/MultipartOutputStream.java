@@ -105,7 +105,7 @@ public final class MultipartOutputStream extends OutputStream {
                             .query("uploadId", uploadId) //
                             .requestBody(body) //
                             .readTimeout(partTimeoutMs, TimeUnit.MILLISECONDS) //
-                            .response() //
+                            .responseExpectStatusCode(200) //
                             .firstHeader("ETag") //
                             .get() //
                             .replace("\"", "");
