@@ -162,10 +162,11 @@ public final class MultipartOutputStream extends OutputStream {
         bytes.reset();
         Future<?> future = executor.submit(() -> {
             int attempt = 1;
+            String etag;
             while (true) {
                 try {
                     System.out.println("starting upload of part " + part);
-                    String etag = s3 //
+                    etag = s3 //
                             .path(bucket, key) //
                             .method(HttpMethod.PUT) //
                             .query("partNumber", "" + part) //
@@ -177,7 +178,6 @@ public final class MultipartOutputStream extends OutputStream {
                             .get("ETag") //
                             .get(0);
                     System.out.println("finished upload of part " + part);
-                    setEtag(part, etag);
                     break;
                 } catch (Throwable e) {
                     e.printStackTrace();
@@ -195,6 +195,7 @@ public final class MultipartOutputStream extends OutputStream {
                     }
                 }
             }
+            setEtag(part, etag);
         });
         futures.add(future);
     }
@@ -213,6 +214,7 @@ public final class MultipartOutputStream extends OutputStream {
             }
         }
         System.out.println("finished parts upload, completing");
+        System.out.println(etags);
         Xml xml = Xml //
                 .create("CompleteMultipartUpload") //
                 .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
@@ -239,7 +241,7 @@ public final class MultipartOutputStream extends OutputStream {
 
         // ensure etags is big enough
         for (int i = 0; i < part - etags.size(); i++) {
-            etags.add(null);
+            etags.add("not set");
         }
         etags.set(part - 1, etag);
     }
