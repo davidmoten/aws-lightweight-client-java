@@ -28,7 +28,7 @@ public final class ResponseInputStream extends InputStream {
         this.headers = headers;
         this.content = content;
     }
-
+    
     @Override
     public int read(byte[] b, int off, int len) throws IOException {
         return content.read(b, off, len);

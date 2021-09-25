@@ -83,7 +83,7 @@ public final class MultipartOutputStream extends OutputStream {
             }
         }
     }
-    
+
     @Override
     public void write(byte[] b) throws IOException {
         write(b, 0, b.length);
@@ -106,12 +106,10 @@ public final class MultipartOutputStream extends OutputStream {
                             .requestBody(body) //
                             .readTimeout(partTimeoutMs, TimeUnit.MILLISECONDS) //
                             .response() //
-                            .headers() //
-                            .get("ETag") //
-                            .get(0) //
+                            .firstHeader("ETag") //
+                            .get() //
                             .replace("\"", "");
                 } catch (Throwable e) {
-                    e.printStackTrace();
                     // Note could do using ScheduledExecutorService rather than blocking the
                     // thread here
                     try {
@@ -122,7 +120,7 @@ public final class MultipartOutputStream extends OutputStream {
                     attempt++;
                     if (attempt > maxAttempts) {
                         throw new RuntimeException(
-                                "exceeded max attempts " + maxAttempts + " on part " + part);
+                                "exceeded max attempts " + maxAttempts + " on part " + part, e);
                     }
                 }
             }
@@ -144,7 +142,7 @@ public final class MultipartOutputStream extends OutputStream {
                 throw new RuntimeException(e1);
             }
         }).collect(Collectors.toList());
-        
+
         Xml xml = Xml //
                 .create("CompleteMultipartUpload") //
                 .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
@@ -156,7 +154,7 @@ public final class MultipartOutputStream extends OutputStream {
                     .element("PartNumber").content(String.valueOf(i + 1)) //
                     .up().up();
         }
-        
+
         s3.path(bucket, key) //
                 .method(HttpMethod.POST) //
                 .query("uploadId", uploadId) //

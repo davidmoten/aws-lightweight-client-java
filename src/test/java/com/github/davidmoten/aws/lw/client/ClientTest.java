@@ -27,6 +27,7 @@ import java.util.concurrent.TimeoutException;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 import com.github.davidmoten.http.test.server.Server;
 
 public class ClientTest {
@@ -659,20 +660,46 @@ public class ClientTest {
                 .httpClient(h) //
                 .build();
         {
-
-            String xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
-                    + "            <InitiateMultipartUploadResult xmlns=\"http://s3.amazonaws.com/doc/2006-03-01/\">\n"
-                    + "              <Bucket>mybucket</Bucket>\n"
-                    + "              <Key>mykey</Key>\n"
-                    + "              <UploadId>abcde</UploadId>\n"
-                    + "            </InitiateMultipartUploadResult>";
-            byte[] bytes = xml.getBytes(StandardCharsets.UTF_8);
-            Map<String, List<String>> headers = new HashMap<>();
-            headers.put("Content-Length", Arrays.asList("" + bytes.length));
-            InputStream result = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
+            String responseXml = Xml.create("InitiateMultipartUploadResult") //
+                    .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/") //
+                    .e("Bucket").content("mybucket") //
+                    .up() //
+                    .e("Key").content("mykey") //
+                    .up() //
+                    .e("UploadId").content("abcde") //
+                    .toString();
+            byte[] bytes = responseXml.getBytes(StandardCharsets.UTF_8);
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            responseHeaders.put("Content-Length", Arrays.asList("" + bytes.length));
+            InputStream result = new ByteArrayInputStream(
+                    responseXml.getBytes(StandardCharsets.UTF_8));
             h.add(new ResponseInputStream(() -> {
-            }, 200, headers, result));
+            }, 200, responseHeaders, result));
         }
+        {
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            responseHeaders.put("Content-Length", Arrays.asList("0"));
+            responseHeaders.put("ETag", Arrays.asList("\"etag1\""));
+            InputStream result = new ByteArrayInputStream(new byte[0]);
+            h.add(new ResponseInputStream(() -> {
+            }, 200, responseHeaders, result));
+        }
+        {
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            responseHeaders.put("Content-Length", Arrays.asList("0"));
+            responseHeaders.put("ETag", Arrays.asList("\"etag2\""));
+            InputStream result = new ByteArrayInputStream(new byte[0]);
+            h.add(new ResponseInputStream(() -> {
+            }, 200, responseHeaders, result));
+        }
+        {
+            Map<String, List<String>> responseHeaders = new HashMap<>();
+            responseHeaders.put("Content-Length", Arrays.asList("0"));
+            InputStream result = new ByteArrayInputStream(new byte[0]);
+            h.add(new ResponseInputStream(() -> {
+            }, 200, responseHeaders, result));
+        }
+
         MultipartOutputStream out = Multipart.s3(s3) //
                 .bucket("mybucket") //
                 .key("mykey") //
