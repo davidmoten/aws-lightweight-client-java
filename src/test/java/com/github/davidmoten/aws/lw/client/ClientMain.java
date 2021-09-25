@@ -42,15 +42,12 @@ public final class ClientMain {
         System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5,
                 TimeUnit.MINUTES));
         {
-            try (InputStream in = new BufferedInputStream(
-                    new FileInputStream("/home/dave/part001.json"));
-                    MultipartOutputStream multipart = MultipartOutputStream //
-                            .s3(s3) //
-                            .bucket("moten-fixes") //
-                            .key("part001.json") //
-                            .build();) {
-                IoUtils.copy(in, multipart);
-            }
+            Multipart //
+                    .s3(s3) //
+                    .bucket("moten-fixes") //
+                    .key("part001.json") //
+                    .copy(() -> new BufferedInputStream(
+                            new FileInputStream("/home/dave/part001.json")));
             System.out.println("completed upload");
             System.exit(0);
         }

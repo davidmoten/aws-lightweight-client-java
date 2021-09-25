@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -18,8 +17,6 @@ import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 
 public final class MultipartOutputStream extends OutputStream {
-
-    private static final int THRESHOLD = 5 * 1024 * 1024;
 
     private final Client s3;
     private final String bucket;
@@ -32,12 +29,13 @@ public final class MultipartOutputStream extends OutputStream {
     private final long partTimeoutMs;
     private final int maxAttempts;
     private final long retryIntervalMs;
+    private final int partSize;
     private final List<Future<?>> futures = new CopyOnWriteArrayList<>();
     private int nextPart = 1;
 
-    private MultipartOutputStream(Client s3, String bucket, String key,
+    MultipartOutputStream(Client s3, String bucket, String key,
             Function<? super Request, ? extends Request> createTransform, ExecutorService executor,
-            long partTimeoutMs, int maxAttempts, long retryIntervalMs) {
+            long partTimeoutMs, int maxAttempts, long retryIntervalMs, int partSize) {
         Preconditions.checkNotNull(s3);
         Preconditions.checkNotNull(bucket);
         Preconditions.checkNotNull(key);
@@ -46,6 +44,7 @@ public final class MultipartOutputStream extends OutputStream {
         Preconditions.checkArgument(partTimeoutMs > 0);
         Preconditions.checkArgument(maxAttempts >= 1);
         Preconditions.checkArgument(retryIntervalMs >= 0);
+        Preconditions.checkArgument(partSize >= 5 * 1024 * 1024);
         this.s3 = s3;
         this.bucket = bucket;
         this.key = key;
@@ -53,6 +52,7 @@ public final class MultipartOutputStream extends OutputStream {
         this.partTimeoutMs = partTimeoutMs;
         this.maxAttempts = maxAttempts;
         this.retryIntervalMs = retryIntervalMs;
+        this.partSize = partSize;
         this.bytes = new ByteArrayOutputStream();
         this.etags = new ArrayList<>();
         this.uploadId = createTransform.apply(s3 //
@@ -63,95 +63,26 @@ public final class MultipartOutputStream extends OutputStream {
                 .content("UploadId");
     }
 
-    public static Builder s3(Client s3) {
-        return new Builder(s3);
-    }
-
-    public static final class Builder {
-
-        private final Client s3;
-        private String bucket;
-        public String key;
-        public ExecutorService executor;
-        public long timeoutMs = TimeUnit.HOURS.toMillis(1);
-        public Function<? super Request, ? extends Request> transform = x -> x;
-        public int maxAttempts = 3;
-        public int retryIntervalMs = 30000;
-
-        public Builder(Client s3) {
-            this.s3 = s3;
-        }
-
-        public Builder2 bucket(String bucket) {
-            Preconditions.checkNotNull(bucket, "bucket cannot be null");
-            this.bucket = bucket;
-            return new Builder2(this);
-        }
-    }
-
-    public static final class Builder2 {
-
-        private final Builder b;
-
-        public Builder2(Builder b) {
-            this.b = b;
-        }
-
-        public Builder3 key(String key) {
-            Preconditions.checkNotNull(key, "key cannot be null");
-            b.key = key;
-            return new Builder3(b);
-        }
-    }
-
-    public static final class Builder3 {
-
-        private final Builder b;
-
-        public Builder3(Builder b) {
-            this.b = b;
-        }
-
-        public Builder3 executor(ExecutorService executor) {
-            b.executor = executor;
-            return this;
-        }
-
-        public Builder3 partTimeout(long duration, TimeUnit unit) {
-            Preconditions.checkArgument(duration > 0);
-            b.timeoutMs = unit.toMillis(duration);
-            return this;
-        }
-
-        public Builder3 transformCreateRequest(
-                Function<? super Request, ? extends Request> transform) {
-            b.transform = transform;
-            return this;
-        }
-
-        public MultipartOutputStream build() {
-            if (b.executor == null) {
-                b.executor = Executors.newCachedThreadPool();
-            }
-            return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor,
-                    b.timeoutMs, b.maxAttempts, b.retryIntervalMs);
-        }
-    }
-
     public void abort() {
+        executor.shutdownNow();
         s3 //
                 .path(bucket, key) //
                 .query("uploadId", uploadId) //
                 .method(HttpMethod.DELETE) //
                 .execute();
-        executor.shutdownNow();
     }
 
     @Override
     public void write(byte[] b, int off, int len) throws IOException {
-        bytes.write(b, off, len);
-        if (bytes.size() > THRESHOLD) {
-            submitPart();
+        while (len > 0) {
+            int remaining = partSize - bytes.size();
+            int n = Math.min(remaining, len);
+            bytes.write(b, off, n);
+            off += n;
+            len -= n;
+            if (bytes.size() == partSize) {
+                submitPart();
+            }
         }
     }
 
@@ -209,6 +140,7 @@ public final class MultipartOutputStream extends OutputStream {
             try {
                 future.get(1, TimeUnit.HOURS);
             } catch (ExecutionException | TimeoutException | InterruptedException e) {
+                abort();
                 throw new RuntimeException(e);
             }
         }
