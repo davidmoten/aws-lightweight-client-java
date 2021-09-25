@@ -2,6 +2,8 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -23,6 +25,20 @@ public final class Response {
 
     public Map<String, List<String>> headers() {
         return headers;
+    }
+
+    public Optional<String> firstHeader(String name) {
+        List<String> h = headers.get(name);
+        if (h == null || h.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(h.get(0));
+        }
+    }
+
+    public Optional<Instant> firstHeaderFullDate(String name) {
+        return firstHeader(name) //
+                .map(x -> ZonedDateTime.parse(x, Formats.FULL_DATE).toInstant());
     }
 
     /**
@@ -67,7 +83,8 @@ public final class Response {
      * Returns true if and only if status code is 2xx. Returns false if status code
      * is 404 (NOT_FOUND) and throws a {@link ServiceException} otherwise.
      * 
-     * @return true if status code 2xx, false if 404 otherwise throws ServiceException
+     * @return true if status code 2xx, false if 404 otherwise throws
+     *         ServiceException
      * @throws ServiceException if status code other than 2xx or 404
      */
     public boolean exists() {
