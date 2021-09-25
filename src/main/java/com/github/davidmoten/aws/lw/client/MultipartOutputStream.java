@@ -62,7 +62,7 @@ public final class MultipartOutputStream extends OutputStream {
     }
 
     public void abort() {
-        executor.shutdownNow();
+        futures.forEach(f -> f.cancel(true));
         s3 //
                 .path(bucket, key) //
                 .query("uploadId", uploadId) //
