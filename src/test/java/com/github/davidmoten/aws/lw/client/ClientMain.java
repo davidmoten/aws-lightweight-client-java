@@ -1,9 +1,12 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
@@ -16,6 +19,8 @@ import org.davidmoten.kool.Stream;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
+
+import software.amazon.awssdk.utils.IoUtils;
 
 public final class ClientMain {
 
@@ -34,7 +39,20 @@ public final class ClientMain {
                 .credentials(credentials) //
                 .build();
         Client s3 = Client.s3().from(sqs).build();
-        System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5, TimeUnit.MINUTES));
+        System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5,
+                TimeUnit.MINUTES));
+        {
+            try (InputStream in = new BufferedInputStream(
+                    new FileInputStream("/home/dave/part001.json"));
+                    MultipartOutputStream multipart = MultipartOutputStream //
+                            .s3(s3) //
+                            .bucket("moten-fixes") //
+                            .key("part001.json") //
+                            .build();) {
+                IoUtils.copy(in, multipart);
+            }
+            System.exit(0);
+        }
         {
             // create bucket
             String bucketName = "temp-bucket-" + System.currentTimeMillis();
@@ -66,7 +84,7 @@ public final class ClientMain {
                         .responseAsXml() //
                         .content("UploadId");
                 System.out.println("uploadId=" + uploadId);
-                
+
                 // upload part 1
                 String text1 = Stream.repeatElement("hello").take(1200000).join(" ").get();
                 String tag1 = s3.path(bucketName, objectName) //
@@ -105,7 +123,7 @@ public final class ClientMain {
                         .element("PartNumber").content("2") //
                         .toString();
                 System.out.println(xml);
-                
+
                 s3.path(bucketName, objectName) //
                         .method(HttpMethod.POST) //
                         .query("uploadId", uploadId) //

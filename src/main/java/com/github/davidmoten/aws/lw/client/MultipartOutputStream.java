@@ -146,45 +146,58 @@ public final class MultipartOutputStream extends OutputStream {
     public void write(byte[] b, int off, int len) throws IOException {
         bytes.write(b, off, len);
         if (bytes.size() > THRESHOLD) {
-            int part = nextPart;
-            nextPart++;
-            byte[] body = bytes.toByteArray();
-            bytes.reset();
-            executor.submit(() -> {
-                int attempt = 1;
-                while (attempt <= maxAttempts) {
-                    try {
-                        String etag = s3 //
-                                .path(bucket, key) //
-                                .method(HttpMethod.PUT) //
-                                .query("partNumber", "" + part) //
-                                .query("uploadId", uploadId) //
-                                .requestBody(body) //
-                                .response() //
-                                .headers() //
-                                .get("ETag") //
-                                .get(0);
-                        setEtag(part, etag);
-                        break;
-                    } catch (Throwable e) {
-                        // Note could do using ScheduledExecutorService rather than blocking the
-                        // thread here
-                        try {
-                            Thread.sleep(retryIntervalMs);
-                        } catch (InterruptedException e1) {
-                            // ignore
-                        }
-                        attempt++;
-                    }
-                }
-            });
+            submitPart();
         }
+    }
+
+    private void submitPart() {
+        int part = nextPart;
+        nextPart++;
+        byte[] body = bytes.toByteArray();
+        bytes.reset();
+        executor.submit(() -> {
+            int attempt = 1;
+            while (attempt <= maxAttempts) {
+                try {
+                    System.out.println("starting upload of part " + part);
+                    String etag = s3 //
+                            .path(bucket, key) //
+                            .method(HttpMethod.PUT) //
+                            .query("partNumber", "" + part) //
+                            .query("uploadId", uploadId) //
+                            .requestBody(body) //
+                            .readTimeout(1, TimeUnit.HOURS) //
+                            .response() //
+                            .headers() //
+                            .get("ETag") //
+                            .get(0);
+                    System.out.println("finished upload of part " + part);
+                    setEtag(part, etag);
+                    break;
+                } catch (Throwable e) {
+                    e.printStackTrace();
+                    // Note could do using ScheduledExecutorService rather than blocking the
+                    // thread here
+                    try {
+                        Thread.sleep(retryIntervalMs);
+                    } catch (InterruptedException e1) {
+                        // ignore
+                    }
+                    attempt++;
+                }
+            }
+        });
     }
 
     @Override
     public void close() throws IOException {
         try {
+            // submit whatever's left
+            if (bytes.size() > 0) {
+                submitPart();
+            }
             if (executor.awaitTermination(timeoutMs, TimeUnit.MILLISECONDS)) {
+                System.out.println("finished parts upload, completing");
                 Xml xml = Xml //
                         .create("CompleteMultipartUpload") //
                         .attribute("xmlns", "http:s3.amazonaws.com/doc/2006-03-01/");
@@ -203,6 +216,7 @@ public final class MultipartOutputStream extends OutputStream {
                         .unsignedPayload() //
                         .requestBody(xml.toString()) //
                         .execute();
+                System.out.println("completed");
             } else {
                 throw new IOException("exceeded timeout of " + timeoutMs + "ms");
             }
@@ -215,7 +229,7 @@ public final class MultipartOutputStream extends OutputStream {
         // part is one-based
 
         // ensure etags is big enough
-        for (int i = 0; i < etags.size() - part; i++) {
+        for (int i = 0; i < part - etags.size(); i++) {
             etags.add(null);
         }
         etags.set(part - 1, etag);
