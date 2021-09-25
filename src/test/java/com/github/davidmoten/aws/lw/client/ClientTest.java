@@ -670,8 +670,8 @@ public class ClientTest {
             Map<String, List<String>> headers = new HashMap<>();
             headers.put("Content-Length", Arrays.asList("" + bytes.length));
             InputStream result = new ByteArrayInputStream(xml.getBytes(StandardCharsets.UTF_8));
-            h.responseInputStream = new ResponseInputStream(() -> {
-            }, 200, headers, result);
+            h.add(new ResponseInputStream(() -> {
+            }, 200, headers, result));
         }
         MultipartOutputStream out = Multipart.s3(s3) //
                 .bucket("mybucket") //
