@@ -17,6 +17,10 @@ import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Multipart {
 
+    private Multipart() {
+        // prevent instantiation
+    }
+
     public static Builder s3(Client s3) {
         Preconditions.checkNotNull(s3);
         return new Builder(s3);
@@ -98,6 +102,7 @@ public final class Multipart {
         }
 
         public Builder3 retryIntervalMs(long retryIntervalMs) {
+            Preconditions.checkArgument(retryIntervalMs >= 0);
             b.retryIntervalMs = retryIntervalMs;
             return this;
         }
@@ -154,5 +159,4 @@ public final class Multipart {
             out.write(buffer, 0, n);
         }
     }
-
 }

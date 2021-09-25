@@ -19,7 +19,6 @@ public class HttpClientTesting2 implements HttpClient {
     public synchronized ResponseInputStream request(URL endpointUrl, String httpMethod,
             Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,
             int readTimeoutMs) throws IOException {
-        System.out.println(endpointUrl);
         return queue.poll();
     }
 

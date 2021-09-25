@@ -12,10 +12,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
 
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
+import com.github.davidmoten.junit.Asserts;
 
 public class MultipartTest {
 
@@ -40,6 +42,8 @@ public class MultipartTest {
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
                 .retryIntervalMs(1) //
+                .partSizeMb(5) //
+                .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
@@ -72,9 +76,66 @@ public class MultipartTest {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
             }
-        } catch( RuntimeException e) {
+        } catch (RuntimeException e) {
             assertTrue(e.getCause().getCause() instanceof MaxAttemptsExceededException);
         }
+    }
+
+    private static Client s3() {
+        return Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .build();
+    }
+
+    @SuppressWarnings("resource")
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartOutputStreamBadArgumentPartTimeoutMs() {
+        new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1),
+                -1, 0, 0, 0);
+    }
+
+    @SuppressWarnings("resource")
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartOutputStreamBadArgumentMaxAttempts() {
+        new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
+                0, 0, 0);
+    }
+
+    @SuppressWarnings("resource")
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartOutputStreamBadArgumentRetryIntervalMs() {
+        new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
+                1, -1, 0);
+    }
+
+    @SuppressWarnings("resource")
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartOutputStreamBadArgumentPartSize() {
+        new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
+                1, 1, 1000);
+    }
+
+    @Test
+    public void isUtilityClass() {
+        Asserts.assertIsUtilityClass(Multipart.class);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadArgument() {
+        Multipart.s3(s3()).bucket("bucket").key("key").maxAttemptsPerAction(0);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadArgument2() {
+        Multipart.s3(s3()).bucket("bucket").key("key").partSize(1000);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadArgument3() {
+        Multipart.s3(s3()).bucket("bucket").key("key").retryIntervalMs(-1);
     }
 
     private static final Closeable DO_NOTHING = () -> {
@@ -92,7 +153,7 @@ public class MultipartTest {
         responseHeaders.put("Content-Length", Arrays.asList("0"));
         return new ResponseInputStream(DO_NOTHING, 200, responseHeaders, emptyInputStream());
     }
-    
+
     private static ResponseInputStream abortMultipartUpload() {
         // response for completion
         // actually includes xml response but we don't read it
