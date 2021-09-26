@@ -1,14 +1,18 @@
 package com.github.davidmoten.aws.lw.client;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -77,7 +81,8 @@ public class MultipartTest {
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
                 .retryIntervalMs(1) //
-                .partSizeMb(5) //s
+                .transformCreateRequest(x -> x) //
+                .partSizeMb(5) // s
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
             out.write(new byte[5 * 1024 * 1024]);
@@ -121,6 +126,124 @@ public class MultipartTest {
                 "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
                 "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
                 h.urls());
+        assertArrayEquals(createBytes(), h.bytes());
+    }
+
+    @Test(expected = UncheckedIOException.class)
+    public void testMultipartUploadFileDoesNotExist() throws IOException {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .executor(Executors.newFixedThreadPool(1)) //
+                .retryIntervalMs(1) //
+                .partSizeMb(5) //
+                .partTimeout(5, TimeUnit.MINUTES) //
+                .upload(new File("target/doesnotexist"));
+
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testMultipartUploadInputStreamFactoryThrows() throws IOException {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .executor(Executors.newFixedThreadPool(1)) //
+                .retryIntervalMs(1) //
+                .partSizeMb(5) //
+                .partTimeout(5, TimeUnit.MINUTES) //
+                .upload(() -> {
+                    throw new Exception();
+                });
+    }
+
+    @Test
+    public void testMultipartUploadFile() throws IOException {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        h.add(startMultipartUpload());
+        h.add(submitPart1());
+        h.add(submitPart2Fails());
+        h.add(submitPart2());
+        h.add(completeMultipartUpload());
+
+        File file = new File("target/temp.txt");
+        byte[] bytes = createBytes();
+        Files.write(file.toPath(), bytes);
+        Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .executor(Executors.newFixedThreadPool(1)) //
+                .retryIntervalMs(1) //
+                .partSizeMb(5) //
+                .partTimeout(5, TimeUnit.MINUTES) //
+                .upload(file);
+
+        assertEquals(Arrays.asList( //
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                h.urls());
+        assertArrayEquals(bytes, h.bytes());
+    }
+
+    @Test
+    public void testMultipartUploadByteArray() throws IOException {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        h.add(startMultipartUpload());
+        h.add(submitPart1());
+        h.add(submitPart2Fails());
+        h.add(submitPart2());
+        h.add(completeMultipartUpload());
+
+        byte[] bytes = createBytes();
+        Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .executor(Executors.newFixedThreadPool(1)) //
+                .retryIntervalMs(1) //
+                .partSizeMb(5) //
+                .partTimeout(5, TimeUnit.MINUTES) //
+                .upload(bytes);
+
+        assertEquals(Arrays.asList( //
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                h.urls());
+        assertArrayEquals(bytes, h.bytes());
     }
 
     @Test
