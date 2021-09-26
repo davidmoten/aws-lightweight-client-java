@@ -16,10 +16,10 @@ import java.util.Map;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import org.davidmoten.kool.function.Consumer;
 import org.junit.Test;
 
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
-import com.github.davidmoten.guavamini.Lists;
 import com.github.davidmoten.junit.Asserts;
 
 public class MultipartTest {
@@ -33,7 +33,63 @@ public class MultipartTest {
     }
 
     @Test
-    public void testMultipart() throws IOException {
+    public void testMultipart() throws Exception {
+        testMultipart(out -> {
+            for (int i = 0; i < 600000; i++) {
+                out.write("0123456789".getBytes(StandardCharsets.UTF_8));
+            }
+        });
+    }
+
+    @Test
+    public void testMultipartSingleWrite() throws Exception {
+        testMultipart(out -> {
+            out.write(createBytes());
+        });
+    }
+
+    @Test
+    public void testMultipartSameChunkAsPartSize() throws Exception {
+        testMultipart(out -> {
+            byte[] bytes = createBytes();
+            int partSize = 5 * 1024 * 1024;
+            out.write(bytes, 0, partSize);
+            out.write(bytes, partSize, bytes.length - partSize);
+        });
+    }
+
+    @Test
+    public void testMultipartSingleWriteOfExactlyPartsSize() throws Exception {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        h.add(startMultipartUpload());
+        h.add(submitPart1());
+        h.add(completeMultipartUpload());
+
+        try (MultipartOutputStream out = Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .executor(Executors.newFixedThreadPool(1)) //
+                .retryIntervalMs(1) //
+                .partSizeMb(5) //s
+                .partTimeout(5, TimeUnit.MINUTES) //
+                .outputStream()) {
+            out.write(new byte[5 * 1024 * 1024]);
+        }
+        assertEquals(Arrays.asList( //
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                h.urls());
+    }
+
+    public void testMultipart(Consumer<MultipartOutputStream> consumer) throws Exception {
         HttpClientTesting2 h = new HttpClientTesting2();
         Client s3 = Client //
                 .s3() //
@@ -56,9 +112,7 @@ public class MultipartTest {
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
-            for (int i = 0; i < 600000; i++) {
-                out.write("0123456789".getBytes(StandardCharsets.UTF_8));
-            }
+            consumer.accept(out);
         }
         assertEquals(Arrays.asList( //
                 "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
@@ -97,7 +151,7 @@ public class MultipartTest {
         } catch (RuntimeException e) {
             assertTrue(e.getCause().getCause() instanceof MaxAttemptsExceededException);
         }
-        
+
         assertEquals(Arrays.asList( //
                 "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
                 "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
