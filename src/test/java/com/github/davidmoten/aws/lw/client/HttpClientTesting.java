@@ -24,7 +24,7 @@ public final class HttpClientTesting implements HttpClient {
     private HttpClientTesting(boolean throwing) {
         this.throwing = throwing;
     }
-
+    
     @Override
     public ResponseInputStream request(URL endpointUrl, String httpMethod,
             Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,
@@ -38,7 +38,7 @@ public final class HttpClientTesting implements HttpClient {
         if (throwing) {
             throw new IOException("bingo");
         } else {
-            return new ResponseInputStream(null, 200, Collections.emptyMap(),
+            return new ResponseInputStream(() -> {}, 200, Collections.emptyMap(),
                     Util.EMPTY_INPUT_STREAM);
         }
     }

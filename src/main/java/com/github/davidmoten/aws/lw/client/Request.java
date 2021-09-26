@@ -76,12 +76,12 @@ public final class Request {
         RequestHelper.put(headers, name, value);
         return this;
     }
-    
+
     public Request signPayload(boolean signPayload) {
-        this.signPayload= signPayload;
+        this.signPayload = signPayload;
         return this;
     }
-    
+
     public Request unsignedPayload() {
         return signPayload(false);
     }
@@ -171,6 +171,24 @@ public final class Request {
         return new Response(r.headers(), bytes, r.statusCode());
     }
 
+    /**
+     * Opens a connection and makes the request. This method returns all the
+     * response information including headers, status code, request body as a byte
+     * array. If the expected status code is not encountered then a
+     * {@link ServiceException} is thrown.
+     * 
+     * @return all response information
+     * @throws ServiceException
+     */
+    public Response responseExpectStatusCode(int expectedStatusCode) {
+        Response r = response();
+        if (r.statusCode() == expectedStatusCode) {
+            return r;
+        } else {
+            throw new ServiceException(r.statusCode(), r.contentUtf8());
+        }
+    }
+
     // VisibleForTesting
     static boolean hasBody(ResponseInputStream r) {
         return r.header("Content-Length").isPresent()
@@ -217,12 +235,13 @@ public final class Request {
             throw exception.get();
         }
     }
-    
+
     /**
      * Returns true if and only if status code is 2xx. Returns false if status code
      * is 404 (NOT_FOUND) and throws a {@link ServiceException} otherwise.
      * 
-     * @return true if status code 2xx, false if 404 otherwise throws ServiceException
+     * @return true if status code 2xx, false if 404 otherwise throws
+     *         ServiceException
      * @throws ServiceException if status code other than 2xx or 404
      */
     public boolean exists() {

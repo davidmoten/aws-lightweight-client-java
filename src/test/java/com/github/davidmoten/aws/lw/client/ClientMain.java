@@ -34,7 +34,8 @@ public final class ClientMain {
                 .credentials(credentials) //
                 .build();
         Client s3 = Client.s3().from(sqs).build();
-        System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5, TimeUnit.MINUTES));
+        System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5,
+                TimeUnit.MINUTES));
         {
             // create bucket
             String bucketName = "temp-bucket-" + System.currentTimeMillis();
@@ -66,7 +67,7 @@ public final class ClientMain {
                         .responseAsXml() //
                         .content("UploadId");
                 System.out.println("uploadId=" + uploadId);
-                
+
                 // upload part 1
                 String text1 = Stream.repeatElement("hello").take(1200000).join(" ").get();
                 String tag1 = s3.path(bucketName, objectName) //
@@ -105,7 +106,7 @@ public final class ClientMain {
                         .element("PartNumber").content("2") //
                         .toString();
                 System.out.println(xml);
-                
+
                 s3.path(bucketName, objectName) //
                         .method(HttpMethod.POST) //
                         .query("uploadId", uploadId) //

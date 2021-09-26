@@ -26,7 +26,8 @@ public final class Util {
     }
 
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
-            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) throws IOException {
+            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs)
+            throws IOException {
         Preconditions.checkNotNull(headers);
         HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
         connection.setRequestMethod(httpMethod);
@@ -152,24 +153,4 @@ public final class Util {
             return -1;
         }
     };
-
-//    /**
-//     * Converts a Hex-encoded data string to the original byte data.
-//     *
-//     * @param hexData
-//     *            hex-encoded data to decode.
-//     * @return decoded data from the hex string.
-//     */
-//    public static byte[] fromHex(String hexData) {
-//        byte[] result = new byte[(hexData.length() + 1) / 2];
-//        String hexNumber = null;
-//        int stringOffset = 0;
-//        int byteOffset = 0;
-//        while (stringOffset < hexData.length()) {
-//            hexNumber = hexData.substring(stringOffset, stringOffset + 2);
-//            stringOffset += 2;
-//            result[byteOffset++] = (byte) Integer.parseInt(hexNumber, 16);
-//        }
-//        return result;
-//    }
 }
