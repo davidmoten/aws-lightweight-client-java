@@ -99,11 +99,10 @@ public class MultipartTest {
         }
         
         assertEquals(Arrays.asList( //
-                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
-                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
-                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
-                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
-                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "DELETE:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
                 h.urls());
     }
 
