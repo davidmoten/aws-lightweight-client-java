@@ -321,6 +321,35 @@ public class MultipartTest {
     }
 
     @Test
+    public void testMultipartDefaultExecutor() {
+        HttpClientTesting2 h = new HttpClientTesting2();
+        Client s3 = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(h) //
+                .build();
+        h.add(startMultipartUpload());
+
+        Multipart.s3(s3) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .outputStream();
+
+        assertEquals(Arrays.asList( //
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads"), h.urls());
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadPartTimeout() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .partTimeout(-1, TimeUnit.MINUTES);
+    }
+
+    @Test
     public void isUtilityClass() {
         Asserts.assertIsUtilityClass(Multipart.class);
     }
