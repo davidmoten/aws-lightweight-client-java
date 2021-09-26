@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -93,34 +94,37 @@ public final class MultipartOutputStream extends OutputStream {
         nextPart++;
         byte[] body = bytes.toByteArray();
         bytes.reset();
-        Future<String> future = executor.submit(() -> {
-            int attempt = 1;
-            while (true) {
-                try {
-                    return s3 //
-                            .path(bucket, key) //
-                            .method(HttpMethod.PUT) //
-                            .query("partNumber", "" + part) //
-                            .query("uploadId", uploadId) //
-                            .requestBody(body) //
-                            .readTimeout(partTimeoutMs, TimeUnit.MILLISECONDS) //
-                            .responseExpectStatusCode(200) //
-                            .firstHeader("ETag") //
-                            .get() //
-                            .replace("\"", "");
-                } catch (Throwable e) {
-                    attempt++;
-                    if (attempt > maxAttempts) {
-                        throw new MaxAttemptsExceededException(
-                                "exceeded max attempts " + maxAttempts + " on part " + part, e);
-                    }
-                    // Note could do using ScheduledExecutorService rather than blocking the
-                    // thread here
-                    sleep(retryIntervalMs);
-                }
-            }
-        });
+        Future<String> future = executor.submit(() -> retry(() -> s3 //
+                .path(bucket, key) //
+                .method(HttpMethod.PUT) //
+                .query("partNumber", "" + part) //
+                .query("uploadId", uploadId) //
+                .requestBody(body) //
+                .readTimeout(partTimeoutMs, TimeUnit.MILLISECONDS) //
+                .responseExpectStatusCode(200) //
+                .firstHeader("ETag") //
+                .get() //
+                .replace("\"", ""), //
+                "on part " + part));
         futures.add(future);
+    }
+
+    private <T> T retry(Callable<T> callable, String description) {
+        int attempt = 1;
+        while (true) {
+            try {
+                return callable.call();
+            } catch (Throwable e) {
+                attempt++;
+                if (attempt > maxAttempts) {
+                    throw new MaxAttemptsExceededException(
+                            "exceeded max attempts " + maxAttempts + " " + description, e);
+                }
+                // Note could do using ScheduledExecutorService rather than blocking the
+                // thread here
+                sleep(retryIntervalMs);
+            }
+        }
     }
 
     private static void sleep(long duration) {
@@ -153,14 +157,17 @@ public final class MultipartOutputStream extends OutputStream {
                     .element("PartNumber").content(String.valueOf(i + 1)) //
                     .up().up();
         }
-
-        s3.path(bucket, key) //
-                .method(HttpMethod.POST) //
-                .query("uploadId", uploadId) //
-                .header("Content-Type", "application/xml") //
-                .unsignedPayload() //
-                .requestBody(xml.toString()) //
-                .execute();
+        String xmlFinal = xml.toString();
+        retry(() -> {
+            s3.path(bucket, key) //
+                    .method(HttpMethod.POST) //
+                    .query("uploadId", uploadId) //
+                    .header("Content-Type", "application/xml") //
+                    .unsignedPayload() //
+                    .requestBody(xmlFinal) //
+                    .execute();
+            return null;
+        }, "while completing multipart upload");
     }
 
     private String getResult(Future<String> future) {
