@@ -1,8 +1,10 @@
 package com.github.davidmoten.aws.lw.client;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,9 +19,18 @@ import java.util.concurrent.TimeUnit;
 import org.junit.Test;
 
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
+import com.github.davidmoten.guavamini.Lists;
 import com.github.davidmoten.junit.Asserts;
 
 public class MultipartTest {
+
+    private static byte[] createBytes() throws IOException {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        for (int i = 0; i < 600000; i++) {
+            bytes.write("0123456789".getBytes(StandardCharsets.UTF_8));
+        }
+        return bytes.toByteArray();
+    }
 
     @Test
     public void testMultipart() throws IOException {
@@ -49,6 +60,13 @@ public class MultipartTest {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
             }
         }
+        assertEquals(Arrays.asList( //
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                h.urls());
     }
 
     @Test
@@ -79,6 +97,14 @@ public class MultipartTest {
         } catch (RuntimeException e) {
             assertTrue(e.getCause().getCause() instanceof MaxAttemptsExceededException);
         }
+        
+        assertEquals(Arrays.asList( //
+                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
+                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                h.urls());
     }
 
     private static Client s3() {
