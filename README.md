@@ -18,7 +18,7 @@ Aside from cold-start runtime improvements in AWS Lambda, the small artifact siz
 * xml builder
 * 100% unit test coverage
 * reduces average Lambda cold start time significantly
-* S3 Multipart upload helper
+* S3 Multipart upload [helper](https://github.com/davidmoten/aws-lightweight-client-java/wiki/Recipes#multipart-upload-a-file)
 
 **Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
