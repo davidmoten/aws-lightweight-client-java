@@ -146,11 +146,15 @@ public final class Util {
             }
         }
     }
-
-    public static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
+    
+    private static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
         @Override
         public int read() throws IOException {
             return -1;
         }
     };
+
+    public static final InputStream emptyInputStream() {
+        return EMPTY_INPUT_STREAM;
+    }
 }

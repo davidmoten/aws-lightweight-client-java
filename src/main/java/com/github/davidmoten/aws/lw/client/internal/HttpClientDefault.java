@@ -48,7 +48,7 @@ public final class HttpClientDefault implements HttpClient {
                 is = connection.getErrorStream();
             }
             if (is == null) {
-                is = Util.EMPTY_INPUT_STREAM;
+                is = Util.emptyInputStream();
             }
         } catch (IOException e) {
             try {
