@@ -11,7 +11,7 @@ public class ResponseInputStreamTest {
     
     @Test
     public void test() throws IOException {
-        new ResponseInputStream(() ->{}, 200, Collections.emptyMap(), Util.EMPTY_INPUT_STREAM).close();
+        new ResponseInputStream(() ->{}, 200, Collections.emptyMap(), Util.emptyInputStream()).close();
     }
 
 }

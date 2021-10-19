@@ -298,22 +298,26 @@ public class ClientTest {
     }
 
     @Test
-    public void testServerOkResponse2() {
-        Client client = Client //
-                .s3() //
-                .region("ap-southeast-2") //
-                .accessKey("123") //
-                .secretKey("456") //
-                .clock(() -> 1622695846902L) //
-                .build();
-        try (Server server = Server.start()) {
-            server.response().body("<a>hello</a>").add();
-            String text = client //
-                    .url(server.baseUrl()) //
-                    .requestBody("hi there") //
-                    .responseAsXml() //
-                    .content(); //
-            assertEquals("hello", text);
+    public void testServerOkResponse2() throws InterruptedException {
+        for (int i = 0; i < 100; i++) {
+            Client client = Client //
+                    .s3() //
+                    .region("ap-southeast-2") //
+                    .accessKey("123") //
+                    .secretKey("456") //
+                    .clock(() -> 1622695846902L) //
+                    .connectTimeout(10, TimeUnit.SECONDS) //
+                    .readTimeout(10, TimeUnit.SECONDS) //
+                    .build();
+            try (Server server = Server.start()) {
+                server.response().body("<a>hello</a>").add();
+                String text = client //
+                        .url(server.baseUrl()) //
+                        .requestBody("hi there") //
+                        .responseAsXml() //
+                        .content(); //
+                assertEquals("hello", text);
+            }
         }
     }
 
