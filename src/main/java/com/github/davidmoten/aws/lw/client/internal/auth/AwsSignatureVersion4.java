@@ -72,7 +72,7 @@ public final class AwsSignatureVersion4 {
      *         request.
      */
     public static String computeSignatureForQueryAuth(URL endpointUrl, String httpMethod,
-            String serviceName, String regionName, Clock clock, Map<String, String> headers,
+            String serviceName, Optional<String> regionName, Clock clock, Map<String, String> headers,
             Map<String, String> queryParameters, String bodyHash, String awsAccessKey,
             String awsSecretKey, Optional<String> sessionToken) {
         // first get the date and time for the subsequent request, and convert
@@ -95,7 +95,7 @@ public final class AwsSignatureVersion4 {
 
         // we need scope as part of the query parameters
         String dateStamp = dateStampFormat().format(now);
-        String scope = dateStamp + "/" + regionName + "/" + serviceName + "/" + TERMINATOR;
+        String scope = dateStamp + "/" + regionName.orElse("us-east-1") + "/" + serviceName + "/" + TERMINATOR;
 
         // add the fixed authorization params required by Signature V4
         queryParameters.put("X-Amz-Algorithm", SCHEME + "-" + ALGORITHM);
@@ -130,7 +130,7 @@ public final class AwsSignatureVersion4 {
         // compute the signing key
         byte[] kSecret = (SCHEME + awsSecretKey).getBytes(StandardCharsets.UTF_8);
         byte[] kDate = sign(dateStamp, kSecret);
-        byte[] kRegion = sign(regionName, kDate);
+        byte[] kRegion = sign(regionName.orElse("us-east-1"), kDate);
         byte[] kService = sign(serviceName, kRegion);
         byte[] kSigning = sign(TERMINATOR, kService);
         byte[] signature = sign(stringToSign, kSigning);

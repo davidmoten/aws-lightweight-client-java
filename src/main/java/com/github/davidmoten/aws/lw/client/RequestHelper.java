@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.github.davidmoten.aws.lw.client.internal.Clock;
@@ -41,7 +42,7 @@ final class RequestHelper {
     }
 
     static String presignedUrl(Clock clock, String url, String method, Map<String, String> headers,
-            byte[] requestBody, String serviceName, String regionName, Credentials credentials,
+            byte[] requestBody, String serviceName, Optional<String> regionName, Credentials credentials,
             int connectTimeoutMs, int readTimeoutMs, long expirySeconds, boolean signPayload) {
 
         // the region-specific endpoint to the target object expressed in path style
@@ -98,7 +99,7 @@ final class RequestHelper {
 
     static ResponseInputStream request(Clock clock, HttpClient httpClient, String url,
             HttpMethod method, Map<String, String> headers, byte[] requestBody, String serviceName,
-            String regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs, //
+            Optional<String> regionName, Credentials credentials, int connectTimeoutMs, int readTimeoutMs, //
             boolean signPayload) throws IOException {
 
         // the region-specific endpoint to the target object expressed in path style
@@ -127,7 +128,7 @@ final class RequestHelper {
         Map<String, String> q = new HashMap<>();
         parameters.forEach(p -> q.put(p.name, p.value));
         String authorization = AwsSignatureVersion4.computeSignatureForAuthorizationHeader(
-                endpointUrl, method.toString(), serviceName, regionName, clock, h, q,
+                endpointUrl, method.toString(), serviceName, regionName.orElse("us-east-1"), clock, h, q,
                 contentHashString, credentials.accessKey(), credentials.secretKey());
 
         // place the computed signature into a formatted 'Authorization' header

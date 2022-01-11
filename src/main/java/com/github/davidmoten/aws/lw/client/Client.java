@@ -1,5 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -13,14 +14,14 @@ public final class Client {
 
     private final Clock clock;
     private final String serviceName;
-    private final String region;
+    private final Optional<String> region;
     private final Credentials credentials;
     private final HttpClient httpClient;
     private final int connectTimeoutMs;
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
 
-    private Client(Clock clock, String serviceName, String region, Credentials credentials,
+    private Client(Clock clock, String serviceName, Optional<String> region, Credentials credentials,
             HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
             ExceptionFactory exceptionFactory) {
         this.clock = clock;
@@ -75,7 +76,7 @@ public final class Client {
         return serviceName;
     }
 
-    public String region() {
+    public Optional<String> region() {
         return region;
     }
 
@@ -138,7 +139,7 @@ public final class Client {
     public static final class Builder {
 
         private final String serviceName;
-        private String region;
+        private Optional<String> region = Optional.empty();
         private String accessKey;
         private Credentials credentials;
         private HttpClient httpClient = HttpClient.defaultClient();
@@ -178,10 +179,15 @@ public final class Client {
             return region(environment.get("AWS_REGION"));
         }
 
-        public Builder2 region(String region) {
+        public Builder2 region(Optional<String> region) {
             Preconditions.checkNotNull(region, "region cannot be null");
             this.region = region;
             return new Builder2(this);
+        }
+        
+        public Builder2 region(String region) {
+            Preconditions.checkNotNull(region, "region cannot be null");
+            return region(Optional.of(region));
         }
     }
 

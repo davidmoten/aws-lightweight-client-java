@@ -19,7 +19,7 @@ import com.github.davidmoten.aws.lw.client.xml.XmlElement;
 public final class Request {
 
     private final Client client;
-    private String region;
+    private Optional<String> region;
     private String url;
     private HttpMethod method = HttpMethod.GET;
     private final Map<String, List<String>> headers = new HashMap<>();
@@ -114,7 +114,7 @@ public final class Request {
 
     public Request region(String region) {
         Preconditions.checkNotNull(region);
-        this.region = region;
+        this.region = Optional.of(region);
         return this;
     }
 
@@ -195,14 +195,13 @@ public final class Request {
                 || r.header("Transfer-Encoding").orElse("").equalsIgnoreCase("chunked");
     }
 
-    private static String calculateUrl(String url, String serviceName, String region,
+    private static String calculateUrl(String url, String serviceName, Optional<String> region,
             List<NameValue> queries, List<String> pathSegments) {
         String u = url;
         if (u == null) {
             u = "https://" //
                     + serviceName //
-                    + "." //
-                    + region //
+                    + region.map(x -> "." + x).orElse("") //
                     + ".amazonaws.com/" //
                     + pathSegments //
                             .stream() //

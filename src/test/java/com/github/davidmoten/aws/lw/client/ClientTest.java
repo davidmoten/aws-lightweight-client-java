@@ -225,7 +225,7 @@ public class ClientTest {
         map.put("AWS_ACCESS_KEY_ID", "123");
         map.put("AWS_SECRET_ACCESS_KEY", "abc");
         Client client = Client.s3().environment(name -> map.get(name)).defaultClient().build();
-        assertEquals("ap-southeast-2", client.region());
+        assertEquals("ap-southeast-2", client.region().get());
         Credentials c = client.credentials();
         assertEquals("123", c.accessKey());
         assertEquals("abc", c.secretKey());
@@ -238,7 +238,7 @@ public class ClientTest {
         System.setProperty("aws.secretKey", "abc");
         Client client = Client.s3().region("ap-southeast-2").credentialsFromSystemProperties()
                 .build();
-        assertEquals("ap-southeast-2", client.region());
+        assertEquals("ap-southeast-2", client.region().get());
         Credentials c = client.credentials();
         assertEquals("123", c.accessKey());
         assertEquals("abc", c.secretKey());
