@@ -144,6 +144,28 @@ public class ClientTest {
         assertEquals(5000, hc.connectTimeoutMs);
         assertEquals(6000, hc.readTimeoutMs);
     }
+    
+    @Test
+    public void testRegionNoneUsesUsEast1InSignature() {
+        Client client = Client //
+                .iam() //
+                .regionNone()
+                .accessKey("123") //
+                .secretKey("456") //
+                .httpClient(hc) //
+                .build();
+        // create a bucket
+        client //
+                .query("Action", "GetUser") //
+                .query("Version", "2010-05-08") //
+                .execute();
+        assertEquals(
+                "https://iam.amazonaws.com/?Action=GetUser&Version=2010-05-08",
+                hc.endpointUrl.toString());
+        String authorization = hc.headers.get("Authorization");
+        assertTrue(authorization.contains("/us-east-1/iam/aws4_request"));
+        assertEquals("iam.amazonaws.com", hc.headers.get("Host"));
+    }
 
     @Test(expected = IllegalArgumentException.class)
     public void testBadConnectTimeout() {
