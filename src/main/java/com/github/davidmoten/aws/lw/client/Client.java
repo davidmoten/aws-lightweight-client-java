@@ -189,6 +189,10 @@ public final class Client {
             Preconditions.checkNotNull(region, "region cannot be null");
             return region(Optional.of(region));
         }
+
+		public Builder2 regionNone() {
+			return region(Optional.empty());
+		}
     }
 
     public static final class Builder2 {
