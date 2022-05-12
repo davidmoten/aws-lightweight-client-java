@@ -175,6 +175,7 @@ Client iam = Client
 	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"),
 	    x -> new PolicyDoesNotExistException(x.contentUtf8()))
     .httpClient(myHttpClient) 
+    .baseUrlFactory((service, region) -> "https://me.com/")
     .connectTimeout(30000, TimeUnit.MILLISECONDS)
     .readTimeout(120000, TimeUnit.MILLISECONDS)
     .build();
