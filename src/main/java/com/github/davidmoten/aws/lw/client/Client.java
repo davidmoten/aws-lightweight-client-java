@@ -20,10 +20,11 @@ public final class Client {
     private final int connectTimeoutMs;
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
+    private final BaseUrlFactory baseUrlFactory;
 
     private Client(Clock clock, String serviceName, Optional<String> region, Credentials credentials,
             HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
-            ExceptionFactory exceptionFactory) {
+            ExceptionFactory exceptionFactory, BaseUrlFactory baseUrlFactory) {
         this.clock = clock;
         this.serviceName = serviceName;
         this.region = region;
@@ -32,6 +33,7 @@ public final class Client {
         this.connectTimeoutMs = connectTimeoutMs;
         this.readTimeoutMs = readTimeoutMs;
         this.exceptionFactory = exceptionFactory;
+        this.baseUrlFactory = baseUrlFactory;
     }
 
     public static Builder service(String serviceName) {
@@ -95,6 +97,10 @@ public final class Client {
     ExceptionFactory exceptionFactory() {
         return exceptionFactory;
     }
+    
+    BaseUrlFactory baseUrlFactory() {
+        return baseUrlFactory;
+    }
 
     int connectTimeoutMs() {
         return connectTimeoutMs;
@@ -148,7 +154,8 @@ public final class Client {
         private ExceptionFactory exceptionFactory = ExceptionFactory.DEFAULT;
         private Clock clock = Clock.DEFAULT;
         private Environment environment = Environment.instance();
-
+        private BaseUrlFactory baseUrlFactory = BaseUrlFactory.DEFAULT;
+        
         private Builder(String serviceName) {
             this.serviceName = serviceName;
         }
@@ -159,7 +166,7 @@ public final class Client {
             this.environment = environment;
             return this;
         }
-
+        
         public Builder4 defaultClient() {
             return regionFromEnvironment().credentialsFromEnvironment();
         }
@@ -244,6 +251,11 @@ public final class Client {
         private Builder4(Builder b) {
             this.b = b;
         }
+        
+        public Builder4 baseUrlFactory(BaseUrlFactory factory) {
+            b.baseUrlFactory = factory;
+            return this;
+        }
 
         public Builder4 httpClient(HttpClient httpClient) {
             b.httpClient = httpClient;
@@ -283,7 +295,7 @@ public final class Client {
 
         public Client build() {
             return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient,
-                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory);
+                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory);
         }
     }
 
