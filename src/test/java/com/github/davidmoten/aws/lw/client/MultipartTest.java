@@ -102,6 +102,8 @@ public class MultipartTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .httpClient(h) //
+                .baseUrlFactory((serviceName, region) //
+                        -> "https://"+ serviceName + "." + region.map(x -> x + ".").orElse("") + "mine.com/") //
                 .build();
         h.add(startMultipartUpload());
         h.add(submitPart1());
@@ -120,11 +122,11 @@ public class MultipartTest {
             consumer.accept(out);
         }
         assertEquals(Arrays.asList( //
-                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
-                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=1&uploadId=abcde",
-                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
-                "PUT:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?partNumber=2&uploadId=abcde",
-                "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploadId=abcde"), //
+                "POST:https://s3.ap-southeast-2.mine.com/mybucket/mykey?uploads",
+                "PUT:https://s3.ap-southeast-2.mine.com/mybucket/mykey?partNumber=1&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.mine.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "PUT:https://s3.ap-southeast-2.mine.com/mybucket/mykey?partNumber=2&uploadId=abcde",
+                "POST:https://s3.ap-southeast-2.mine.com/mybucket/mykey?uploadId=abcde"), //
                 h.urls());
         assertArrayEquals(createBytes(), h.bytes());
     }
