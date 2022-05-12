@@ -53,5 +53,13 @@ public class RequestTest {
             assertFalse(Request.hasBody(r));
         }
     }
+    
+    @Test
+    public void testTrimAndEnsureHasTrailingSlash() {
+        assertEquals("/",Request.trimAndEnsureHasTrailingSlash(""));
+        assertEquals("/",Request.trimAndEnsureHasTrailingSlash("/"));
+        assertEquals("abc/",Request.trimAndEnsureHasTrailingSlash("abc"));
+        assertEquals("abc/",Request.trimAndEnsureHasTrailingSlash("abc/"));
+    }
 
 }

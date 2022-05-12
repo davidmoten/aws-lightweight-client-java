@@ -199,7 +199,9 @@ public final class Request {
             List<NameValue> queries, List<String> pathSegments, BaseUrlFactory baseUrlFactory) {
         String u = url;
         if (u == null) {
-            u = baseUrlFactory.create(serviceName, region) //
+            String baseUrl = baseUrlFactory.create(serviceName,  region);
+            Preconditions.checkNotNull(baseUrl, "baseUrl cannot be null");
+            u = trimAndEnsureHasTrailingSlash(baseUrl) //
                     + pathSegments //
                             .stream() //
                             .map(x -> trimAndRemoveLeadingAndTrailingSlashes(x)) //
@@ -220,6 +222,16 @@ public final class Request {
             }
         }
         return u;
+    }
+
+    //VisibleForTesting
+    static String trimAndEnsureHasTrailingSlash(String s) {
+        String r = s.trim();
+        if (r.endsWith("/")) {
+            return r;
+        } else {
+            return r + "/";
+        }
     }
 
     public byte[] responseAsBytes() {
