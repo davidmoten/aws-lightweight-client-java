@@ -142,7 +142,7 @@ public final class Request {
      */
     public ResponseInputStream responseInputStream() {
         String u = calculateUrl(url, client.serviceName(), region, queries,
-                Arrays.asList(pathSegments));
+                Arrays.asList(pathSegments), client.baseUrlFactory());
         try {
             return RequestHelper.request(client.clock(), client.httpClient(), u, method,
                     RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
@@ -196,13 +196,10 @@ public final class Request {
     }
 
     private static String calculateUrl(String url, String serviceName, Optional<String> region,
-            List<NameValue> queries, List<String> pathSegments) {
+            List<NameValue> queries, List<String> pathSegments, BaseUrlFactory baseUrlFactory) {
         String u = url;
         if (u == null) {
-            u = "https://" //
-                    + serviceName //
-                    + region.map(x -> "." + x).orElse("") //
-                    + ".amazonaws.com/" //
+            u = baseUrlFactory.create(serviceName, region) //
                     + pathSegments //
                             .stream() //
                             .map(x -> trimAndRemoveLeadingAndTrailingSlashes(x)) //
@@ -261,7 +258,7 @@ public final class Request {
 
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
         String u = calculateUrl(url, client.serviceName(), region, queries,
-                Arrays.asList(pathSegments));
+                Arrays.asList(pathSegments), client.baseUrlFactory());
         return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
                 RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
                 client.credentials(), connectTimeoutMs, readTimeoutMs,
