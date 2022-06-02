@@ -197,10 +197,10 @@ Client s3 = Client
     .build();
     
  String content = s3
-  .path("myBucket", "myObject.txt")
-  .connectTimeout(5, TimeUnit.SECONDS)
-  .readTimeout(5, TimeUnit.SECONDS)
-  .responseAsUtf8();
+    .path("myBucket", "myObject.txt")
+    .connectTimeout(5, TimeUnit.SECONDS)
+    .readTimeout(5, TimeUnit.SECONDS)
+    .responseAsUtf8();
 ```
 ### Presigned URLs
 Presigned URLs are generated as follows (with a specified expiry duration):
@@ -230,10 +230,10 @@ String bucketName = "temp-bucket-" + System.currentTimeMillis();
 ///////////////////////
 
 String createXml = Xml
-  .create("CreateBucketConfiguration")
-  .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/")
-  .e("LocationConstraint").content(region)
-  .toString();       
+    .create("CreateBucketConfiguration")
+    .a("xmlns", "http://s3.amazonaws.com/doc/2006-03-01/")
+    .e("LocationConstraint").content(region)
+    .toString();       
 s3.path(bucketName)
     .method(HttpMethod.PUT)
     .requestBody(createXml)
