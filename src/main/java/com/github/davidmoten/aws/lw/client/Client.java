@@ -279,6 +279,16 @@ public final class Client {
             b.retries.maxAttempts = maxAttempts;
             return this;
         }
+        
+        public Builder4 backoffFactor(double factor) {
+            b.retries.backoffFactor = factor;
+            return this;
+        }
+        
+        public Builder4 maxIntervalMs(long maxIntervalMs) {
+            b.retries.maxIntervalMs = maxIntervalMs;
+            return this;
+        }
 
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");

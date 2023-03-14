@@ -31,11 +31,11 @@ public final class Retries {
         while (true) {
             ResponseInputStream ris;
             try {
+                attempt++;
                 ris = callable.call();
                 if (!statusCodeShouldRetry.test(ris)) {
                     return ris;
                 }
-                attempt++;
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
                     return ris;
                 }
@@ -43,7 +43,6 @@ public final class Retries {
                 if (!throwableShouldRetry.test(t)) {
                     rethrow(t);
                 }
-                attempt++;
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
                     rethrow(t);
                 }

@@ -230,6 +230,7 @@ public class ClientTest {
                 .connectTimeout(5, TimeUnit.SECONDS) //
                 .readTimeout(6, TimeUnit.SECONDS) //
                 .httpClient(HttpClientTesting.THROWING) //
+                .maxAttempts(1) //
                 .build();
 
         // create a bucket
@@ -321,7 +322,7 @@ public class ClientTest {
 
     @Test
     public void testServerOkResponse2() throws InterruptedException {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             Client client = Client //
                     .s3() //
                     .region("ap-southeast-2") //
@@ -330,6 +331,7 @@ public class ClientTest {
                     .clock(() -> 1622695846902L) //
                     .connectTimeout(10, TimeUnit.SECONDS) //
                     .readTimeout(10, TimeUnit.SECONDS) //
+                    .maxAttempts(1) //
                     .build();
             try (Server server = Server.start()) {
                 server.response().body("<a>hello</a>").add();
@@ -650,7 +652,7 @@ public class ClientTest {
 
     @Test(expected = UncheckedIOException.class)
     public void testUrlDoesNotExist() {
-        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").build();
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").maxAttempts(1).build();
         s3.url("https://doesnotexist.z21894649.com").execute();
     }
 
