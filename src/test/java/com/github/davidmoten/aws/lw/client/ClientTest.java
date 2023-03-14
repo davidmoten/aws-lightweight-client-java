@@ -220,7 +220,7 @@ public class ClientTest {
         assertEquals(6000, hc.readTimeoutMs);
     }
 
-    @Test(expected = UncheckedIOException.class)
+    @Test(expected = MaxAttemptsExceededException.class)
     public void testThrows() {
         Client client = Client //
                 .s3() //
@@ -650,7 +650,7 @@ public class ClientTest {
         assertEquals(a.size(), hc.headers.size());
     }
 
-    @Test(expected = UncheckedIOException.class)
+    @Test(expected = MaxAttemptsExceededException.class)
     public void testUrlDoesNotExist() {
         Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").maxAttempts(1).build();
         s3.url("https://doesnotexist.z21894649.com").execute();
