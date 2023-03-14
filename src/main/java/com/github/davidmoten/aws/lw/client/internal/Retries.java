@@ -8,6 +8,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
+import com.github.davidmoten.aws.lw.client.MaxAttemptsExceededException;
 import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 
 public final class Retries {
@@ -44,7 +45,8 @@ public final class Retries {
                     rethrow(t);
                 }
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
-                    rethrow(t);
+                    throw new MaxAttemptsExceededException(
+                            "exceeded max attempts " + maxAttempts, t);
                 }
             } finally {
                 intervalMs = Math.min(maxIntervalMs, Math.round(backoffFactor * intervalMs));
