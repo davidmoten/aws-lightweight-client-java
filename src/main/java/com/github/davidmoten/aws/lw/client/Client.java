@@ -269,6 +269,16 @@ public final class Client {
             b.httpClient = httpClient;
             return this;
         }
+        
+        public Builder4 retryInitialIntervalMs(long initialIntervalMs) {
+            b.retries.initialIntervalMs = initialIntervalMs;
+            return this;
+        }
+        
+        public Builder4 maxAttempts(int maxAttempts) {
+            b.retries.maxAttempts = maxAttempts;
+            return this;
+        }
 
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");

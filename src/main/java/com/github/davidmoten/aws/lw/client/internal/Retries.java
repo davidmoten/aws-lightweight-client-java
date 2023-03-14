@@ -17,10 +17,10 @@ public final class Retries {
     private static final Set<Integer> throttlingStatusCodes = new HashSet<>( //
             Arrays.asList(400, 403, 429, 502, 503, 509));
 
-    public long initialIntervalMs = 500;
-    public int maxAttempts = 1;
+    public long initialIntervalMs = 100;
+    public int maxAttempts = 10;
     public double backoffFactor = 2.0;
-    public long maxIntervalMs = 32000;
+    public long maxIntervalMs = 30000;
     public Predicate<ResponseInputStream> statusCodeShouldRetry = ris -> transientStatusCodes.contains(ris.statusCode())
             || throttlingStatusCodes.contains(ris.statusCode());
     public Predicate<Throwable> throwableShouldRetry = t -> false;
@@ -38,7 +38,7 @@ public final class Retries {
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
                     return ris;
                 }
-                intervalMs = Math.max(maxIntervalMs, Math.round(backoffFactor * intervalMs));
+                intervalMs = Math.min(maxIntervalMs, Math.round(backoffFactor * intervalMs));
                 Thread.sleep(intervalMs);
             } catch (Throwable t) {
                 if (!throwableShouldRetry.test(t)) {

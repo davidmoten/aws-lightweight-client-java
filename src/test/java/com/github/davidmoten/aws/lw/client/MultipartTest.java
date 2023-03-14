@@ -257,6 +257,7 @@ public class MultipartTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .httpClient(h) //
+                .maxAttempts(1) //
                 .build();
 
         h.add(startMultipartUpload());
@@ -274,6 +275,7 @@ public class MultipartTest {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
             }
         } catch (RuntimeException e) {
+            e.printStackTrace();
             assertTrue(e.getCause().getCause() instanceof MaxAttemptsExceededException);
         }
 

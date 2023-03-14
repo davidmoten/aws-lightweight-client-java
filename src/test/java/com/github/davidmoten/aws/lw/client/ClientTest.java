@@ -351,6 +351,7 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
+                .maxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -390,6 +391,7 @@ public class ClientTest {
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk(), r -> new UnsupportedOperationException()) //
+                .maxAttempts(1)
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -414,6 +416,7 @@ public class ClientTest {
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk() && r.statusCode() == 404,
                         r -> new UnsupportedOperationException()) //
+                .maxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -443,6 +446,7 @@ public class ClientTest {
                         return Optional.of(new UnsupportedOperationException());
                     }
                 }) //
+                .maxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
