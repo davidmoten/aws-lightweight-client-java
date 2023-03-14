@@ -257,7 +257,7 @@ public class MultipartTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .httpClient(h) //
-                .maxAttempts(1) //
+                .retryMaxAttempts(1) //
                 .build();
 
         h.add(startMultipartUpload());

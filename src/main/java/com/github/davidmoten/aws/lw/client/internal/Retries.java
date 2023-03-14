@@ -22,9 +22,34 @@ public final class Retries {
     public int maxAttempts = 10;
     public double backoffFactor = 2.0;
     public long maxIntervalMs = 30000;
-    public Predicate<ResponseInputStream> statusCodeShouldRetry = ris -> transientStatusCodes.contains(ris.statusCode())
-            || throttlingStatusCodes.contains(ris.statusCode());
-    public Predicate<Throwable> throwableShouldRetry = t -> t instanceof IOException || t instanceof UncheckedIOException;
+    public Predicate<ResponseInputStream> statusCodeShouldRetry;
+    public Predicate<Throwable> throwableShouldRetry;
+
+    public Retries() {
+        this( //
+                500, //
+                10, //
+                2.0, //
+                30000, //
+                ris -> transientStatusCodes.contains(ris.statusCode())
+                        || throttlingStatusCodes.contains(ris.statusCode()), //
+                t -> t instanceof IOException || t instanceof UncheckedIOException);
+    }
+
+    public Retries(long initialIntervalMs, int maxAttempts, double backoffFactor, long maxIntervalMs,
+            Predicate<ResponseInputStream> statusCodeShouldRetry, Predicate<Throwable> throwableShouldRetry) {
+        this.initialIntervalMs = initialIntervalMs;
+        this.maxAttempts = maxAttempts;
+        this.backoffFactor = backoffFactor;
+        this.maxIntervalMs = maxIntervalMs;
+        this.statusCodeShouldRetry = statusCodeShouldRetry;
+        this.throwableShouldRetry = throwableShouldRetry;
+    }
+
+    public Retries copy() {
+        return new Retries(initialIntervalMs, maxAttempts, backoffFactor, maxIntervalMs, statusCodeShouldRetry,
+                throwableShouldRetry);
+    }
 
     public ResponseInputStream call(Callable<ResponseInputStream> callable) {
         long intervalMs = initialIntervalMs;
@@ -45,8 +70,7 @@ public final class Retries {
                     rethrow(t);
                 }
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
-                    throw new MaxAttemptsExceededException(
-                            "exceeded max attempts " + maxAttempts, t);
+                    throw new MaxAttemptsExceededException("exceeded max attempts " + maxAttempts, t);
                 }
             } finally {
                 intervalMs = Math.min(maxIntervalMs, Math.round(backoffFactor * intervalMs));

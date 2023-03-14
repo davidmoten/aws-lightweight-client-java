@@ -275,17 +275,17 @@ public final class Client {
             return this;
         }
         
-        public Builder4 maxAttempts(int maxAttempts) {
+        public Builder4 retryMaxAttempts(int maxAttempts) {
             b.retries.maxAttempts = maxAttempts;
             return this;
         }
         
-        public Builder4 backoffFactor(double factor) {
+        public Builder4 retryBackoffFactor(double factor) {
             b.retries.backoffFactor = factor;
             return this;
         }
         
-        public Builder4 maxIntervalMs(long maxIntervalMs) {
+        public Builder4 retryMaxIntervalMs(long maxIntervalMs) {
             b.retries.maxIntervalMs = maxIntervalMs;
             return this;
         }

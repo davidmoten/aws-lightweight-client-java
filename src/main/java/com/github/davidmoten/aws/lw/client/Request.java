@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
@@ -25,6 +26,7 @@ public final class Request {
     private int connectTimeoutMs;
     private int readTimeoutMs;
     private int attributeNumber = 1;
+    private final Retries retries;
     private String attributePrefix = "Attribute";
     private String[] pathSegments;
     private final List<NameValue> queries = new ArrayList<>();
@@ -37,6 +39,7 @@ public final class Request {
         this.region = client.region();
         this.connectTimeoutMs = client.connectTimeoutMs();
         this.readTimeoutMs = client.readTimeoutMs();
+        this.retries = client.retries().copy();
     }
 
     public Request method(HttpMethod method) {
@@ -127,6 +130,26 @@ public final class Request {
         this.readTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
+    
+    public Request retryInitialIntervalMs(long initialIntervalMs) {
+        retries.initialIntervalMs = initialIntervalMs;
+        return this;
+    }
+    
+    public Request retryMaxAttempts(int maxAttempts) {
+        retries.maxAttempts = maxAttempts;
+        return this;
+    }
+    
+    public Request retryBackoffFactor(double factor) {
+        retries.backoffFactor = factor;
+        return this;
+    }
+    
+    public Request retryMaxIntervalMs(long maxIntervalMs) {
+        retries.maxIntervalMs = maxIntervalMs;
+        return this;
+    }
 
     /**
      * Opens a connection and makes the request. This method returns all the
@@ -141,8 +164,7 @@ public final class Request {
     public ResponseInputStream responseInputStream() {
         String u = calculateUrl(url, client.serviceName(), region, queries, Arrays.asList(pathSegments),
                 client.baseUrlFactory());
-        return client //
-                .retries() //
+        return retries //
                 .call(() -> RequestHelper.request(client.clock(), client.httpClient(), u, method,
                         RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
                         client.credentials(), connectTimeoutMs, readTimeoutMs, signPayload));

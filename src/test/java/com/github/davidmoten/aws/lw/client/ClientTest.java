@@ -5,7 +5,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -230,7 +229,7 @@ public class ClientTest {
                 .connectTimeout(5, TimeUnit.SECONDS) //
                 .readTimeout(6, TimeUnit.SECONDS) //
                 .httpClient(HttpClientTesting.THROWING) //
-                .maxAttempts(1) //
+                .retryMaxAttempts(1) //
                 .build();
 
         // create a bucket
@@ -331,7 +330,7 @@ public class ClientTest {
                     .clock(() -> 1622695846902L) //
                     .connectTimeout(10, TimeUnit.SECONDS) //
                     .readTimeout(10, TimeUnit.SECONDS) //
-                    .maxAttempts(1) //
+                    .retryMaxAttempts(1) //
                     .build();
             try (Server server = Server.start()) {
                 server.response().body("<a>hello</a>").add();
@@ -353,7 +352,7 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
-                .maxAttempts(1) //
+                .retryMaxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -393,7 +392,7 @@ public class ClientTest {
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk(), r -> new UnsupportedOperationException()) //
-                .maxAttempts(1)
+                .retryMaxAttempts(1)
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -418,7 +417,7 @@ public class ClientTest {
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk() && r.statusCode() == 404,
                         r -> new UnsupportedOperationException()) //
-                .maxAttempts(1) //
+                .retryMaxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -448,7 +447,7 @@ public class ClientTest {
                         return Optional.of(new UnsupportedOperationException());
                     }
                 }) //
-                .maxAttempts(1) //
+                .retryMaxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -652,7 +651,7 @@ public class ClientTest {
 
     @Test(expected = MaxAttemptsExceededException.class)
     public void testUrlDoesNotExist() {
-        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").maxAttempts(1).build();
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").retryMaxAttempts(1).build();
         s3.url("https://doesnotexist.z21894649.com").execute();
     }
 
