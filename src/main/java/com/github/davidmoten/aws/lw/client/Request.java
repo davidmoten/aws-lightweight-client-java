@@ -132,22 +132,22 @@ public final class Request {
     }
 
     public Request retryInitialIntervalMs(long initialIntervalMs) {
-        retries.initialIntervalMs = initialIntervalMs;
+        retries.setInitialIntervalMs(initialIntervalMs);
         return this;
     }
 
     public Request retryMaxAttempts(int maxAttempts) {
-        retries.maxAttempts = maxAttempts;
+        retries.setMaxAttempts(maxAttempts);
         return this;
     }
 
     public Request retryBackoffFactor(double factor) {
-        retries.backoffFactor = factor;
+        retries.setBackoffFactor(factor);
         return this;
     }
 
     public Request retryMaxIntervalMs(long maxIntervalMs) {
-        retries.maxIntervalMs = maxIntervalMs;
+        retries.setMaxIntervalMs(maxIntervalMs);
         return this;
     }
 

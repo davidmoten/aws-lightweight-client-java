@@ -12,6 +12,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 
@@ -26,31 +27,28 @@ public final class MultipartOutputStream extends OutputStream {
     private final ByteArrayOutputStream bytes;
     private final byte[] singleByte = new byte[1]; // for reuse in write(int) method
     private final long partTimeoutMs;
-    private final int maxAttempts;
-    private final long retryIntervalMs;
+    private final Retries<Void> retries;
     private final int partSize;
     private final List<Future<String>> futures = new CopyOnWriteArrayList<>();
     private int nextPart = 1;
 
     MultipartOutputStream(Client s3, String bucket, String key,
             Function<? super Request, ? extends Request> transformCreate, ExecutorService executor,
-            long partTimeoutMs, int maxAttempts, long retryIntervalMs, int partSize) {
+            long partTimeoutMs, Retries<Void> retries, int partSize) {
         Preconditions.checkNotNull(s3);
         Preconditions.checkNotNull(bucket);
         Preconditions.checkNotNull(key);
         Preconditions.checkNotNull(transformCreate);
         Preconditions.checkNotNull(executor);
         Preconditions.checkArgument(partTimeoutMs > 0);
-        Preconditions.checkArgument(maxAttempts >= 1);
-        Preconditions.checkArgument(retryIntervalMs >= 0);
+        Preconditions.checkNotNull(retries);
         Preconditions.checkArgument(partSize >= 5 * 1024 * 1024);
         this.s3 = s3;
         this.bucket = bucket;
         this.key = key;
         this.executor = executor;
         this.partTimeoutMs = partTimeoutMs;
-        this.maxAttempts = maxAttempts;
-        this.retryIntervalMs = retryIntervalMs;
+        this.retries = retries;
         this.partSize = partSize;
         this.bytes = new ByteArrayOutputStream();
         this.uploadId = transformCreate.apply(s3 //
@@ -110,29 +108,8 @@ public final class MultipartOutputStream extends OutputStream {
     }
 
     private <T> T retry(Callable<T> callable, String description) {
-        int attempt = 1;
-        while (true) {
-            try {
-                return callable.call();
-            } catch (Throwable e) {
-                attempt++;
-                if (attempt > maxAttempts) {
-                    throw new MaxAttemptsExceededException(
-                            "exceeded max attempts " + maxAttempts + " " + description, e);
-                }
-                // Note could do using ScheduledExecutorService rather than blocking the
-                // thread here
-                sleep(retryIntervalMs);
-            }
-        }
-    }
-
-    private static void sleep(long duration) {
-        try {
-            Thread.sleep(duration);
-        } catch (InterruptedException e) {
-            // do nothing
-        }
+        //TODO use description
+        return retries.call(callable, x -> false);
     }
 
     @Override

@@ -271,25 +271,25 @@ public final class Client {
         }
 
         public Builder4 retryInitialIntervalMs(long initialIntervalMs) {
-            b.retries.initialIntervalMs = initialIntervalMs;
+            b.retries.setInitialIntervalMs( initialIntervalMs);
             return this;
         }
 
         public Builder4 retryMaxAttempts(int maxAttempts) {
-            b.retries.maxAttempts = maxAttempts;
+            b.retries.setMaxAttempts( maxAttempts);
             return this;
         }
 
         public Builder4 retryBackoffFactor(double factor) {
-            b.retries.backoffFactor = factor;
+            b.retries.setBackoffFactor(factor);
             return this;
         }
 
         public Builder4 retryMaxIntervalMs(long maxIntervalMs) {
-            b.retries.maxIntervalMs = maxIntervalMs;
+            b.retries.setMaxIntervalMs(maxIntervalMs);
             return this;
         }
-
+        
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
             Preconditions.checkNotNull(unit, "unit cannot be null");

@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.davidmoten.kool.function.Consumer;
 import org.junit.Test;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 import com.github.davidmoten.junit.Asserts;
 
@@ -269,14 +270,15 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .maxAttemptsPerAction(1).retryIntervalMs(1) //
+                .maxAttemptsPerAction(1) //
+                .retryIntervalMs(1) //
+                .retryBackoffFactor(1.0) //
                 .outputStream()) {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
             }
         } catch (RuntimeException e) {
-            e.printStackTrace();
-            assertTrue(e.getCause().getCause() instanceof MaxAttemptsExceededException);
+            assertTrue(e.getCause().getCause() instanceof ServiceException);
         }
 
         assertEquals(Arrays.asList( //
@@ -300,28 +302,21 @@ public class MultipartTest {
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentPartTimeoutMs() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1),
-                -1, 0, 0, 0);
+                -1, Retries.retries(x -> false, x -> true), 0);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentMaxAttempts() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                0, 0, 0);
-    }
-
-    @SuppressWarnings("resource")
-    @Test(expected = IllegalArgumentException.class)
-    public void testMultipartOutputStreamBadArgumentRetryIntervalMs() {
-        new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                1, -1, 0);
+                Retries.retries(x -> false, x -> true), 0);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentPartSize() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                1, 1, 1000);
+                Retries.retries(x -> false, x -> true), 1000);
     }
 
     @Test

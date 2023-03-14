@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Multipart {
@@ -34,12 +35,12 @@ public final class Multipart {
         public ExecutorService executor;
         public long timeoutMs = TimeUnit.HOURS.toMillis(1);
         public Function<? super Request, ? extends Request> transform = x -> x;
-        public int maxAttempts = 3;
-        public long retryIntervalMs = 10000;
         public int partSize = 5 * 1024 * 1024;
+        public Retries<Void> retries;
 
         Builder(Client s3) {
             this.s3 = s3;
+            this.retries = s3.retries().withValueShouldRetry(ris -> false);
         }
 
         public Builder2 bucket(String bucket) {
@@ -97,13 +98,25 @@ public final class Multipart {
 
         public Builder3 maxAttemptsPerAction(int maxAttempts) {
             Preconditions.checkArgument(maxAttempts >= 1);
-            b.maxAttempts = maxAttempts;
+            b.retries.setMaxAttempts(maxAttempts);
             return this;
         }
 
         public Builder3 retryIntervalMs(long retryIntervalMs) {
             Preconditions.checkArgument(retryIntervalMs >= 0);
-            b.retryIntervalMs = retryIntervalMs;
+            b.retries.setInitialIntervalMs(retryIntervalMs);
+            return this;
+        }
+        
+        public Builder3 retryBackoffFactor(double factor) {
+            Preconditions.checkArgument(factor >= 0);
+            b.retries.setBackoffFactor(factor);
+            return this;
+        }
+        
+        public Builder3 retryMaxIntervalMs(long retryMaxIntervalMs) {
+            Preconditions.checkArgument(retryMaxIntervalMs >= 0);
+            b.retries.setMaxIntervalMs(retryMaxIntervalMs);
             return this;
         }
 
@@ -148,7 +161,7 @@ public final class Multipart {
                 b.executor = Executors.newCachedThreadPool();
             }
             return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor,
-                    b.timeoutMs, b.maxAttempts, b.retryIntervalMs, b.partSize);
+                    b.timeoutMs, b.retries, b.partSize);
         }
     }
 

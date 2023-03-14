@@ -1,6 +1,6 @@
 package com.github.davidmoten.aws.lw.client;
 
-public final class MaxAttemptsExceededException extends RuntimeException{
+public final class MaxAttemptsExceededException extends RuntimeException {
 
     /**
      * 
