@@ -26,7 +26,7 @@ public final class Request {
     private int connectTimeoutMs;
     private int readTimeoutMs;
     private int attributeNumber = 1;
-    private final Retries retries;
+    private final Retries<ResponseInputStream> retries;
     private String attributePrefix = "Attribute";
     private String[] pathSegments;
     private final List<NameValue> queries = new ArrayList<>();
@@ -130,22 +130,22 @@ public final class Request {
         this.readTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
-    
+
     public Request retryInitialIntervalMs(long initialIntervalMs) {
         retries.initialIntervalMs = initialIntervalMs;
         return this;
     }
-    
+
     public Request retryMaxAttempts(int maxAttempts) {
         retries.maxAttempts = maxAttempts;
         return this;
     }
-    
+
     public Request retryBackoffFactor(double factor) {
         retries.backoffFactor = factor;
         return this;
     }
-    
+
     public Request retryMaxIntervalMs(long maxIntervalMs) {
         retries.maxIntervalMs = maxIntervalMs;
         return this;
@@ -213,11 +213,11 @@ public final class Request {
                 || r.header("Transfer-Encoding").orElse("").equalsIgnoreCase("chunked");
     }
 
-    private static String calculateUrl(String url, String serviceName, Optional<String> region,
-            List<NameValue> queries, List<String> pathSegments, BaseUrlFactory baseUrlFactory) {
+    private static String calculateUrl(String url, String serviceName, Optional<String> region, List<NameValue> queries,
+            List<String> pathSegments, BaseUrlFactory baseUrlFactory) {
         String u = url;
         if (u == null) {
-            String baseUrl = baseUrlFactory.create(serviceName,  region);
+            String baseUrl = baseUrlFactory.create(serviceName, region);
             Preconditions.checkNotNull(baseUrl, "baseUrl cannot be null");
             u = trimAndEnsureHasTrailingSlash(baseUrl) //
                     + pathSegments //
@@ -242,7 +242,7 @@ public final class Request {
         return u;
     }
 
-    //VisibleForTesting
+    // VisibleForTesting
     static String trimAndEnsureHasTrailingSlash(String s) {
         String r = s.trim();
         if (r.endsWith("/")) {
@@ -287,11 +287,10 @@ public final class Request {
     }
 
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
-        String u = calculateUrl(url, client.serviceName(), region, queries,
-                Arrays.asList(pathSegments), client.baseUrlFactory());
-        return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
-                client.credentials(), connectTimeoutMs, readTimeoutMs,
+        String u = calculateUrl(url, client.serviceName(), region, queries, Arrays.asList(pathSegments),
+                client.baseUrlFactory());
+        return RequestHelper.presignedUrl(client.clock(), u, method.toString(), RequestHelper.combineHeaders(headers),
+                requestBody, client.serviceName(), region, client.credentials(), connectTimeoutMs, readTimeoutMs,
                 unit.toSeconds(expiryDuration), signPayload);
     }
 

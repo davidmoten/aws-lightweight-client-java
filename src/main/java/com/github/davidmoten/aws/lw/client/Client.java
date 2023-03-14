@@ -22,11 +22,11 @@ public final class Client {
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
     private final BaseUrlFactory baseUrlFactory;
-    private final Retries retries;
+    private final Retries<ResponseInputStream> retries;
 
     private Client(Clock clock, String serviceName, Optional<String> region, Credentials credentials,
-            HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
-            ExceptionFactory exceptionFactory, BaseUrlFactory baseUrlFactory, Retries retries) {
+            HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs, ExceptionFactory exceptionFactory,
+            BaseUrlFactory baseUrlFactory, Retries<ResponseInputStream> retries) {
         this.clock = clock;
         this.serviceName = serviceName;
         this.region = region;
@@ -100,7 +100,7 @@ public final class Client {
     ExceptionFactory exceptionFactory() {
         return exceptionFactory;
     }
-    
+
     BaseUrlFactory baseUrlFactory() {
         return baseUrlFactory;
     }
@@ -112,8 +112,8 @@ public final class Client {
     int readTimeoutMs() {
         return readTimeoutMs;
     }
-    
-    Retries retries() {
+
+    Retries<ResponseInputStream> retries() {
         return retries;
     }
 
@@ -162,8 +162,8 @@ public final class Client {
         private Clock clock = Clock.DEFAULT;
         private Environment environment = Environment.instance();
         private BaseUrlFactory baseUrlFactory = BaseUrlFactory.DEFAULT;
-        private Retries retries = new Retries();
-        
+        private Retries<ResponseInputStream> retries = Retries.requestRetries();
+
         private Builder(String serviceName) {
             this.serviceName = serviceName;
         }
@@ -174,7 +174,7 @@ public final class Client {
             this.environment = environment;
             return this;
         }
-        
+
         public Builder4 defaultClient() {
             return regionFromEnvironment().credentialsFromEnvironment();
         }
@@ -199,15 +199,15 @@ public final class Client {
             this.region = region;
             return new Builder2(this);
         }
-        
+
         public Builder2 region(String region) {
             Preconditions.checkNotNull(region, "region cannot be null");
             return region(Optional.of(region));
         }
 
-		public Builder2 regionNone() {
-			return region(Optional.empty());
-		}
+        public Builder2 regionNone() {
+            return region(Optional.empty());
+        }
     }
 
     public static final class Builder2 {
@@ -259,7 +259,7 @@ public final class Client {
         private Builder4(Builder b) {
             this.b = b;
         }
-        
+
         public Builder4 baseUrlFactory(BaseUrlFactory factory) {
             b.baseUrlFactory = factory;
             return this;
@@ -269,22 +269,22 @@ public final class Client {
             b.httpClient = httpClient;
             return this;
         }
-        
+
         public Builder4 retryInitialIntervalMs(long initialIntervalMs) {
             b.retries.initialIntervalMs = initialIntervalMs;
             return this;
         }
-        
+
         public Builder4 retryMaxAttempts(int maxAttempts) {
             b.retries.maxAttempts = maxAttempts;
             return this;
         }
-        
+
         public Builder4 retryBackoffFactor(double factor) {
             b.retries.backoffFactor = factor;
             return this;
         }
-        
+
         public Builder4 retryMaxIntervalMs(long maxIntervalMs) {
             b.retries.maxIntervalMs = maxIntervalMs;
             return this;
@@ -311,8 +311,7 @@ public final class Client {
 
         public Builder4 exception(Predicate<? super Response> predicate,
                 Function<? super Response, ? extends RuntimeException> factory) {
-            b.exceptionFactory = new ExceptionFactoryExtended(b.exceptionFactory, predicate,
-                    factory);
+            b.exceptionFactory = new ExceptionFactoryExtended(b.exceptionFactory, predicate, factory);
             return this;
         }
 
@@ -322,8 +321,8 @@ public final class Client {
         }
 
         public Client build() {
-            return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient,
-                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory, b.retries);
+            return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient, b.connectTimeoutMs,
+                    b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory, b.retries);
         }
     }
 
