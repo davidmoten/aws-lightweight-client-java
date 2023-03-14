@@ -23,14 +23,15 @@ public final class Retries {
     public long maxIntervalMs = 30000;
     public Predicate<ResponseInputStream> statusCodeShouldRetry = ris -> transientStatusCodes.contains(ris.statusCode())
             || throttlingStatusCodes.contains(ris.statusCode());
-    public Predicate<Throwable> throwableShouldRetry = t -> false;
+    public Predicate<Throwable> throwableShouldRetry = t -> t instanceof IOException || t instanceof UncheckedIOException;
 
     public ResponseInputStream call(Callable<ResponseInputStream> callable) {
         long intervalMs = initialIntervalMs;
         int attempt = 0;
         while (true) {
+            ResponseInputStream ris;
             try {
-                ResponseInputStream ris = callable.call();
+                ris = callable.call();
                 if (!statusCodeShouldRetry.test(ris)) {
                     return ris;
                 }
@@ -38,21 +39,34 @@ public final class Retries {
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
                     return ris;
                 }
-                intervalMs = Math.min(maxIntervalMs, Math.round(backoffFactor * intervalMs));
-                Thread.sleep(intervalMs);
             } catch (Throwable t) {
                 if (!throwableShouldRetry.test(t)) {
-                    if (t instanceof RuntimeException) {
-                        throw (RuntimeException) t;
-                    } else if (t instanceof Error) {
-                        throw (Error) t;
-                    } else if (t instanceof IOException) {
-                        throw new UncheckedIOException((IOException) t);
-                    } else {
-                        throw new RuntimeException(t);
-                    }
+                    rethrow(t);
+                }
+                attempt++;
+                if (maxAttempts > 0 && attempt >= maxAttempts) {
+                    rethrow(t);
+                }
+            } finally {
+                intervalMs = Math.min(maxIntervalMs, Math.round(backoffFactor * intervalMs));
+                try {
+                    Thread.sleep(intervalMs);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             }
+        }
+    }
+
+    private void rethrow(Throwable t) throws Error {
+        if (t instanceof RuntimeException) {
+            throw (RuntimeException) t;
+        } else if (t instanceof Error) {
+            throw (Error) t;
+        } else if (t instanceof IOException) {
+            throw new UncheckedIOException((IOException) t);
+        } else {
+            throw new RuntimeException(t);
         }
     }
 
