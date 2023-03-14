@@ -12,8 +12,9 @@ import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 
 public final class Retries {
 
-    private static final Set<Integer> transientStatusCodes = new HashSet<>(Arrays.asList(400, 408, 500, 502, 503, 509));
-    private static final Set<Integer> throttlingStatusCodes = new HashSet<>(
+    private static final Set<Integer> transientStatusCodes = new HashSet<>( //
+            Arrays.asList(400, 408, 500, 502, 503, 509));
+    private static final Set<Integer> throttlingStatusCodes = new HashSet<>( //
             Arrays.asList(400, 403, 429, 502, 503, 509));
 
     public long initialIntervalMs = 500;
