@@ -8,6 +8,7 @@ import java.util.function.Predicate;
 import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.Environment;
 import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Client {
@@ -21,10 +22,11 @@ public final class Client {
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
     private final BaseUrlFactory baseUrlFactory;
+    private final Retries retries;
 
     private Client(Clock clock, String serviceName, Optional<String> region, Credentials credentials,
             HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
-            ExceptionFactory exceptionFactory, BaseUrlFactory baseUrlFactory) {
+            ExceptionFactory exceptionFactory, BaseUrlFactory baseUrlFactory, Retries retries) {
         this.clock = clock;
         this.serviceName = serviceName;
         this.region = region;
@@ -34,6 +36,7 @@ public final class Client {
         this.readTimeoutMs = readTimeoutMs;
         this.exceptionFactory = exceptionFactory;
         this.baseUrlFactory = baseUrlFactory;
+        this.retries = retries;
     }
 
     public static Builder service(String serviceName) {
@@ -109,6 +112,10 @@ public final class Client {
     int readTimeoutMs() {
         return readTimeoutMs;
     }
+    
+    Retries retries() {
+        return retries;
+    }
 
     public Request url(String url) {
         Preconditions.checkNotNull(url);
@@ -155,6 +162,7 @@ public final class Client {
         private Clock clock = Clock.DEFAULT;
         private Environment environment = Environment.instance();
         private BaseUrlFactory baseUrlFactory = BaseUrlFactory.DEFAULT;
+        private Retries retries = new Retries();
         
         private Builder(String serviceName) {
             this.serviceName = serviceName;
@@ -295,7 +303,7 @@ public final class Client {
 
         public Client build() {
             return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient,
-                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory);
+                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory, b.retries);
         }
     }
 

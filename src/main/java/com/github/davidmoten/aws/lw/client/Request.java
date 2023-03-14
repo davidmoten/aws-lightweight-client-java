@@ -141,15 +141,13 @@ public final class Request {
      *         finished with it
      */
     public ResponseInputStream responseInputStream() {
-        String u = calculateUrl(url, client.serviceName(), region, queries,
-                Arrays.asList(pathSegments), client.baseUrlFactory());
-        try {
-            return RequestHelper.request(client.clock(), client.httpClient(), u, method,
-                    RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                    region, client.credentials(), connectTimeoutMs, readTimeoutMs, signPayload);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String u = calculateUrl(url, client.serviceName(), region, queries, Arrays.asList(pathSegments),
+                client.baseUrlFactory());
+        return client //
+                .retries() //
+                .call(() -> RequestHelper.request(client.clock(), client.httpClient(), u, method,
+                        RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
+                        client.credentials(), connectTimeoutMs, readTimeoutMs, signPayload));
     }
 
     /**
