@@ -12,7 +12,7 @@ import com.github.davidmoten.aws.lw.client.MaxAttemptsExceededException;
 import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 
 public final class Retries<T> {
-    
+
     // from
     // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html
     private static final Set<Integer> transientStatusCodes = new HashSet<>( //
@@ -59,7 +59,7 @@ public final class Retries<T> {
     public T call(Callable<T> callable) {
         return call(callable, valueShouldRetry);
     }
-    
+
     public <S> S call(Callable<S> callable, Predicate<? super S> valueShouldRetry) {
         long intervalMs = initialIntervalMs;
         int attempt = 0;
@@ -72,6 +72,8 @@ public final class Retries<T> {
                     return value;
                 }
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
+                    // note that caller is not aware that maxAttempts were reached, the caller just
+                    // receives the last error response
                     return value;
                 }
             } catch (Throwable t) {
