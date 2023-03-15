@@ -223,9 +223,10 @@ Client s3 = Client
   .retryMaxInterval(30, TimeUnit.SECONDS)
   .retryJitter(0.5)
   .retryStatusCodes(400, 403, 429, 500, 502, 503)
+  .retryException(e -> false) // never retry exceptions
   .build();
 ```
-The same options are available on request builders:
+Most of the same options are available on request builders:
 ```java
 String content = s3
     .path("myBucket", "myObject.txt")
