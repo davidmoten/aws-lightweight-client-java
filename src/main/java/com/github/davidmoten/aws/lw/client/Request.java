@@ -1,7 +1,5 @@
 package com.github.davidmoten.aws.lw.client;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +10,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import com.github.davidmoten.aws.lw.client.xml.XmlElement;
@@ -27,6 +26,7 @@ public final class Request {
     private int connectTimeoutMs;
     private int readTimeoutMs;
     private int attributeNumber = 1;
+    private Retries<ResponseInputStream> retries;
     private String attributePrefix = "Attribute";
     private String[] pathSegments;
     private final List<NameValue> queries = new ArrayList<>();
@@ -39,6 +39,7 @@ public final class Request {
         this.region = client.region();
         this.connectTimeoutMs = client.connectTimeoutMs();
         this.readTimeoutMs = client.readTimeoutMs();
+        this.retries = client.retries().copy();
     }
 
     public Request method(HttpMethod method) {
@@ -119,14 +120,58 @@ public final class Request {
     }
 
     public Request connectTimeout(long duration, TimeUnit unit) {
-        Preconditions.checkArgument(duration >= 0);
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
         this.connectTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
 
     public Request readTimeout(long duration, TimeUnit unit) {
-        Preconditions.checkArgument(duration >= 0);
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
         this.readTimeoutMs = (int) unit.toMillis(duration);
+        return this;
+    }
+
+    public Request retryInitialInterval(long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
+        retries = retries.withInitialIntervalMs(unit.toMillis(duration));
+        return this;
+    }
+
+    public Request retryMaxAttempts(int maxAttempts) {
+        Preconditions.checkArgument(maxAttempts >=0, "retryMaxAttempts cannot be negative");
+        retries = retries.withMaxAttempts(maxAttempts);
+        return this;
+    }
+    
+    /**
+     * Sets the level of randomness applied to the next retry interval. The next
+     * calculated retry interval is multiplied by
+     * {@code (1 - jitter * Math.random())}. A value of zero means no jitter, 1
+     * means max jitter.
+     * 
+     * @param jitter level of randomness applied to the retry interval
+     * @return this
+     */
+    public Request retryJitter(double jitter) {
+        Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1");
+        retries = retries.withJitter(jitter);
+        return this;
+    }
+
+
+    public Request retryBackoffFactor(double factor) {
+        Preconditions.checkArgument(factor >=0, "retryBackoffFactor cannot be negative");
+        retries = retries.withBackoffFactor(factor);
+        return this;
+    }
+
+    public Request retryMaxInterval(long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
+        retries = retries.withMaxIntervalMs(unit.toMillis(duration));
         return this;
     }
 
@@ -141,15 +186,12 @@ public final class Request {
      *         finished with it
      */
     public ResponseInputStream responseInputStream() {
-        String u = calculateUrl(url, client.serviceName(), region, queries,
-                Arrays.asList(pathSegments), client.baseUrlFactory());
-        try {
-            return RequestHelper.request(client.clock(), client.httpClient(), u, method,
-                    RequestHelper.combineHeaders(headers), requestBody, client.serviceName(),
-                    region, client.credentials(), connectTimeoutMs, readTimeoutMs, signPayload);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        String u = calculateUrl(url, client.serviceName(), region, queries, Arrays.asList(pathSegments),
+                client.baseUrlFactory());
+        return retries //
+                .call(() -> RequestHelper.request(client.clock(), client.httpClient(), u, method,
+                        RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
+                        client.credentials(), connectTimeoutMs, readTimeoutMs, signPayload));
     }
 
     /**
@@ -195,11 +237,11 @@ public final class Request {
                 || r.header("Transfer-Encoding").orElse("").equalsIgnoreCase("chunked");
     }
 
-    private static String calculateUrl(String url, String serviceName, Optional<String> region,
-            List<NameValue> queries, List<String> pathSegments, BaseUrlFactory baseUrlFactory) {
+    private static String calculateUrl(String url, String serviceName, Optional<String> region, List<NameValue> queries,
+            List<String> pathSegments, BaseUrlFactory baseUrlFactory) {
         String u = url;
         if (u == null) {
-            String baseUrl = baseUrlFactory.create(serviceName,  region);
+            String baseUrl = baseUrlFactory.create(serviceName, region);
             Preconditions.checkNotNull(baseUrl, "baseUrl cannot be null");
             u = trimAndEnsureHasTrailingSlash(baseUrl) //
                     + pathSegments //
@@ -224,7 +266,7 @@ public final class Request {
         return u;
     }
 
-    //VisibleForTesting
+    // VisibleForTesting
     static String trimAndEnsureHasTrailingSlash(String s) {
         String r = s.trim();
         if (r.endsWith("/")) {
@@ -269,11 +311,10 @@ public final class Request {
     }
 
     public String presignedUrl(long expiryDuration, TimeUnit unit) {
-        String u = calculateUrl(url, client.serviceName(), region, queries,
-                Arrays.asList(pathSegments), client.baseUrlFactory());
-        return RequestHelper.presignedUrl(client.clock(), u, method.toString(),
-                RequestHelper.combineHeaders(headers), requestBody, client.serviceName(), region,
-                client.credentials(), connectTimeoutMs, readTimeoutMs,
+        String u = calculateUrl(url, client.serviceName(), region, queries, Arrays.asList(pathSegments),
+                client.baseUrlFactory());
+        return RequestHelper.presignedUrl(client.clock(), u, method.toString(), RequestHelper.combineHeaders(headers),
+                requestBody, client.serviceName(), region, client.credentials(), connectTimeoutMs, readTimeoutMs,
                 unit.toSeconds(expiryDuration), signPayload);
     }
 

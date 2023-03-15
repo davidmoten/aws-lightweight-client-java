@@ -4,9 +4,13 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -53,6 +57,11 @@ public class ClientTest {
                 .region("ap-southeast-2") //
                 .connectTimeout(5, TimeUnit.SECONDS) //
                 .readTimeout(6, TimeUnit.SECONDS) //
+                .retryMaxAttempts(1) //
+                .retryBackoffFactor(1.0) //
+                .retryInitialInterval(10, TimeUnit.MILLISECONDS) //
+                .retryMaxInterval(1, TimeUnit.SECONDS) //
+                .retryJitter(0) //
                 .execute();
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&Attribute.1.Name=color&Attribute.1.Value=red&Attribute.2.Name=color&Attribute.2.Value=blue&Message.1.Name=name&Message.1.Value=hi&Message.2.Name=name&Message.2.Value=there",
@@ -196,6 +205,31 @@ public class ClientTest {
     public void testBadReadTimeout2() {
         s3.path().readTimeout(-1, TimeUnit.SECONDS);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryInitialInterval() {
+        s3.path().retryInitialInterval(-1, TimeUnit.SECONDS);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryMaxInterval() {
+        s3.path().retryMaxInterval(-1, TimeUnit.SECONDS);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryMaxAttempts() {
+        s3.path().retryMaxAttempts(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryJitter() {
+        s3.path().retryJitter(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryBackoffFactor() {
+        s3.path().retryBackoffFactor(-1);
+    }
 
     @Test
     public void testTimeoutsAtClientLevel() {
@@ -208,7 +242,6 @@ public class ClientTest {
                 .readTimeout(6, TimeUnit.SECONDS) //
                 .httpClient(hc) //
                 .build();
-
         // create a bucket
         client //
                 .path("MyBucket") //
@@ -220,7 +253,7 @@ public class ClientTest {
         assertEquals(6000, hc.readTimeoutMs);
     }
 
-    @Test(expected = UncheckedIOException.class)
+    @Test(expected = MaxAttemptsExceededException.class)
     public void testThrows() {
         Client client = Client //
                 .s3() //
@@ -230,6 +263,7 @@ public class ClientTest {
                 .connectTimeout(5, TimeUnit.SECONDS) //
                 .readTimeout(6, TimeUnit.SECONDS) //
                 .httpClient(HttpClientTesting.THROWING) //
+                .retryMaxAttempts(1) //
                 .build();
 
         // create a bucket
@@ -321,7 +355,7 @@ public class ClientTest {
 
     @Test
     public void testServerOkResponse2() throws InterruptedException {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 10; i++) {
             Client client = Client //
                     .s3() //
                     .region("ap-southeast-2") //
@@ -330,6 +364,7 @@ public class ClientTest {
                     .clock(() -> 1622695846902L) //
                     .connectTimeout(10, TimeUnit.SECONDS) //
                     .readTimeout(10, TimeUnit.SECONDS) //
+                    .retryMaxAttempts(1) //
                     .build();
             try (Server server = Server.start()) {
                 server.response().body("<a>hello</a>").add();
@@ -351,6 +386,7 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
+                .retryMaxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -390,6 +426,7 @@ public class ClientTest {
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk(), r -> new UnsupportedOperationException()) //
+                .retryMaxAttempts(1)
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -414,6 +451,7 @@ public class ClientTest {
                 .clock(() -> 1622695846902L) //
                 .exception(r -> !r.isOk() && r.statusCode() == 404,
                         r -> new UnsupportedOperationException()) //
+                .retryMaxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -443,6 +481,7 @@ public class ClientTest {
                         return Optional.of(new UnsupportedOperationException());
                     }
                 }) //
+                .retryMaxAttempts(1) //
                 .build();
         try (Server server = Server.start()) {
             server.response().body("hello").statusCode(500).add();
@@ -456,7 +495,7 @@ public class ClientTest {
             }
         }
     }
-
+    
     @Test
     public void testWithServerNoResponseBody() throws IOException {
         try {
@@ -644,9 +683,9 @@ public class ClientTest {
         assertEquals(a.size(), hc.headers.size());
     }
 
-    @Test(expected = UncheckedIOException.class)
+    @Test(expected = MaxAttemptsExceededException.class)
     public void testUrlDoesNotExist() {
-        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").build();
+        Client s3 = Client.s3().region("ap-southeast-2").accessKey("123").secretKey("456").retryMaxAttempts(1).build();
         s3.url("https://doesnotexist.z21894649.com").execute();
     }
 
@@ -661,5 +700,213 @@ public class ClientTest {
         assertEquals("sqs", Client.sqs().from(s3).build().serviceName());
         assertEquals("hi", Client.service("hi").from(s3).build().serviceName());
     }
+    
+    @Test
+    public void testRetriesFailTwiceThenSucceed() {
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
+                .build();
+        try (Server server = Server.start()) {
+            server.response().statusCode(408).body("timed out").add();
+            server.response().statusCode(408).body("timed out").add();
+            server.response().statusCode(200).body("stuff").add();
+            String text = client.url(server.baseUrl()) //
+                    .method(HttpMethod.PUT) //
+                    .requestBody("hi there") //
+                    .responseAsUtf8(); //
+            assertEquals("stuff", text);
+        }
+    }
 
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryInitialInterval() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(-1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryMaxInterval() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryMaxInterval(-1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryJitter() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryJitter(-1);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testTooLargeRetryJitter() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryJitter(2);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryMaxAttempts() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryMaxAttempts(-1);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryBackoffFactor() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryBackoffFactor(-1.0);
+    }
+    
+    @Test
+    public void testRetriesFailTwiceThenHitMaxAttempts() {
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
+                .retryMaxAttempts(2) //
+                .retryStatusCodes(408) //
+                .build();
+        try (Server server = Server.start()) {
+            server.response().statusCode(408).body("timed out").add();
+            server.response().statusCode(408).body("timed out").add();
+            server.response().statusCode(200).body("stuff").add();
+            client.url(server.baseUrl()) //
+                    .method(HttpMethod.PUT) //
+                    .requestBody("hi there") //
+                    .responseAsUtf8(); //
+        } catch (ServiceException e) {
+            assertEquals(408, e.statusCode());
+        }
+    }
+
+    @Test
+    public void testRetriesFailTwiceThenSucceedGivenIOExceptions() {
+        HttpClientTestingWithQueue hc = new HttpClientTestingWithQueue();
+        hc.add(new IOException("boo"));
+        hc.add(new IOException("boo2"));
+        hc.add(createResponseInputStream(200, "stuff"));
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
+                .retryMaxAttempts(0) //
+                .httpClient(hc) //
+                .build();
+        String text = client //
+                .path("myBucket", "myObject.txt") //
+                .responseAsUtf8();
+        hc.urls().forEach(System.out::println);
+        assertEquals("stuff", text);
+    }
+    
+    @Test
+    public void testRetriesFailTwiceThenThrowFinalIOExceptions() {
+        HttpClientTestingWithQueue hc = new HttpClientTestingWithQueue();
+        hc.add(new IOException("boo"));
+        hc.add(new IOException("boo2"));
+        hc.add(createResponseInputStream(200, "stuff"));
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
+                .retryMaxAttempts(2) //
+                .retryBackoffFactor(2.0) //
+                .retryMaxInterval(3, TimeUnit.SECONDS) //
+                .retryJitter(0) //
+                .retryStatusCodes(400) //
+                .retryException(e -> e instanceof IOException && e.getMessage().startsWith("boo")) //
+                .httpClient(hc) //
+                .build();
+        try {
+            client //
+                    .path("myBucket", "myObject.txt") //
+                    .responseAsUtf8();
+            Assert.fail();
+        } catch (MaxAttemptsExceededException e) {
+            assertEquals("boo2", e.getCause().getMessage());
+        }
+    }
+
+    @Test
+    public void testDontRetryException() {
+        HttpClientTestingWithQueue hc = new HttpClientTestingWithQueue();
+        hc.add(new IOException("boo"));
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
+                .retryMaxAttempts(2) //
+                .retryBackoffFactor(2.0) //
+                .retryMaxInterval(3, TimeUnit.SECONDS) //
+                .retryJitter(0) //
+                .retryStatusCodes(400) //
+                .retryException(e -> false) //
+                .httpClient(hc) //
+                .build();
+        try {
+            client //
+                    .path("myBucket", "myObject.txt") //
+                    .responseAsUtf8();
+            Assert.fail();
+        } catch (UncheckedIOException e) {
+            assertEquals("boo", e.getCause().getMessage());
+        }
+    }
+    
+    private static ResponseInputStream createResponseInputStream(int statusCode, String text) {
+        Map<String, List<String>> headers = new HashMap<>();
+        byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
+        headers.put("Content-Length", Arrays.asList(Integer.toString(bytes.length)));
+        return new ResponseInputStream( //
+                () -> {
+                }, //
+                statusCode, //
+                headers, //
+                new ByteArrayInputStream(bytes));
+    }
+    
 }

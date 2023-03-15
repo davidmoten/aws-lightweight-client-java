@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import org.davidmoten.kool.function.Consumer;
 import org.junit.Test;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.xml.builder.Xml;
 import com.github.davidmoten.junit.Asserts;
 
@@ -64,7 +65,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartSingleWriteOfExactlyPartsSize() throws Exception {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -80,12 +81,13 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .transformCreateRequest(x -> x) //
                 .partSizeMb(5) // s
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
-            out.write(new byte[5 * 1024 * 1024]);
+            out.write(0);
+            out.write(new byte[5 * 1024 * 1024 - 1]);
         }
         assertEquals(Arrays.asList( //
                 "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
@@ -95,7 +97,7 @@ public class MultipartTest {
     }
 
     public void testMultipart(Consumer<MultipartOutputStream> consumer) throws Exception {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -115,7 +117,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
@@ -133,7 +135,7 @@ public class MultipartTest {
 
     @Test(expected = UncheckedIOException.class)
     public void testMultipartUploadFileDoesNotExist() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -145,7 +147,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(new File("target/doesnotexist"));
@@ -154,7 +156,7 @@ public class MultipartTest {
 
     @Test(expected = RuntimeException.class)
     public void testMultipartUploadInputStreamFactoryThrows() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -166,7 +168,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(() -> {
@@ -176,7 +178,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartUploadFile() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -197,7 +199,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(file);
@@ -214,7 +216,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartUploadByteArray() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -233,7 +235,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(bytes);
@@ -250,13 +252,14 @@ public class MultipartTest {
 
     @Test
     public void testMultipartAbort() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
                 .accessKey("123") //
                 .secretKey("456") //
                 .httpClient(h) //
+                .retryMaxAttempts(1) //
                 .build();
 
         h.add(startMultipartUpload());
@@ -268,13 +271,17 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .maxAttemptsPerAction(1).retryIntervalMs(1) //
+                .maxAttemptsPerAction(1) //
+                .retryInitialInterval(1, TimeUnit.SECONDS) //
+                .retryBackoffFactor(1.0) //
+                .retryMaxInterval(10, TimeUnit.SECONDS) //
+                .retryJitter(0) //
                 .outputStream()) {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
             }
         } catch (RuntimeException e) {
-            assertTrue(e.getCause().getCause() instanceof MaxAttemptsExceededException);
+            assertTrue(e.getCause().getCause() instanceof ServiceException);
         }
 
         assertEquals(Arrays.asList( //
@@ -298,33 +305,26 @@ public class MultipartTest {
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentPartTimeoutMs() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1),
-                -1, 0, 0, 0);
+                -1, Retries.create(x -> false, x -> true), 0);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentMaxAttempts() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                0, 0, 0);
-    }
-
-    @SuppressWarnings("resource")
-    @Test(expected = IllegalArgumentException.class)
-    public void testMultipartOutputStreamBadArgumentRetryIntervalMs() {
-        new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                1, -1, 0);
+                Retries.create(x -> false, x -> true), 0);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentPartSize() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                1, 1, 1000);
+                Retries.create(x -> false, x -> true), 1000);
     }
 
     @Test
     public void testMultipartDefaultExecutor() {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -350,6 +350,46 @@ public class MultipartTest {
                 .key("mykey") //
                 .partTimeout(-1, TimeUnit.MINUTES);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryInitialInterval() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryInitialInterval(-1, TimeUnit.MINUTES);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryBackoffFactor() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryBackoffFactor(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryMaxInterval() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryMaxInterval(-1, TimeUnit.SECONDS);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryJitter() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryJitter(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryJitter2() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryJitter(2);
+    }
 
     @Test
     public void isUtilityClass() {
@@ -368,7 +408,7 @@ public class MultipartTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartBadArgument3() {
-        Multipart.s3(s3()).bucket("bucket").key("key").retryIntervalMs(-1);
+        Multipart.s3(s3()).bucket("bucket").key("key").retryInitialInterval(-1, TimeUnit.MILLISECONDS);
     }
 
     private static final Closeable DO_NOTHING = () -> {

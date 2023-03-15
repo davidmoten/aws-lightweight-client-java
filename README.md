@@ -202,6 +202,49 @@ Client s3 = Client
     .readTimeout(5, TimeUnit.SECONDS)
     .responseAsUtf8();
 ```
+### Retries
+Automatic retries can be configured in the client builder and also for each request including multipart requests. Capped
+exponential backoff is supported as is jitter (randomised intervals):
+
+Default behaviour (that can be overridden) is to retry these HTTP status codes:
+
+```
+400, 403, 429, 500, 502, 503, 509
+```
+When the http client throws an exception it is retried if it is an `IOException` or an `UncheckedIOException`.
+
+```java
+Client s3 = Client
+  .s3()
+  .defaultClient()
+  .retryMaxAttempts(10)
+  .retryInitialInterval(100, TimeUnit.MILLISECONDS)
+  .retryBackoffFactor(2.0)
+  .retryMaxInterval(30, TimeUnit.SECONDS)
+  .retryJitter(0.5)
+  .retryStatusCodes(400, 403, 429, 500, 502, 503)
+  .retryException(e -> false) // never retry exceptions
+  .build();
+```
+Most of the same options are available on request builders:
+```java
+String content = s3
+    .path("myBucket", "myObject.txt")
+    .connectTimeout(5, TimeUnit.SECONDS)
+    .readTimeout(5, TimeUnit.SECONDS)
+    .retryMaxAttempts(3)
+    .retryInitialInterval(5, TimeUnit.SECONDS)
+    .responseAsUtf8();
+```
+You can also completely control the request retry (when there is an HTTP status code) via this builder method:
+```java
+Client s3 = Client
+  .s3()
+  .defaultClient()
+  .retryCondition(ris -> ris.statusCode() == 500)
+...
+```
+
 ### Presigned URLs
 Presigned URLs are generated as follows (with a specified expiry duration):
 

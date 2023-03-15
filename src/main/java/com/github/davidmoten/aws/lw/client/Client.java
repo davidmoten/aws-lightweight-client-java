@@ -1,6 +1,12 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -8,6 +14,7 @@ import java.util.function.Predicate;
 import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.Environment;
 import com.github.davidmoten.aws.lw.client.internal.ExceptionFactoryExtended;
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Client {
@@ -21,10 +28,11 @@ public final class Client {
     private final int readTimeoutMs;
     private final ExceptionFactory exceptionFactory;
     private final BaseUrlFactory baseUrlFactory;
+    private final Retries<ResponseInputStream> retries;
 
     private Client(Clock clock, String serviceName, Optional<String> region, Credentials credentials,
-            HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs,
-            ExceptionFactory exceptionFactory, BaseUrlFactory baseUrlFactory) {
+            HttpClient httpClient, int connectTimeoutMs, int readTimeoutMs, ExceptionFactory exceptionFactory,
+            BaseUrlFactory baseUrlFactory, Retries<ResponseInputStream> retries) {
         this.clock = clock;
         this.serviceName = serviceName;
         this.region = region;
@@ -34,6 +42,7 @@ public final class Client {
         this.readTimeoutMs = readTimeoutMs;
         this.exceptionFactory = exceptionFactory;
         this.baseUrlFactory = baseUrlFactory;
+        this.retries = retries;
     }
 
     public static Builder service(String serviceName) {
@@ -97,7 +106,7 @@ public final class Client {
     ExceptionFactory exceptionFactory() {
         return exceptionFactory;
     }
-    
+
     BaseUrlFactory baseUrlFactory() {
         return baseUrlFactory;
     }
@@ -108,6 +117,10 @@ public final class Client {
 
     int readTimeoutMs() {
         return readTimeoutMs;
+    }
+
+    Retries<ResponseInputStream> retries() {
+        return retries;
     }
 
     public Request url(String url) {
@@ -144,6 +157,21 @@ public final class Client {
 
     public static final class Builder {
 
+        // from
+        // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html
+        private static final Set<Integer> RETRY_STATUS_CODES = new HashSet<>( //
+                Arrays.asList( //
+                        400, // BAD_REQUEST
+                        403, // FORBIDDEN
+                        408, // REQUEST_TIMEOUT
+                        429, // TOO_MANY_REQUESTS
+                        500, // INTERNAL_SERVER_ERROR
+                        502, // BAD_GATEWAY
+                        503, // SERVICE_UNAVAILABLE
+                        509 // BANDWIDTH_LIMIT_EXCEEDED
+                ));
+        
+
         private final String serviceName;
         private Optional<String> region = Optional.empty();
         private String accessKey;
@@ -155,7 +183,10 @@ public final class Client {
         private Clock clock = Clock.DEFAULT;
         private Environment environment = Environment.instance();
         private BaseUrlFactory baseUrlFactory = BaseUrlFactory.DEFAULT;
-        
+        private Retries<ResponseInputStream> retries = Retries.create(
+                ris -> RETRY_STATUS_CODES.contains(ris.statusCode()), //
+        t -> t instanceof IOException || t instanceof UncheckedIOException);
+
         private Builder(String serviceName) {
             this.serviceName = serviceName;
         }
@@ -166,7 +197,7 @@ public final class Client {
             this.environment = environment;
             return this;
         }
-        
+
         public Builder4 defaultClient() {
             return regionFromEnvironment().credentialsFromEnvironment();
         }
@@ -191,15 +222,15 @@ public final class Client {
             this.region = region;
             return new Builder2(this);
         }
-        
+
         public Builder2 region(String region) {
             Preconditions.checkNotNull(region, "region cannot be null");
             return region(Optional.of(region));
         }
 
-		public Builder2 regionNone() {
-			return region(Optional.empty());
-		}
+        public Builder2 regionNone() {
+            return region(Optional.empty());
+        }
     }
 
     public static final class Builder2 {
@@ -251,7 +282,7 @@ public final class Client {
         private Builder4(Builder b) {
             this.b = b;
         }
-        
+
         public Builder4 baseUrlFactory(BaseUrlFactory factory) {
             b.baseUrlFactory = factory;
             return this;
@@ -262,6 +293,75 @@ public final class Client {
             return this;
         }
 
+        public Builder4 retryInitialInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
+            b.retries = b.retries.withInitialIntervalMs(unit.toMillis(duration));
+            return this;
+        }
+
+        public Builder4 retryMaxAttempts(int maxAttempts) {
+            Preconditions.checkArgument(maxAttempts >= 0, "maxAttempts cannot be negative");
+            b.retries = b.retries.withMaxAttempts( maxAttempts);
+            return this;
+        }
+
+        public Builder4 retryBackoffFactor(double factor) {
+            Preconditions.checkArgument(factor >= 0, "backoffFactor cannot be negative");
+            b.retries = b.retries.withBackoffFactor(factor);
+            return this;
+        }
+
+        public Builder4 retryMaxInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
+            b.retries = b.retries.withMaxIntervalMs(unit.toMillis(duration));
+            return this;
+        }
+        
+        /**
+         * Sets the level of randomness applied to the next retry interval. The next
+         * calculated retry interval is multiplied by
+         * {@code (1 - jitter * Math.random())}. A value of zero means no jitter, 1
+         * means max jitter.
+         * 
+         * @param jitter level of randomness applied to the retry interval
+         * @return this
+         */
+        public Builder4 retryJitter(double jitter) {
+            Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1");
+            b.retries = b.retries.withJitter(jitter);
+            return this;
+        }
+        
+        public Builder4 retryCondition(Predicate<? super ResponseInputStream> shouldRetry) {
+            Preconditions.checkNotNull(shouldRetry, "shouldRetry cannot be null");
+            b.retries = b.retries.withValueShouldRetry(shouldRetry);
+            return this;
+        }
+
+        public Builder4 retryStatusCodes(Integer... statusCodes) {
+            return retryStatusCodes(Arrays.asList(statusCodes));
+        }
+        
+        public Builder4 retryStatusCodes(Collection<Integer> statusCodes) {
+            Preconditions.checkNotNull(statusCodes, "statusCodes cannot be null");
+            Set<Integer> set = new HashSet<>(statusCodes);
+            return retryCondition(ris -> set.contains(ris.statusCode()));
+        }
+        
+        /**
+         * Default behaviour is to retry IOException and UncheckedIOException.
+         * 
+         * @param shouldRetry returns true if should retry
+         * @return this
+         */
+        public Builder4 retryException(Predicate<? super Throwable> shouldRetry) {
+            Preconditions.checkNotNull(shouldRetry, "shouldRetry cannot be null");
+            b.retries = b.retries.withThrowableShouldRetry(shouldRetry);
+            return this;
+        }
+        
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
             Preconditions.checkNotNull(unit, "unit cannot be null");
@@ -283,8 +383,7 @@ public final class Client {
 
         public Builder4 exception(Predicate<? super Response> predicate,
                 Function<? super Response, ? extends RuntimeException> factory) {
-            b.exceptionFactory = new ExceptionFactoryExtended(b.exceptionFactory, predicate,
-                    factory);
+            b.exceptionFactory = new ExceptionFactoryExtended(b.exceptionFactory, predicate, factory);
             return this;
         }
 
@@ -294,8 +393,8 @@ public final class Client {
         }
 
         public Client build() {
-            return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient,
-                    b.connectTimeoutMs, b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory);
+            return new Client(b.clock, b.serviceName, b.region, b.credentials, b.httpClient, b.connectTimeoutMs,
+                    b.readTimeoutMs, b.exceptionFactory, b.baseUrlFactory, b.retries);
         }
     }
 

@@ -13,6 +13,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
+import com.github.davidmoten.aws.lw.client.internal.Retries;
 import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Multipart {
@@ -34,12 +35,12 @@ public final class Multipart {
         public ExecutorService executor;
         public long timeoutMs = TimeUnit.HOURS.toMillis(1);
         public Function<? super Request, ? extends Request> transform = x -> x;
-        public int maxAttempts = 3;
-        public long retryIntervalMs = 10000;
         public int partSize = 5 * 1024 * 1024;
+        public Retries<Void> retries;
 
         Builder(Client s3) {
             this.s3 = s3;
+            this.retries = s3.retries().withValueShouldRetry(values -> false);
         }
 
         public Builder2 bucket(String bucket) {
@@ -79,7 +80,7 @@ public final class Multipart {
         }
 
         public Builder3 partTimeout(long duration, TimeUnit unit) {
-            Preconditions.checkArgument(duration > 0);
+            Preconditions.checkArgument(duration > 0, "duration must be positive");
             Preconditions.checkNotNull(unit, "unit cannot be null");
             b.timeoutMs = unit.toMillis(duration);
             return this;
@@ -96,19 +97,48 @@ public final class Multipart {
         }
 
         public Builder3 maxAttemptsPerAction(int maxAttempts) {
-            Preconditions.checkArgument(maxAttempts >= 1);
-            b.maxAttempts = maxAttempts;
+            Preconditions.checkArgument(maxAttempts >= 1, "maxAttempts must be at least one");
+            b.retries = b.retries.withMaxAttempts(maxAttempts);
             return this;
         }
 
-        public Builder3 retryIntervalMs(long retryIntervalMs) {
-            Preconditions.checkArgument(retryIntervalMs >= 0);
-            b.retryIntervalMs = retryIntervalMs;
+        public Builder3 retryInitialInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
+            b.retries = b.retries.withInitialIntervalMs(unit.toMillis(duration));
             return this;
         }
 
-        public Builder3 transformCreateRequest(
-                Function<? super Request, ? extends Request> transform) {
+        public Builder3 retryBackoffFactor(double factor) {
+            Preconditions.checkArgument(factor >= 0, "retryBackoffFactory cannot be negative");
+            b.retries = b.retries.withBackoffFactor(factor);
+            return this;
+        }
+
+        public Builder3 retryMaxInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
+            b.retries = b.retries.withMaxIntervalMs(unit.toMillis(duration));
+            return this;
+        }
+        
+        /**
+         * Sets the level of randomness applied to the next retry interval. The next
+         * calculated retry interval is multiplied by
+         * {@code (1 - jitter * Math.random())}. A value of zero means no jitter, 1
+         * means max jitter.
+         * 
+         * @param jitter level of randomness applied to the retry interval
+         * @return this
+         */
+        public Builder3 retryJitter(double jitter) {
+            Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1");
+            b.retries = b.retries.withJitter(jitter);
+            return this;
+        }
+
+
+        public Builder3 transformCreateRequest(Function<? super Request, ? extends Request> transform) {
             Preconditions.checkNotNull(transform, "transform cannot be null");
             b.transform = transform;
             return this;
@@ -147,8 +177,8 @@ public final class Multipart {
             if (b.executor == null) {
                 b.executor = Executors.newCachedThreadPool();
             }
-            return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor,
-                    b.timeoutMs, b.maxAttempts, b.retryIntervalMs, b.partSize);
+            return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor, b.timeoutMs, b.retries,
+                    b.partSize);
         }
     }
 
