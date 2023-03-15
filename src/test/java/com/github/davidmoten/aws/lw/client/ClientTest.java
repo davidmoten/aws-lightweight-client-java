@@ -460,7 +460,29 @@ public class ClientTest {
             }
         }
     }
-
+    
+    @Test
+    public void testRetriesFailTwiceThenSucceed() {
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialIntervalMs(100) //
+                .build();
+        try (Server server = Server.start()) {
+            server.response().statusCode(408).body("timed out").add();
+            server.response().statusCode(408).body("timed out").add();
+            server.response().statusCode(200).body("stuff").add();
+            String text = client.url(server.baseUrl()) //
+                    .method(HttpMethod.PUT) //
+                    .requestBody("hi there") //
+                    .responseAsUtf8(); //
+            assertEquals("stuff", text);
+        }
+    }
+    
     @Test
     public void testWithServerNoResponseBody() throws IOException {
         try {
