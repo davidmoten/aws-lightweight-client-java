@@ -678,7 +678,7 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
-                .retryInitialIntervalMs(100) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
                 .build();
         try (Server server = Server.start()) {
             server.response().statusCode(408).body("timed out").add();
@@ -700,7 +700,7 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
-                .retryInitialIntervalMs(100) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
                 .retryMaxAttempts(2) //
                 .build();
         try (Server server = Server.start()) {
@@ -728,7 +728,7 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
-                .retryInitialIntervalMs(100) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
                 .retryMaxAttempts(10) //
                 .httpClient(hc) //
                 .build();
@@ -751,8 +751,10 @@ public class ClientTest {
                 .accessKey("123") //
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
-                .retryInitialIntervalMs(100) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
                 .retryMaxAttempts(2) //
+                .retryBackoffFactor(2.0) //
+                .retryMaxInterval(3, TimeUnit.SECONDS) //
                 .httpClient(hc) //
                 .build();
         try {

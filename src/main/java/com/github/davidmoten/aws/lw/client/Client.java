@@ -286,9 +286,9 @@ public final class Client {
             return this;
         }
 
-        public Builder4 retryInitialIntervalMs(long initialIntervalMs) {
-            Preconditions.checkArgument(initialIntervalMs >= 0);
-            b.retries = b.retries.withInitialIntervalMs( initialIntervalMs);
+        public Builder4 retryInitialInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0);
+            b.retries = b.retries.withInitialIntervalMs(unit.toMillis(duration));
             return this;
         }
 
@@ -304,9 +304,9 @@ public final class Client {
             return this;
         }
 
-        public Builder4 retryMaxIntervalMs(long maxIntervalMs) {
-            Preconditions.checkArgument(maxIntervalMs >= 0);
-            b.retries = b.retries.withMaxIntervalMs(maxIntervalMs);
+        public Builder4 retryMaxInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0);
+            b.retries = b.retries.withMaxIntervalMs(unit.toMillis(duration));
             return this;
         }
         
