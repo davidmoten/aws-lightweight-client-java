@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
@@ -157,14 +158,21 @@ public final class Client {
 
     public static final class Builder {
 
-     // from
+        // from
         // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html
-        private static final Set<Integer> transientStatusCodes = new HashSet<>( //
-                Arrays.asList(400, 408, 500, 502, 503, 509));
-
-        private static final Set<Integer> throttlingStatusCodes = new HashSet<>( //
-                Arrays.asList(400, 403, 429, 502, 503, 509));
+        private static final Set<Integer> RETRY_STATUS_CODES = new HashSet<>( //
+                Arrays.asList( //
+                        400, // BAD_REQUEST
+                        403, // FORBIDDEN
+                        408, // REQUEST_TIMEOUT
+                        429, // TOO_MANY_REQUESTS
+                        500, // INTERNAL_SERVER_ERROR
+                        502, // BAD_GATEWAY
+                        503, // SERVICE_UNAVAILABLE
+                        509 // BANDWIDTH_LIMIT_EXCEEDED
+                ));
         
+
         private final String serviceName;
         private Optional<String> region = Optional.empty();
         private String accessKey;
@@ -177,8 +185,7 @@ public final class Client {
         private Environment environment = Environment.instance();
         private BaseUrlFactory baseUrlFactory = BaseUrlFactory.DEFAULT;
         private Retries<ResponseInputStream> retries = Retries.create(
-                ris -> transientStatusCodes.contains(ris.statusCode())
-                || throttlingStatusCodes.contains(ris.statusCode()), //
+                ris -> RETRY_STATUS_CODES.contains(ris.statusCode()), //
         t -> t instanceof IOException || t instanceof UncheckedIOException);
 
         private Builder(String serviceName) {
