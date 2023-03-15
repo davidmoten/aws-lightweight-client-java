@@ -287,22 +287,26 @@ public final class Client {
         }
 
         public Builder4 retryInitialIntervalMs(long initialIntervalMs) {
-            b.retries.setInitialIntervalMs( initialIntervalMs);
+            Preconditions.checkArgument(initialIntervalMs >= 0);
+            b.retries = b.retries.withInitialIntervalMs( initialIntervalMs);
             return this;
         }
 
         public Builder4 retryMaxAttempts(int maxAttempts) {
-            b.retries.setMaxAttempts( maxAttempts);
+            Preconditions.checkArgument(maxAttempts >= 0);
+            b.retries = b.retries.withMaxAttempts( maxAttempts);
             return this;
         }
 
         public Builder4 retryBackoffFactor(double factor) {
-            b.retries.setBackoffFactor(factor);
+            Preconditions.checkArgument(factor >= 0);
+            b.retries = b.retries.withBackoffFactor(factor);
             return this;
         }
 
         public Builder4 retryMaxIntervalMs(long maxIntervalMs) {
-            b.retries.setMaxIntervalMs(maxIntervalMs);
+            Preconditions.checkArgument(maxIntervalMs >= 0);
+            b.retries = b.retries.withMaxIntervalMs(maxIntervalMs);
             return this;
         }
         

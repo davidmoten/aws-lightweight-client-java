@@ -6,21 +6,25 @@ import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 import com.github.davidmoten.aws.lw.client.MaxAttemptsExceededException;
+import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 
 public final class Retries<T> {
 
-    private long initialIntervalMs;
-    private int maxAttempts;
-    private double backoffFactor;
-    private long maxIntervalMs;
-    private Predicate<? super T> valueShouldRetry;
-    private Predicate<? super Throwable> throwableShouldRetry;
+    private final long initialIntervalMs;
+    private final int maxAttempts;
+    private final double backoffFactor;
+    private final long maxIntervalMs;
+    private final double jitter;
+    private final Predicate<? super T> valueShouldRetry;
+    private final Predicate<? super Throwable> throwableShouldRetry;
 
-    public Retries(long initialIntervalMs, int maxAttempts, double backoffFactor, long maxIntervalMs,
+    public Retries(long initialIntervalMs, int maxAttempts, double backoffFactor, double jitter, long maxIntervalMs,
             Predicate<? super T> valueShouldRetry, Predicate<? super Throwable> throwableShouldRetry) {
+        Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1 inclusive");
         this.initialIntervalMs = initialIntervalMs;
         this.maxAttempts = maxAttempts;
         this.backoffFactor = backoffFactor;
+        this.jitter = jitter;
         this.maxIntervalMs = maxIntervalMs;
         this.valueShouldRetry = valueShouldRetry;
         this.throwableShouldRetry = throwableShouldRetry;
@@ -32,6 +36,7 @@ public final class Retries<T> {
                 500, //
                 10, //
                 2.0, //
+                0.0, // no jitter
                 30000, //
                 valueShouldRetry, //
                 throwableShouldRetry);
@@ -64,49 +69,57 @@ public final class Retries<T> {
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
                     throw new MaxAttemptsExceededException("exceeded max attempts " + maxAttempts, t);
                 }
-            } 
+            }
             intervalMs = Math.round(backoffFactor * intervalMs);
             if (maxIntervalMs > 0) {
                 intervalMs = Math.min(maxIntervalMs, intervalMs);
             }
-            try {
-                Thread.sleep(intervalMs);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
+            // apply jitter (if 0 then no change)
+            intervalMs = Math.round((1 - jitter * Math.random()) * intervalMs);
+            sleep(intervalMs);
+        }
+    }
+
+    static void sleep(long intervalMs) {
+        try {
+            Thread.sleep(intervalMs);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 
     public <S> Retries<S> withValueShouldRetry(Predicate<? super S> valueShouldRetry) {
-        return create(valueShouldRetry, throwableShouldRetry);
+        return new Retries<S>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
     }
 
-    public void setInitialIntervalMs(long initialIntervalMs) {
-        this.initialIntervalMs = initialIntervalMs;
+    public Retries<T> withInitialIntervalMs(long initialIntervalMs) {
+        return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
     }
 
-    public void setMaxAttempts(int maxAttempts) {
-        this.maxAttempts = maxAttempts;
+    public Retries<T> withMaxAttempts(int maxAttempts) {
+        return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
     }
 
-    public void setBackoffFactor(double backoffFactor) {
-        this.backoffFactor = backoffFactor;
+    public Retries<T> withBackoffFactor(double backoffFactor) {
+        return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
     }
 
-    public void setMaxIntervalMs(long maxIntervalMs) {
-        this.maxIntervalMs = maxIntervalMs;
+    public Retries<T> withMaxIntervalMs(long maxIntervalMs) {
+        return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
     }
 
-    public void setValueShouldRetry(Predicate<? super T> valueShouldRetry) {
-        this.valueShouldRetry = valueShouldRetry;
-    }
-
-    public void setThrowableShouldRetry(Predicate<? super Throwable> throwableShouldRetry) {
-        this.throwableShouldRetry = throwableShouldRetry;
+    public Retries<T> withThrowableShouldRetry(Predicate<? super Throwable> throwableShouldRetry) {
+        return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
     }
 
     public Retries<T> copy() {
-        return new Retries<>(initialIntervalMs, maxAttempts, backoffFactor, maxIntervalMs, valueShouldRetry,
+        return new Retries<>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
                 throwableShouldRetry);
     }
 

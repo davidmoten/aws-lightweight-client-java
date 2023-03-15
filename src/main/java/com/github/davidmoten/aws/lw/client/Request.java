@@ -26,7 +26,7 @@ public final class Request {
     private int connectTimeoutMs;
     private int readTimeoutMs;
     private int attributeNumber = 1;
-    private final Retries<ResponseInputStream> retries;
+    private Retries<ResponseInputStream> retries;
     private String attributePrefix = "Attribute";
     private String[] pathSegments;
     private final List<NameValue> queries = new ArrayList<>();
@@ -132,22 +132,22 @@ public final class Request {
     }
 
     public Request retryInitialIntervalMs(long initialIntervalMs) {
-        retries.setInitialIntervalMs(initialIntervalMs);
+        retries = retries.withInitialIntervalMs(initialIntervalMs);
         return this;
     }
 
     public Request retryMaxAttempts(int maxAttempts) {
-        retries.setMaxAttempts(maxAttempts);
+        retries = retries.withMaxAttempts(maxAttempts);
         return this;
     }
 
     public Request retryBackoffFactor(double factor) {
-        retries.setBackoffFactor(factor);
+        retries = retries.withBackoffFactor(factor);
         return this;
     }
 
     public Request retryMaxIntervalMs(long maxIntervalMs) {
-        retries.setMaxIntervalMs(maxIntervalMs);
+        retries = retries.withMaxIntervalMs(maxIntervalMs);
         return this;
     }
 

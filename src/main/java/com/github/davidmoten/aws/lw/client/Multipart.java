@@ -98,30 +98,29 @@ public final class Multipart {
 
         public Builder3 maxAttemptsPerAction(int maxAttempts) {
             Preconditions.checkArgument(maxAttempts >= 1);
-            b.retries.setMaxAttempts(maxAttempts);
+            b.retries = b.retries.withMaxAttempts(maxAttempts);
             return this;
         }
 
         public Builder3 retryIntervalMs(long retryIntervalMs) {
             Preconditions.checkArgument(retryIntervalMs >= 0);
-            b.retries.setInitialIntervalMs(retryIntervalMs);
-            return this;
-        }
-        
-        public Builder3 retryBackoffFactor(double factor) {
-            Preconditions.checkArgument(factor >= 0);
-            b.retries.setBackoffFactor(factor);
-            return this;
-        }
-        
-        public Builder3 retryMaxIntervalMs(long retryMaxIntervalMs) {
-            Preconditions.checkArgument(retryMaxIntervalMs >= 0);
-            b.retries.setMaxIntervalMs(retryMaxIntervalMs);
+            b.retries = b.retries.withInitialIntervalMs(retryIntervalMs);
             return this;
         }
 
-        public Builder3 transformCreateRequest(
-                Function<? super Request, ? extends Request> transform) {
+        public Builder3 retryBackoffFactor(double factor) {
+            Preconditions.checkArgument(factor >= 0);
+            b.retries = b.retries.withBackoffFactor(factor);
+            return this;
+        }
+
+        public Builder3 retryMaxIntervalMs(long retryMaxIntervalMs) {
+            Preconditions.checkArgument(retryMaxIntervalMs >= 0);
+            b.retries = b.retries.withMaxIntervalMs(retryMaxIntervalMs);
+            return this;
+        }
+
+        public Builder3 transformCreateRequest(Function<? super Request, ? extends Request> transform) {
             Preconditions.checkNotNull(transform, "transform cannot be null");
             b.transform = transform;
             return this;
@@ -160,8 +159,8 @@ public final class Multipart {
             if (b.executor == null) {
                 b.executor = Executors.newCachedThreadPool();
             }
-            return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor,
-                    b.timeoutMs, b.retries, b.partSize);
+            return new MultipartOutputStream(b.s3, b.bucket, b.key, b.transform, b.executor, b.timeoutMs, b.retries,
+                    b.partSize);
         }
     }
 
