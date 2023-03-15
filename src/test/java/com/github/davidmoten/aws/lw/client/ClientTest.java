@@ -207,7 +207,6 @@ public class ClientTest {
                 .readTimeout(6, TimeUnit.SECONDS) //
                 .httpClient(hc) //
                 .build();
-
         // create a bucket
         client //
                 .path("MyBucket") //

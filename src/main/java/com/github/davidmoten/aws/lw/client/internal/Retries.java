@@ -83,16 +83,15 @@ public final class Retries<T> {
                 if (maxAttempts > 0 && attempt >= maxAttempts) {
                     throw new MaxAttemptsExceededException("exceeded max attempts " + maxAttempts, t);
                 }
-            } finally {
-                intervalMs = Math.round(backoffFactor * intervalMs);
-                if (maxIntervalMs > 0) {
-                    intervalMs = Math.min(maxIntervalMs, intervalMs);
-                }
-                try {
-                    Thread.sleep(intervalMs);
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
+            } 
+            intervalMs = Math.round(backoffFactor * intervalMs);
+            if (maxIntervalMs > 0) {
+                intervalMs = Math.min(maxIntervalMs, intervalMs);
+            }
+            try {
+                Thread.sleep(intervalMs);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
             }
         }
     }
