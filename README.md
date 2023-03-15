@@ -166,19 +166,19 @@ There are a number of other options that can be set when building the Client:
 
 ```java
 Client iam = Client
-    .serviceName("iam") 
-    .region(region) 
-    .accessKey(accessKey)
-    .secretKey(secretKey)
-    .exceptionFactory(myExceptionFactory)
-    .exception(
-	    x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"),
-	    x -> new PolicyDoesNotExistException(x.contentUtf8()))
-    .httpClient(myHttpClient) 
-    .baseUrlFactory((service, region) -> "https://me.com/")
-    .connectTimeout(30000, TimeUnit.MILLISECONDS)
-    .readTimeout(120000, TimeUnit.MILLISECONDS)
-    .build();
+  .serviceName("iam") 
+  .region(region) 
+  .accessKey(accessKey)
+  .secretKey(secretKey)
+  .exceptionFactory(myExceptionFactory)
+  .exception(
+      x -> !x.isOk() && x.contentUtf8().contains("NonExistentPolicy"),
+      x -> new PolicyDoesNotExistException(x.contentUtf8()))
+  .httpClient(myHttpClient) 
+  .baseUrlFactory((service, region) -> "https://me.com/")
+  .connectTimeout(30000, TimeUnit.MILLISECONDS)
+  .readTimeout(120000, TimeUnit.MILLISECONDS)
+  .build();
 ```
 A client can be copied from another client to pick up same configuration (but with a different service name):
 
@@ -190,21 +190,21 @@ Timeouts can be set in the client builder and also for each request. Here's an e
 
 ```java
 Client s3 = Client
-    .s3() 
-    .defaultClient()
-    .connectTimeout(30, TimeUnit.SECONDS)
-    .readTimeout(60, TimeUnit.SECONDS)
-    .build();
+  .s3() 
+  .defaultClient()
+  .connectTimeout(30, TimeUnit.SECONDS)
+  .readTimeout(60, TimeUnit.SECONDS)
+  .build();
     
  String content = s3
-    .path("myBucket", "myObject.txt")
-    .connectTimeout(5, TimeUnit.SECONDS)
-    .readTimeout(5, TimeUnit.SECONDS)
-    .responseAsUtf8();
+  .path("myBucket", "myObject.txt")
+  .connectTimeout(5, TimeUnit.SECONDS)
+  .readTimeout(5, TimeUnit.SECONDS)
+  .responseAsUtf8();
 ```
 ### Retries
 Automatic retries can be configured in the client builder and also for each request including multipart requests. Capped
-exponential backoff is supported as is jitter (randomised intervals):
+exponential backoff is supported as is jitter (randomised intervals).
 
 Default behaviour (that can be overridden) is to retry these HTTP status codes:
 
@@ -212,6 +212,23 @@ Default behaviour (that can be overridden) is to retry these HTTP status codes:
 400, 403, 429, 500, 502, 503, 509
 ```
 When the http client throws an exception it is retried if it is an `IOException` or an `UncheckedIOException`.
+
+Default values for retries are:
+
+| Parameter | Default           |
+| ------------- |-------------:|
+| Max Attempts | 4 |
+| Initial Interval | 100ms      |
+| Exponential Backoff Factor | 2      |
+| Max Interval | 20s      |
+| Jitter | 0 (none) |
+
+The retry interval after attempt N is calculated like this:
+```
+interval = initialInterval * (backoffFactor ^ (N - 1)) * (1 - jitter * Math.random())
+```
+
+For example, using the defaults the retry intervals would be 100ms, 200ms, 400ms and then failure would be propagated. If you don't want exponential backoff then set that parameter to 1. 
 
 ```java
 Client s3 = Client
@@ -229,19 +246,21 @@ Client s3 = Client
 Most of the same options are available on request builders:
 ```java
 String content = s3
-    .path("myBucket", "myObject.txt")
-    .connectTimeout(5, TimeUnit.SECONDS)
-    .readTimeout(5, TimeUnit.SECONDS)
-    .retryMaxAttempts(3)
-    .retryInitialInterval(5, TimeUnit.SECONDS)
-    .responseAsUtf8();
+  .path("myBucket", "myObject.txt")
+  .connectTimeout(5, TimeUnit.SECONDS)
+  .readTimeout(5, TimeUnit.SECONDS)
+  .retryMaxAttempts(3)
+  .retryInitialInterval(5, TimeUnit.SECONDS)
+  .responseAsUtf8();
 ```
-You can also completely control the request retry (when there is an HTTP status code) via this builder method:
+You can also completely control the request retry (when there is an HTTP status code) via these builder methods:
 ```java
 Client s3 = Client
   .s3()
   .defaultClient()
   .retryCondition(ris -> ris.statusCode() == 500)
+  .retryException(e -> e instanceof IOException 
+                       || e instanceof UncheckedIOException)
 ...
 ```
 
@@ -250,9 +269,9 @@ Presigned URLs are generated as follows (with a specified expiry duration):
 
 ```java
 String presignedUrl = 
-     s3
-     .path(bucketName, objectName) 
-     .presignedUrl(1, TimeUnit.DAYS));
+  s3
+    .path(bucketName, objectName) 
+    .presignedUrl(1, TimeUnit.DAYS));
 ```
 
 ### S3
