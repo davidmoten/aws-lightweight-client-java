@@ -287,25 +287,27 @@ public final class Client {
         }
 
         public Builder4 retryInitialInterval(long duration, TimeUnit unit) {
-            Preconditions.checkArgument(duration >= 0);
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
             b.retries = b.retries.withInitialIntervalMs(unit.toMillis(duration));
             return this;
         }
 
         public Builder4 retryMaxAttempts(int maxAttempts) {
-            Preconditions.checkArgument(maxAttempts >= 0);
+            Preconditions.checkArgument(maxAttempts >= 0, "maxAttempts cannot be negative");
             b.retries = b.retries.withMaxAttempts( maxAttempts);
             return this;
         }
 
         public Builder4 retryBackoffFactor(double factor) {
-            Preconditions.checkArgument(factor >= 0);
+            Preconditions.checkArgument(factor >= 0, "backoffFactor cannot be negative");
             b.retries = b.retries.withBackoffFactor(factor);
             return this;
         }
 
         public Builder4 retryMaxInterval(long duration, TimeUnit unit) {
-            Preconditions.checkArgument(duration >= 0);
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
             b.retries = b.retries.withMaxIntervalMs(unit.toMillis(duration));
             return this;
         }

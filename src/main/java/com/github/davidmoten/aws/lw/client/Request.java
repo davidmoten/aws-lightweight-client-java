@@ -120,34 +120,42 @@ public final class Request {
     }
 
     public Request connectTimeout(long duration, TimeUnit unit) {
-        Preconditions.checkArgument(duration >= 0);
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
         this.connectTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
 
     public Request readTimeout(long duration, TimeUnit unit) {
-        Preconditions.checkArgument(duration >= 0);
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
         this.readTimeoutMs = (int) unit.toMillis(duration);
         return this;
     }
 
-    public Request retryInitialIntervalMs(long initialIntervalMs) {
-        retries = retries.withInitialIntervalMs(initialIntervalMs);
+    public Request retryInitialInterval(long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
+        retries = retries.withInitialIntervalMs(unit.toMillis(duration));
         return this;
     }
 
     public Request retryMaxAttempts(int maxAttempts) {
+        Preconditions.checkArgument(maxAttempts >=0, "retryMaxAttempts cannot be negative");
         retries = retries.withMaxAttempts(maxAttempts);
         return this;
     }
 
     public Request retryBackoffFactor(double factor) {
+        Preconditions.checkArgument(factor >=0, "retryBackoffFactor cannot be negative");
         retries = retries.withBackoffFactor(factor);
         return this;
     }
 
-    public Request retryMaxIntervalMs(long maxIntervalMs) {
-        retries = retries.withMaxIntervalMs(maxIntervalMs);
+    public Request retryMaxInterval(long duration, TimeUnit unit) {
+        Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+        Preconditions.checkNotNull(unit, "unit cannot be null");
+        retries = retries.withMaxIntervalMs(unit.toMillis(duration));
         return this;
     }
 
