@@ -3,6 +3,7 @@ package com.github.davidmoten.aws.lw.client;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
@@ -324,6 +325,19 @@ public final class Client {
         public Builder4 retryJitter(double jitter) {
             Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1");
             b.retries = b.retries.withJitter(jitter);
+            return this;
+        }
+        
+        public Builder4 retryShouldRetry(Predicate<? super ResponseInputStream> shouldRetry) {
+            Preconditions.checkNotNull(shouldRetry, "shouldRetry cannot be null");
+            b.retries = b.retries.withValueShouldRetry(shouldRetry);
+            return this;
+        }
+
+        public Builder4 retryableStatusCodes(Collection<Integer> statusCodes) {
+            Preconditions.checkNotNull(statusCodes, "statusCodes cannot be null");
+            Set<Integer> set = new HashSet<>(statusCodes);
+            b.retries = b.retries.withValueShouldRetry(ris -> set.contains(ris.statusCode()));
             return this;
         }
         
