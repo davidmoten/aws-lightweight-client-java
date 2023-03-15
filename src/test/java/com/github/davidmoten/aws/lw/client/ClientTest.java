@@ -60,6 +60,7 @@ public class ClientTest {
                 .retryBackoffFactor(1.0) //
                 .retryInitialInterval(10, TimeUnit.MILLISECONDS) //
                 .retryMaxInterval(1, TimeUnit.SECONDS) //
+                .retryJitter(0) //
                 .execute();
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&Attribute.1.Name=color&Attribute.1.Value=red&Attribute.2.Name=color&Attribute.2.Value=blue&Message.1.Name=name&Message.1.Value=hi&Message.2.Name=name&Message.2.Value=there",
@@ -217,6 +218,11 @@ public class ClientTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBadRetryMaxAttempts() {
         s3.path().retryMaxAttempts(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryJitter() {
+        s3.path().retryJitter(-1);
     }
     
     @Test(expected = IllegalArgumentException.class)
@@ -739,6 +745,17 @@ public class ClientTest {
     }
     
     @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryJitter() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryJitter(-1);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
     public void testNegativeRetryMaxAttempts() {
         Client //
                 .s3() //
@@ -823,6 +840,7 @@ public class ClientTest {
                 .retryMaxAttempts(2) //
                 .retryBackoffFactor(2.0) //
                 .retryMaxInterval(3, TimeUnit.SECONDS) //
+                .retryJitter(0) //
                 .httpClient(hc) //
                 .build();
         try {

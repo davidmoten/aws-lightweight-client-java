@@ -274,6 +274,7 @@ public class MultipartTest {
                 .retryInitialInterval(1, TimeUnit.SECONDS) //
                 .retryBackoffFactor(1.0) //
                 .retryMaxInterval(10, TimeUnit.SECONDS) //
+                .retryJitter(0) //
                 .outputStream()) {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
@@ -372,6 +373,15 @@ public class MultipartTest {
                 .key("mykey") //
                 .retryMaxInterval(-1, TimeUnit.SECONDS);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryJitter() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryJitter(-1);
+    }
+
 
     @Test
     public void isUtilityClass() {

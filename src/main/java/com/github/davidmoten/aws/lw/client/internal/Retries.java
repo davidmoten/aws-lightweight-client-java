@@ -113,6 +113,11 @@ public final class Retries<T> {
         return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
                 throwableShouldRetry);
     }
+    
+    public Retries<T> withJitter(double jitter) {
+        return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,
+                throwableShouldRetry);
+    }
 
     public Retries<T> withThrowableShouldRetry(Predicate<? super Throwable> throwableShouldRetry) {
         return new Retries<T>(initialIntervalMs, maxAttempts, backoffFactor, jitter, maxIntervalMs, valueShouldRetry,

@@ -312,6 +312,21 @@ public final class Client {
             return this;
         }
         
+        /**
+         * Sets the level of randomness applied to the next retry interval. The next
+         * calculated retry interval is multiplied by
+         * {@code (1 - jitter * Math.random())}. A value of zero means no jitter, 1
+         * means max jitter.
+         * 
+         * @param jitter level of randomness applied to the retry interval
+         * @return this
+         */
+        public Builder4 retryJitter(double jitter) {
+            Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1");
+            b.retries = b.retries.withJitter(jitter);
+            return this;
+        }
+        
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
             Preconditions.checkNotNull(unit, "unit cannot be null");

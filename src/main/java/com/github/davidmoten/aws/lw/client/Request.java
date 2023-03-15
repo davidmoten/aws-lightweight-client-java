@@ -145,6 +145,22 @@ public final class Request {
         retries = retries.withMaxAttempts(maxAttempts);
         return this;
     }
+    
+    /**
+     * Sets the level of randomness applied to the next retry interval. The next
+     * calculated retry interval is multiplied by
+     * {@code (1 - jitter * Math.random())}. A value of zero means no jitter, 1
+     * means max jitter.
+     * 
+     * @param jitter level of randomness applied to the retry interval
+     * @return this
+     */
+    public Request retryJitter(double jitter) {
+        Preconditions.checkArgument(jitter >= 0 && jitter <= 1, "jitter must be between 0 and 1");
+        retries = retries.withJitter(jitter);
+        return this;
+    }
+
 
     public Request retryBackoffFactor(double factor) {
         Preconditions.checkArgument(factor >=0, "retryBackoffFactor cannot be negative");
