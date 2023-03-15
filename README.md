@@ -206,6 +206,13 @@ Client s3 = Client
 Automatic retries can be configured in the client builder and also for each request including multipart requests. Capped
 exponential backoff is supported as is jitter (randomised intervals):
 
+Default behaviour (that can be overridden) is to retry these HTTP status codes:
+
+```
+400, 403, 429, 500, 502, 503, 509
+```
+When the http client throws an exception it is retried if it is an `IOException` or an `UncheckedIOException`.
+
 ```java
 Client s3 = Client
   .s3()
@@ -215,6 +222,7 @@ Client s3 = Client
   .retryBackoffFactor(2.0)
   .retryMaxInterval(30, TimeUnit.SECONDS)
   .retryJitter(0.5)
+  .retryStatusCodes(400, 403, 429, 500, 502, 503)
   .build();
 ```
 The same options are available on request builders:
