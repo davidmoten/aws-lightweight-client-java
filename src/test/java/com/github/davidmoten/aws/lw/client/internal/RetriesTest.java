@@ -1,5 +1,8 @@
 package com.github.davidmoten.aws.lw.client.internal;
 
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 import java.io.IOException;
 import java.io.UncheckedIOException;
 
@@ -39,4 +42,24 @@ public class RetriesTest {
         Retries.rethrow(new Exception());
     }
 
+    @Test
+    public void testNotYetReachedMaxAttempts() {
+        assertFalse(Retries.reachedMaxAttempts(1, 2));
+    }
+    
+    @Test
+    public void testReachedMaxAttemptsExactly() {
+        assertTrue(Retries.reachedMaxAttempts(2, 2));
+    }
+    
+    @Test
+    public void testExceededMaxAttempts() {
+        assertTrue(Retries.reachedMaxAttempts(3, 2));
+    }
+    
+    @Test
+    public void testUnlimitedAtempts() {
+        assertFalse(Retries.reachedMaxAttempts(3, 0));
+    }
+    
 }

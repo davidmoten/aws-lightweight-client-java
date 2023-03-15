@@ -57,7 +57,7 @@ public final class Retries<T> {
                 if (!valueShouldRetry.test(value)) {
                     return value;
                 }
-                if (maxAttempts > 0 && attempt >= maxAttempts) {
+                if (reachedMaxAttempts(attempt, maxAttempts)) {
                     // note that caller is not aware that maxAttempts were reached, the caller just
                     // receives the last error response
                     return value;
@@ -66,7 +66,7 @@ public final class Retries<T> {
                 if (!throwableShouldRetry.test(t)) {
                     rethrow(t);
                 }
-                if (maxAttempts > 0 && attempt >= maxAttempts) {
+                if (reachedMaxAttempts(attempt, maxAttempts)) {
                     throw new MaxAttemptsExceededException("exceeded max attempts " + maxAttempts, t);
                 }
             }
@@ -79,6 +79,11 @@ public final class Retries<T> {
             // apply jitter (if 0 then no change)
             intervalMs = Math.round((1 - jitter * Math.random()) * intervalMs);
         }
+    }
+
+    // VisibleForTesting
+    static boolean reachedMaxAttempts(int attempt, int maxAttempts) {
+        return maxAttempts > 0 && attempt >= maxAttempts;
     }
 
     static void sleep(long intervalMs) {
