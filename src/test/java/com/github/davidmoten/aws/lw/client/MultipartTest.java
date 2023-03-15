@@ -86,7 +86,8 @@ public class MultipartTest {
                 .partSizeMb(5) // s
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
-            out.write(new byte[5 * 1024 * 1024]);
+            out.write(0);
+            out.write(new byte[5 * 1024 * 1024 - 1]);
         }
         assertEquals(Arrays.asList( //
                 "POST:https://s3.ap-southeast-2.amazonaws.com/mybucket/mykey?uploads",
@@ -381,7 +382,14 @@ public class MultipartTest {
                 .key("mykey") //
                 .retryJitter(-1);
     }
-
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryJitter2() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryJitter(2);
+    }
 
     @Test
     public void isUtilityClass() {

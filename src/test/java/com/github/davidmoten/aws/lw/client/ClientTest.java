@@ -798,6 +798,7 @@ public class ClientTest {
                 .clock(() -> 1622695846902L) //
                 .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
                 .retryMaxAttempts(2) //
+                .retryStatusCodes(408) //
                 .build();
         try (Server server = Server.start()) {
             server.response().statusCode(408).body("timed out").add();
@@ -852,7 +853,7 @@ public class ClientTest {
                 .retryBackoffFactor(2.0) //
                 .retryMaxInterval(3, TimeUnit.SECONDS) //
                 .retryJitter(0) //
-                .retryStatusCodes(200) //
+                .retryStatusCodes(400) //
                 .httpClient(hc) //
                 .build();
         try {

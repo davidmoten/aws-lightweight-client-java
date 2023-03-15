@@ -2,7 +2,6 @@ package com.github.davidmoten.aws.lw.client;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.net.HttpURLConnection;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
