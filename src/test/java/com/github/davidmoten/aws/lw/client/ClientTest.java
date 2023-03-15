@@ -199,6 +199,26 @@ public class ClientTest {
     public void testBadReadTimeout2() {
         s3.path().readTimeout(-1, TimeUnit.SECONDS);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryInitialInterval() {
+        s3.path().retryInitialInterval(-1, TimeUnit.SECONDS);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryMaxInterval() {
+        s3.path().retryMaxInterval(-1, TimeUnit.SECONDS);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryMaxAttempts() {
+        s3.path().retryMaxAttempts(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testBadRetryBackoffFactor() {
+        s3.path().retryBackoffFactor(-1);
+    }
 
     @Test
     public void testTimeoutsAtClientLevel() {

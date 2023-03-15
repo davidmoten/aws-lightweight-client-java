@@ -273,7 +273,7 @@ public class MultipartTest {
                 .maxAttemptsPerAction(1) //
                 .retryInitialInterval(1, TimeUnit.SECONDS) //
                 .retryBackoffFactor(1.0) //
-                .retryMaxInterval(1, TimeUnit.SECONDS) //
+                .retryMaxInterval(10, TimeUnit.SECONDS) //
                 .outputStream()) {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
