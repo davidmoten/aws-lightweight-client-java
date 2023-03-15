@@ -129,7 +129,8 @@ public final class Retries<T> {
                 throwableShouldRetry);
     }
 
-    private static void rethrow(Throwable t) throws Error {
+    // VisibleForTesting
+    static void rethrow(Throwable t) throws Error {
         if (t instanceof RuntimeException) {
             throw (RuntimeException) t;
         } else if (t instanceof Error) {
