@@ -33,11 +33,11 @@ public final class Retries<T> {
     public static <T> Retries<T> create(Predicate<? super T> valueShouldRetry,
             Predicate<? super Throwable> throwableShouldRetry) {
         return new Retries<T>( //
-                500, //
-                10, //
+                100, //
+                4, //
                 2.0, //
                 0.0, // no jitter
-                30000, //
+                20000, //
                 valueShouldRetry, //
                 throwableShouldRetry);
     }

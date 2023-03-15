@@ -235,6 +235,14 @@ String content = s3
     .retryInitialInterval(5, TimeUnit.SECONDS)
     .responseAsUtf8();
 ```
+You can also completely control the request retry (when there is an HTTP status code) via this builder method:
+```java
+Client s3 = Client
+  .s3()
+  .defaultClient()
+  .retryCondition(ris -> ris.statusCode() == 500)
+...
+```
 
 ### Presigned URLs
 Presigned URLs are generated as follows (with a specified expiry duration):
