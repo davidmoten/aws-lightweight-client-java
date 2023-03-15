@@ -40,7 +40,7 @@ public final class Multipart {
 
         Builder(Client s3) {
             this.s3 = s3;
-            this.retries = s3.retries().withValueShouldRetry(ris -> false);
+            this.retries = s3.retries().withValueShouldRetry(values -> false);
         }
 
         public Builder2 bucket(String bucket) {

@@ -725,6 +725,17 @@ public class ClientTest {
                 .retryMaxAttempts(-1);
     }
     
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryBackoffFactor() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryBackoffFactor(-1.0);
+    }
+    
     @Test
     public void testRetriesFailTwiceThenHitMaxAttempts() {
         Client client = Client //
