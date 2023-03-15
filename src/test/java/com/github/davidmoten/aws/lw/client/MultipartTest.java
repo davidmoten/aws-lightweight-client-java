@@ -65,7 +65,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartSingleWriteOfExactlyPartsSize() throws Exception {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -96,7 +96,7 @@ public class MultipartTest {
     }
 
     public void testMultipart(Consumer<MultipartOutputStream> consumer) throws Exception {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -134,7 +134,7 @@ public class MultipartTest {
 
     @Test(expected = UncheckedIOException.class)
     public void testMultipartUploadFileDoesNotExist() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -155,7 +155,7 @@ public class MultipartTest {
 
     @Test(expected = RuntimeException.class)
     public void testMultipartUploadInputStreamFactoryThrows() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -177,7 +177,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartUploadFile() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -215,7 +215,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartUploadByteArray() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -251,7 +251,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartAbort() throws IOException {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //
@@ -321,7 +321,7 @@ public class MultipartTest {
 
     @Test
     public void testMultipartDefaultExecutor() {
-        HttpClientTesting2 h = new HttpClientTesting2();
+        HttpClientTestingWithQueue h = new HttpClientTestingWithQueue();
         Client s3 = Client //
                 .s3() //
                 .region("ap-southeast-2") //

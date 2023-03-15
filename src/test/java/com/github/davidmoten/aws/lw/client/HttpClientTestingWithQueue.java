@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class HttpClientTesting2 implements HttpClient {
+public class HttpClientTestingWithQueue implements HttpClient {
 
     // needs to be volatile to work with Multipart async operations
     private final Queue<ResponseInputStream> queue = new LinkedList<>();
