@@ -350,6 +350,18 @@ public final class Client {
             return retryCondition(ris -> set.contains(ris.statusCode()));
         }
         
+        /**
+         * Default behaviour is to retry IOException and UncheckedIOException.
+         * 
+         * @param shouldRetry returns true if should retry
+         * @return this
+         */
+        public Builder4 retryException(Predicate<? super Throwable> shouldRetry) {
+            Preconditions.checkNotNull(shouldRetry, "shouldRetry cannot be null");
+            b.retries = b.retries.withThrowableShouldRetry(shouldRetry);
+            return this;
+        }
+        
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
             Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
             Preconditions.checkNotNull(unit, "unit cannot be null");

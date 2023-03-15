@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -854,6 +855,7 @@ public class ClientTest {
                 .retryMaxInterval(3, TimeUnit.SECONDS) //
                 .retryJitter(0) //
                 .retryStatusCodes(400) //
+                .retryException(e -> e instanceof IOException && e.getMessage().startsWith("boo")) //
                 .httpClient(hc) //
                 .build();
         try {
@@ -866,7 +868,35 @@ public class ClientTest {
         }
     }
 
-
+    @Test
+    public void testDontRetryException() {
+        HttpClientTestingWithQueue hc = new HttpClientTestingWithQueue();
+        hc.add(new IOException("boo"));
+        Client client = Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
+                .retryMaxAttempts(2) //
+                .retryBackoffFactor(2.0) //
+                .retryMaxInterval(3, TimeUnit.SECONDS) //
+                .retryJitter(0) //
+                .retryStatusCodes(400) //
+                .retryException(e -> false) //
+                .httpClient(hc) //
+                .build();
+        try {
+            client //
+                    .path("myBucket", "myObject.txt") //
+                    .responseAsUtf8();
+            Assert.fail();
+        } catch (UncheckedIOException e) {
+            assertEquals("boo", e.getCause().getMessage());
+        }
+    }
+    
     private static ResponseInputStream createResponseInputStream(int statusCode, String text) {
         Map<String, List<String>> headers = new HashMap<>();
         byte[] bytes = text.getBytes(StandardCharsets.UTF_8);
