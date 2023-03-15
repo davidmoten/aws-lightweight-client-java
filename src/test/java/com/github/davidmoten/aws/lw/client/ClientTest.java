@@ -691,6 +691,39 @@ public class ClientTest {
             assertEquals("stuff", text);
         }
     }
+
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryInitialInterval() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryInitialInterval(-1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryMaxInterval() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryMaxInterval(-1, TimeUnit.MILLISECONDS);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
+    public void testNegativeRetryMaxAttempts() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryMaxAttempts(-1);
+    }
     
     @Test
     public void testRetriesFailTwiceThenHitMaxAttempts() {
