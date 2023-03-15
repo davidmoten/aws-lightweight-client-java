@@ -80,7 +80,7 @@ public final class Multipart {
         }
 
         public Builder3 partTimeout(long duration, TimeUnit unit) {
-            Preconditions.checkArgument(duration > 0);
+            Preconditions.checkArgument(duration > 0, "duration must be positive");
             Preconditions.checkNotNull(unit, "unit cannot be null");
             b.timeoutMs = unit.toMillis(duration);
             return this;
@@ -97,26 +97,28 @@ public final class Multipart {
         }
 
         public Builder3 maxAttemptsPerAction(int maxAttempts) {
-            Preconditions.checkArgument(maxAttempts >= 1);
+            Preconditions.checkArgument(maxAttempts >= 1, "maxAttempts must be at least one");
             b.retries = b.retries.withMaxAttempts(maxAttempts);
             return this;
         }
 
-        public Builder3 retryIntervalMs(long retryIntervalMs) {
-            Preconditions.checkArgument(retryIntervalMs >= 0);
-            b.retries = b.retries.withInitialIntervalMs(retryIntervalMs);
+        public Builder3 retryInitialInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
+            b.retries = b.retries.withInitialIntervalMs(unit.toMillis(duration));
             return this;
         }
 
         public Builder3 retryBackoffFactor(double factor) {
-            Preconditions.checkArgument(factor >= 0);
+            Preconditions.checkArgument(factor >= 0, "retryBackoffFactory cannot be negative");
             b.retries = b.retries.withBackoffFactor(factor);
             return this;
         }
 
-        public Builder3 retryMaxIntervalMs(long retryMaxIntervalMs) {
-            Preconditions.checkArgument(retryMaxIntervalMs >= 0);
-            b.retries = b.retries.withMaxIntervalMs(retryMaxIntervalMs);
+        public Builder3 retryMaxInterval(long duration, TimeUnit unit) {
+            Preconditions.checkArgument(duration >= 0, "duration cannot be negative");
+            Preconditions.checkNotNull(unit, "unit cannot be null");
+            b.retries = b.retries.withMaxIntervalMs(unit.toMillis(duration));
             return this;
         }
 

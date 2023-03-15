@@ -81,7 +81,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .transformCreateRequest(x -> x) //
                 .partSizeMb(5) // s
                 .partTimeout(5, TimeUnit.MINUTES) //
@@ -116,7 +116,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .outputStream()) {
@@ -146,7 +146,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(new File("target/doesnotexist"));
@@ -167,7 +167,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(() -> {
@@ -198,7 +198,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(file);
@@ -234,7 +234,7 @@ public class MultipartTest {
                 .bucket("mybucket") //
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.MILLISECONDS) //
                 .partSizeMb(5) //
                 .partTimeout(5, TimeUnit.MINUTES) //
                 .upload(bytes);
@@ -271,8 +271,9 @@ public class MultipartTest {
                 .key("mykey") //
                 .executor(Executors.newFixedThreadPool(1)) //
                 .maxAttemptsPerAction(1) //
-                .retryIntervalMs(1) //
+                .retryInitialInterval(1, TimeUnit.SECONDS) //
                 .retryBackoffFactor(1.0) //
+                .retryMaxInterval(1, TimeUnit.SECONDS) //
                 .outputStream()) {
             for (int i = 0; i < 600000; i++) {
                 out.write("0123456789".getBytes(StandardCharsets.UTF_8));
@@ -365,7 +366,7 @@ public class MultipartTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartBadArgument3() {
-        Multipart.s3(s3()).bucket("bucket").key("key").retryIntervalMs(-1);
+        Multipart.s3(s3()).bucket("bucket").key("key").retryInitialInterval(-1, TimeUnit.MILLISECONDS);
     }
 
     private static final Closeable DO_NOTHING = () -> {
