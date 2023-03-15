@@ -827,7 +827,7 @@ public class ClientTest {
                 .secretKey("456") //
                 .clock(() -> 1622695846902L) //
                 .retryInitialInterval(100, TimeUnit.MILLISECONDS) //
-                .retryMaxAttempts(10) //
+                .retryMaxAttempts(0) //
                 .httpClient(hc) //
                 .build();
         String text = client //
