@@ -756,6 +756,17 @@ public class ClientTest {
     }
     
     @Test(expected=IllegalArgumentException.class)
+    public void testTooLargeRetryJitter() {
+        Client //
+                .s3() //
+                .region("ap-southeast-2") //
+                .accessKey("123") //
+                .secretKey("456") //
+                .clock(() -> 1622695846902L) //
+                .retryJitter(2);
+    }
+    
+    @Test(expected=IllegalArgumentException.class)
     public void testNegativeRetryMaxAttempts() {
         Client //
                 .s3() //
@@ -841,6 +852,7 @@ public class ClientTest {
                 .retryBackoffFactor(2.0) //
                 .retryMaxInterval(3, TimeUnit.SECONDS) //
                 .retryJitter(0) //
+                .retryStatusCodes(200) //
                 .httpClient(hc) //
                 .build();
         try {

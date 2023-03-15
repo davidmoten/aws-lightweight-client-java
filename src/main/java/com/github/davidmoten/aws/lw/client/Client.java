@@ -328,17 +328,20 @@ public final class Client {
             return this;
         }
         
-        public Builder4 retryShouldRetry(Predicate<? super ResponseInputStream> shouldRetry) {
+        public Builder4 retryCondition(Predicate<? super ResponseInputStream> shouldRetry) {
             Preconditions.checkNotNull(shouldRetry, "shouldRetry cannot be null");
             b.retries = b.retries.withValueShouldRetry(shouldRetry);
             return this;
         }
 
-        public Builder4 retryableStatusCodes(Collection<Integer> statusCodes) {
+        public Builder4 retryStatusCodes(Integer... statusCodes) {
+            return retryStatusCodes(Arrays.asList(statusCodes));
+        }
+        
+        public Builder4 retryStatusCodes(Collection<Integer> statusCodes) {
             Preconditions.checkNotNull(statusCodes, "statusCodes cannot be null");
             Set<Integer> set = new HashSet<>(statusCodes);
-            b.retries = b.retries.withValueShouldRetry(ris -> set.contains(ris.statusCode()));
-            return this;
+            return retryCondition(ris -> set.contains(ris.statusCode()));
         }
         
         public Builder4 connectTimeout(long duration, TimeUnit unit) {
