@@ -56,6 +56,10 @@ public class ClientTest {
                 .region("ap-southeast-2") //
                 .connectTimeout(5, TimeUnit.SECONDS) //
                 .readTimeout(6, TimeUnit.SECONDS) //
+                .retryMaxAttempts(1) //
+                .retryBackoffFactor(1.0) //
+                .retryInitialInterval(10, TimeUnit.MILLISECONDS) //
+                .retryMaxInterval(1, TimeUnit.SECONDS) //
                 .execute();
         assertEquals(
                 "https://s3.ap-southeast-2.amazonaws.com/MyBucket?type=thing&Attribute.1.Name=color&Attribute.1.Value=red&Attribute.2.Name=color&Attribute.2.Value=blue&Message.1.Name=name&Message.1.Value=hi&Message.2.Name=name&Message.2.Value=there",

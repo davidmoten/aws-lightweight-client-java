@@ -348,6 +348,30 @@ public class MultipartTest {
                 .key("mykey") //
                 .partTimeout(-1, TimeUnit.MINUTES);
     }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryInitialInterval() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryInitialInterval(-1, TimeUnit.MINUTES);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryBackoffFactor() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryBackoffFactor(-1);
+    }
+    
+    @Test(expected = IllegalArgumentException.class)
+    public void testMultipartBadRetryMaxInterval() {
+        Multipart.s3(s3()) //
+                .bucket("mybucket") //
+                .key("mykey") //
+                .retryMaxInterval(-1, TimeUnit.SECONDS);
+    }
 
     @Test
     public void isUtilityClass() {
