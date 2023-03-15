@@ -302,21 +302,21 @@ public class MultipartTest {
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentPartTimeoutMs() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1),
-                -1, Retries.retries(x -> false, x -> true), 0);
+                -1, Retries.create(x -> false, x -> true), 0);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentMaxAttempts() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                Retries.retries(x -> false, x -> true), 0);
+                Retries.create(x -> false, x -> true), 0);
     }
 
     @SuppressWarnings("resource")
     @Test(expected = IllegalArgumentException.class)
     public void testMultipartOutputStreamBadArgumentPartSize() {
         new MultipartOutputStream(s3(), "bucket", "key", x -> x, Executors.newFixedThreadPool(1), 1,
-                Retries.retries(x -> false, x -> true), 1000);
+                Retries.create(x -> false, x -> true), 1000);
     }
 
     @Test

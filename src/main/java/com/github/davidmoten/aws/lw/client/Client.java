@@ -1,6 +1,11 @@
 package com.github.davidmoten.aws.lw.client;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -151,6 +156,14 @@ public final class Client {
 
     public static final class Builder {
 
+     // from
+        // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html
+        private static final Set<Integer> transientStatusCodes = new HashSet<>( //
+                Arrays.asList(400, 408, 500, 502, 503, 509));
+
+        private static final Set<Integer> throttlingStatusCodes = new HashSet<>( //
+                Arrays.asList(400, 403, 429, 502, 503, 509));
+        
         private final String serviceName;
         private Optional<String> region = Optional.empty();
         private String accessKey;
@@ -162,7 +175,10 @@ public final class Client {
         private Clock clock = Clock.DEFAULT;
         private Environment environment = Environment.instance();
         private BaseUrlFactory baseUrlFactory = BaseUrlFactory.DEFAULT;
-        private Retries<ResponseInputStream> retries = Retries.requestRetries();
+        private Retries<ResponseInputStream> retries = Retries.create(
+                ris -> transientStatusCodes.contains(ris.statusCode())
+                || throttlingStatusCodes.contains(ris.statusCode()), //
+        t -> t instanceof IOException || t instanceof UncheckedIOException);
 
         private Builder(String serviceName) {
             this.serviceName = serviceName;

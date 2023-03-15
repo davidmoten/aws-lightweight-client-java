@@ -2,29 +2,17 @@ package com.github.davidmoten.aws.lw.client.internal;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.function.Predicate;
 
 import com.github.davidmoten.aws.lw.client.MaxAttemptsExceededException;
-import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 
 public final class Retries<T> {
 
-    // from
-    // https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html
-    private static final Set<Integer> transientStatusCodes = new HashSet<>( //
-            Arrays.asList(400, 408, 500, 502, 503, 509));
-
-    private static final Set<Integer> throttlingStatusCodes = new HashSet<>( //
-            Arrays.asList(400, 403, 429, 502, 503, 509));
-
-    private long initialIntervalMs = 100;
-    private int maxAttempts = 10;
-    private double backoffFactor = 2.0;
-    private long maxIntervalMs = 30000;
+    private long initialIntervalMs;
+    private int maxAttempts;
+    private double backoffFactor;
+    private long maxIntervalMs;
     private Predicate<? super T> valueShouldRetry;
     private Predicate<? super Throwable> throwableShouldRetry;
 
@@ -38,7 +26,7 @@ public final class Retries<T> {
         this.throwableShouldRetry = throwableShouldRetry;
     }
 
-    public static <T> Retries<T> retries(Predicate<? super T> valueShouldRetry,
+    public static <T> Retries<T> create(Predicate<? super T> valueShouldRetry,
             Predicate<? super Throwable> throwableShouldRetry) {
         return new Retries<T>( //
                 500, //
@@ -47,13 +35,6 @@ public final class Retries<T> {
                 30000, //
                 valueShouldRetry, //
                 throwableShouldRetry);
-    }
-
-    public static Retries<ResponseInputStream> requestRetries() {
-        return retries(
-                ris -> transientStatusCodes.contains(ris.statusCode())
-                        || throttlingStatusCodes.contains(ris.statusCode()), //
-                t -> t instanceof IOException || t instanceof UncheckedIOException);
     }
 
     public T call(Callable<T> callable) {
@@ -97,7 +78,7 @@ public final class Retries<T> {
     }
 
     public <S> Retries<S> withValueShouldRetry(Predicate<? super S> valueShouldRetry) {
-        return retries(valueShouldRetry, throwableShouldRetry);
+        return create(valueShouldRetry, throwableShouldRetry);
     }
 
     public void setInitialIntervalMs(long initialIntervalMs) {
