@@ -70,13 +70,14 @@ public final class Retries<T> {
                     throw new MaxAttemptsExceededException("exceeded max attempts " + maxAttempts, t);
                 }
             }
+            sleep(intervalMs);
+            //calculate the interval for the next retry
             intervalMs = Math.round(backoffFactor * intervalMs);
             if (maxIntervalMs > 0) {
                 intervalMs = Math.min(maxIntervalMs, intervalMs);
             }
             // apply jitter (if 0 then no change)
             intervalMs = Math.round((1 - jitter * Math.random()) * intervalMs);
-            sleep(intervalMs);
         }
     }
 

@@ -12,12 +12,16 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class HttpClientTestingWithQueue implements HttpClient {
 
     // needs to be volatile to work with Multipart async operations
-    private final Queue<ResponseInputStream> queue = new LinkedList<>();
+    private final Queue<Object> queue = new LinkedList<>();
     private final List<String> urls = new CopyOnWriteArrayList<>();
     private final ByteArrayOutputStream bytes = new ByteArrayOutputStream();
 
     public void add(ResponseInputStream r) {
         queue.add(r);
+    }
+
+    public void add(IOException e) {
+        queue.add(e);
     }
 
     public List<String> urls() {
@@ -29,15 +33,19 @@ public class HttpClientTestingWithQueue implements HttpClient {
     }
 
     @Override
-    public synchronized ResponseInputStream request(URL endpointUrl, String httpMethod,
-            Map<String, String> headers, byte[] requestBody, int connectTimeoutMs,
-            int readTimeoutMs) throws IOException {
-        ResponseInputStream r = queue.poll();
-        if (r.statusCode() == 200 && requestBody != null && httpMethod == "PUT") {
-            bytes.write(requestBody);
-        }
+    public synchronized ResponseInputStream request(URL endpointUrl, String httpMethod, Map<String, String> headers,
+            byte[] requestBody, int connectTimeoutMs, int readTimeoutMs) throws IOException {
         urls.add(httpMethod + ":" + endpointUrl.toString());
-        return r;
+        Object o = queue.poll();
+        if (o instanceof ResponseInputStream) {
+            ResponseInputStream r = (ResponseInputStream) o;
+            if (r.statusCode() == 200 && requestBody != null && httpMethod == "PUT") {
+                bytes.write(requestBody);
+            }
+            return r;
+        } else {
+            throw (IOException) o;
+        }
     }
 
 }
