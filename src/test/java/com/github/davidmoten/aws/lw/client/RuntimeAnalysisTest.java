@@ -117,10 +117,14 @@ public class RuntimeAnalysisTest {
 //                        .map(x -> x.subList(1, x.size())) //
 //                        .println().go();
         Stream<HashMap<Integer, List<String>>> o = lines(
-                "src/test/resources/one-time-link-hourly-store-request-times-raw.txt").skip(1) //
+                "src/test/resources/one-time-link-hourly-store-request-times-raw.txt") //
+                        .skip(1) //
                         .bufferUntil((list, x) -> x.contains("AEST"), true) //
                         .map(list -> list.subList(1, list.size())) //
-                        .map(list -> Stream.from(list).map(y -> y.substring(10, y.length() - 1))
+                        .map(list -> Stream //
+                                .from(list) //
+                                .filter(x -> !x.contains("AEST")) //
+                                .map(y -> y.substring(10, y.length() - 1)) //
                                 .toList().get()) //
                         .filter(list -> !list.stream().anyMatch(x -> Double.parseDouble(x) > 10))
                         .map(x -> Stream.from(x) //
