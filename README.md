@@ -54,6 +54,15 @@ sqs.url(queueUrl)
     .execute();
 ```
 
+Here's how to upload a file to an S3 bucket using multipart:
+```java
+Multipart 
+  .s3(s3)
+  .bucket("mybucket")
+  .key("mykey")
+  .upload(file);
+```
+
 See [Recipes](https://github.com/davidmoten/aws-lightweight-client-java/wiki/Recipes) for many more examples.
 
 ## Lambda performance
