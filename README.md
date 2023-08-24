@@ -520,4 +520,4 @@ throw a `ServiceException` (in those circumstances where exceptions are thrown, 
 ## TODO
 * Can a faster cold-start be had using Bouncy Castle TLS library?
 * add debug logging?
-* chunked upload helpers
+
