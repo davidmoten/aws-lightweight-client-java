@@ -131,7 +131,7 @@ public class RuntimeAnalysisTest {
                                 .mapWithIndex() //
                                 .groupByList( //
                                         HashMap::new, //
-                                        y -> y.index() % 3, //
+                                        y -> (int) (y.index() % 3), //
                                         y -> y.value())
                                 .get());
 
