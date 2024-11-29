@@ -10,7 +10,7 @@ public class CredentialsTest {
     @Test
     public void testFromEnvironment() {
         Environment instance = EnvironmentDefault.INSTANCE;
-        EnvironmentDefault.INSTANCE = x -> "thing";
+        EnvironmentDefault.INSTANCE = x -> "AWS_CONTAINER_CREDENTIALS_FULL_URI".equals(x) ? null : "thing";
         try {
             Credentials.fromEnvironment();
         } finally {

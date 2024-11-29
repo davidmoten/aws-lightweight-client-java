@@ -15,6 +15,7 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Optional;
 
 /**
  * Utilities for encoding and decoding binary data to and from different forms.
@@ -156,5 +157,62 @@ public final class Util {
 
     public static final InputStream emptyInputStream() {
         return EMPTY_INPUT_STREAM;
+    }
+    
+    public static Optional<String> jsonFieldText(String json, String fieldName) {
+        String key = "\"" + fieldName + "\"";
+        int keyPosition = json.indexOf(key);
+        if (keyPosition == -1) {
+            return Optional.empty(); // Field not found
+        }
+
+        // Find the position of the colon after the key and skip any whitespace
+        int colonPosition = json.indexOf(":", keyPosition + key.length());
+        if (colonPosition == -1) {
+            return Optional.empty(); // Colon not found, malformed JSON
+        }
+
+        // Skip whitespace after the colon
+        int valueStart = colonPosition + 1;
+        while (valueStart < json.length() && Character.isWhitespace(json.charAt(valueStart))) {
+            valueStart++;
+        }
+
+        // Check if the value is a string
+        boolean isString = json.charAt(valueStart) == '"';
+        StringBuilder value = new StringBuilder();
+        boolean isEscaped = false;
+
+        // Parse the value, handling escaped quotes
+        for (int i = valueStart + (isString ? 1 : 0); i < json.length(); i++) {
+            char c = json.charAt(i);
+
+            if (isString) {
+                // Handle string value
+                if (isEscaped) {
+                    // Append escaped character and reset flag
+                    value.append(c);
+                    isEscaped = false;
+                } else if (c == '\\') {
+                    // Next character is escaped
+                    isEscaped = true;
+                } else if (c == '"') {
+                    // End of string
+                    break;
+                } else {
+                    value.append(c);
+                }
+            } else {
+                // Handle non-string value
+                if (c == ',' || c == '}') {
+                    // End of non-string value
+                    break;
+                } else {
+                    value.append(c);
+                }
+            }
+        }
+
+        return Optional.of(value.toString().trim());
     }
 }
