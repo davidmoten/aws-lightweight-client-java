@@ -8,7 +8,7 @@ public interface Environment {
     String get(String name);
 
     default Credentials credentials() {
-        return EnvironmentHelper.credentialsFromEnvironment(this);
+        return EnvironmentHelper.credentialsFromEnvironment(this, HttpClientDefault.INSTANCE);
     }
 
     static Environment instance() {

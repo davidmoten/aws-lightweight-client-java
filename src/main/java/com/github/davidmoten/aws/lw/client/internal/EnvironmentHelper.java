@@ -4,19 +4,29 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.UncheckedIOException;
-import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
 import com.github.davidmoten.aws.lw.client.Credentials;
+import com.github.davidmoten.aws.lw.client.HttpClient;
+import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
-public class EnvironmentHelper {
+public final class EnvironmentHelper {
 
-    public static Credentials credentialsFromEnvironment(Environment env) {
+    private static final int CONNECT_TIMEOUT_MS = 10000;
+    private static final int READ_TIMEOUT_MS = 10000;
+
+    private EnvironmentHelper() {
+        // prevent instantiation
+    }
+
+    public static Credentials credentialsFromEnvironment(Environment env, HttpClient client) {
         // if using SnapStart we need to get the credentials from a local container
         String containerCredentialsUri = env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI");
         if (containerCredentialsUri != null) {
@@ -28,30 +38,25 @@ public class EnvironmentHelper {
             try {
                 // Create a connection to the credentials URI
                 URL url = new URL(containerCredentialsUri);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setRequestMethod("GET");
+                Map<String, String> headers = new HashMap<>();
+                headers.put("Authorization", containerToken);
+                ResponseInputStream response = client.request(url, "GET", headers, null, CONNECT_TIMEOUT_MS,
+                        READ_TIMEOUT_MS);
 
-                // Add the authorization token if it's present
-                if (containerToken != null && !containerToken.isEmpty()) {
-                    connection.setRequestProperty("Authorization", containerToken);
+                if (response.statusCode() != 200) {
+                    throw new RuntimeException("Failed to retrieve credentials: HTTP " + response.statusCode());
                 }
 
-                // Read the response
-                int responseCode = connection.getResponseCode();
-                if (responseCode != 200) {
-                    throw new RuntimeException("Failed to retrieve credentials: HTTP " + responseCode);
-                }
-
-                StringBuilder response = new StringBuilder();
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                StringBuilder text = new StringBuilder();
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(response))) {
                     String inputLine;
                     while ((inputLine = in.readLine()) != null) {
-                        response.append(inputLine);
+                        text.append(inputLine);
                     }
                 }
 
                 // Parse the JSON response
-                String json = response.toString();
+                String json = text.toString();
 
                 String accessKeyId = Util.jsonFieldText(json, "AccessKeyId").get();
                 String secretAccessKey = Util.jsonFieldText(json, "SecretAccessKey").get();
