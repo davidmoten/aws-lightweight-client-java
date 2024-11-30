@@ -32,9 +32,7 @@ public final class EnvironmentHelper {
         if (containerCredentialsUri != null) {
             String containerToken = env.get("AWS_CONTAINER_AUTHORIZATION_TOKEN");
             String containerTokenFile = env.get("AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE");
-            if (containerToken == null && containerTokenFile != null) {
-                containerToken = readUtf8(containerTokenFile);
-            }
+            containerToken = resolveContainerToken(containerToken, containerTokenFile);
             try {
                 // Create a connection to the credentials URI
                 URL url = new URL(containerCredentialsUri);
@@ -74,7 +72,19 @@ public final class EnvironmentHelper {
         }
     }
 
-    private static String readUtf8(String file) {
+    // VisibleForTesting
+    static String resolveContainerToken(String containerToken, String containerTokenFile) {
+        if (containerToken == null && containerTokenFile != null) {
+            return readUtf8(containerTokenFile);
+        } else if (containerToken == null) {
+            throw new IllegalStateException("token not found to retrieve credentials from local container");
+        } else {
+            return containerToken;
+        }
+    }
+
+    // VisibleForTesting
+    static String readUtf8(String file) {
         try {
             byte[] bytes = Files.readAllBytes(FileSystems.getDefault().getPath(file));
             return new String(bytes, StandardCharsets.UTF_8);
