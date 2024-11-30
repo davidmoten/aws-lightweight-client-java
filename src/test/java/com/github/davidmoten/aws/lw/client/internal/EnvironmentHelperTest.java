@@ -63,4 +63,9 @@ public class EnvironmentHelperTest {
         assertEquals("something", EnvironmentHelper.resolveContainerToken("something", null));
     }
 
+    @Test(expected = IllegalStateException.class)
+    public void testResolveContainerTokenNeitherPresent() {
+        EnvironmentHelper.resolveContainerToken(null, null);
+    }
+
 }
