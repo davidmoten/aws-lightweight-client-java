@@ -28,6 +28,8 @@ public final class EnvironmentHelper {
 
     public static Credentials credentialsFromEnvironment(Environment env, HttpClient client) {
         // if using SnapStart we need to get the credentials from a local container
+        // it is a precondition that SnapStart snapshot has happened before credentials get loaded
+        // so we get a chance to refresh creds from the local container
         String containerCredentialsUri = env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI");
         if (containerCredentialsUri != null) {
             String containerToken = env.get("AWS_CONTAINER_AUTHORIZATION_TOKEN");
@@ -45,17 +47,9 @@ public final class EnvironmentHelper {
                     throw new RuntimeException("Failed to retrieve credentials: HTTP " + response.statusCode());
                 }
 
-                StringBuilder text = new StringBuilder();
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(response))) {
-                    String inputLine;
-                    while ((inputLine = in.readLine()) != null) {
-                        text.append(inputLine);
-                    }
-                }
+                String json = new String(Util.readBytesAndClose(response), StandardCharsets.UTF_8);
 
                 // Parse the JSON response
-                String json = text.toString();
-
                 String accessKeyId = Util.jsonFieldText(json, "AccessKeyId").get();
                 String secretAccessKey = Util.jsonFieldText(json, "SecretAccessKey").get();
                 String sessionToken = Util.jsonFieldText(json, "Token").get();

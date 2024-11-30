@@ -31,7 +31,7 @@ public class EnvironmentHelperTest {
     }
 
     @Test(expected = RuntimeException.class)
-    public void testFromContainerBadStatusCode() {
+    public void testFromContainerHttpError() {
         try (Server server = Server.start()) {
             Map<String, String> map = Maps //
                     .put("AWS_CONTAINER_CREDENTIALS_FULL_URI", server.baseUrl()) //
