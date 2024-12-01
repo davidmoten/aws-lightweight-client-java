@@ -27,8 +27,7 @@ public final class Util {
     }
 
     public static HttpURLConnection createHttpConnection(URL endpointUrl, String httpMethod,
-            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs)
-            throws IOException {
+            Map<String, String> headers, int connectTimeoutMs, int readTimeoutMs) throws IOException {
         Preconditions.checkNotNull(headers);
         HttpURLConnection connection = (HttpURLConnection) endpointUrl.openConnection();
         connection.setRequestMethod(httpMethod);
@@ -147,7 +146,7 @@ public final class Util {
             }
         }
     }
-    
+
     private static final InputStream EMPTY_INPUT_STREAM = new InputStream() {
         @Override
         public int read() throws IOException {
@@ -158,9 +157,9 @@ public final class Util {
     public static final InputStream emptyInputStream() {
         return EMPTY_INPUT_STREAM;
     }
-    
+
     public static Optional<String> jsonFieldText(String json, String fieldName) {
-        // it is assumed that the json field is valid object json 
+        // it is assumed that the json field is valid object json
         String key = "\"" + fieldName + "\"";
         int keyPosition = json.indexOf(key);
         if (keyPosition == -1) {
@@ -213,7 +212,11 @@ public final class Util {
                 }
             }
         }
-
-        return Optional.of(value.toString().trim());
+        String v = value.toString().trim();
+        if (!isString && "null".equals(v)) {
+            return Optional.empty();
+        } else {
+            return Optional.of(v);
+        }
     }
 }

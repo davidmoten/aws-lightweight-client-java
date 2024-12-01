@@ -201,4 +201,10 @@ public class UtilTest {
         String json = "[\"name\"]";
         assertFalse(Util.jsonFieldText(json, "name").isPresent());
     }
+    
+    @Test
+    public void testJsonFieldIsNull() {
+        String json = "{\"name\": null}";
+        assertFalse(Util.jsonFieldText(json, "name").isPresent());
+    }
 }
