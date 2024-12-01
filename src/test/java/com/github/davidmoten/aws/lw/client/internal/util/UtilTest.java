@@ -2,6 +2,7 @@ package com.github.davidmoten.aws.lw.client.internal.util;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.ByteArrayInputStream;
@@ -195,4 +196,9 @@ public class UtilTest {
         assertEquals(Optional.of("John"), Util.jsonFieldText(json, "name"));
     }
 
+    @Test
+    public void testJsonFieldNoColon() {
+        String json = "[\"name\"]";
+        assertFalse(Util.jsonFieldText(json, "name").isPresent());
+    }
 }

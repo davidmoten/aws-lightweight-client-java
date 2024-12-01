@@ -9,7 +9,7 @@ public interface Environment {
     String get(String name);
 
     default Credentials credentials() {
-        return EnvironmentHelper.credentialsFromEnvironment(this, HttpClient.defaultClient());
+        return CredentialsHelper.credentialsFromEnvironment(this, HttpClient.defaultClient());
     }
 
     static Environment instance() {

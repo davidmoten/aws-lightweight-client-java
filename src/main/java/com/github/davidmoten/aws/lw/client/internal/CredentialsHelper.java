@@ -15,16 +15,16 @@ import com.github.davidmoten.aws.lw.client.HttpClient;
 import com.github.davidmoten.aws.lw.client.ResponseInputStream;
 import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
-public final class EnvironmentHelper {
+final class CredentialsHelper {
 
     private static final int CONNECT_TIMEOUT_MS = 10000;
     private static final int READ_TIMEOUT_MS = 10000;
 
-    private EnvironmentHelper() {
+    private CredentialsHelper() {
         // prevent instantiation
     }
 
-    public static Credentials credentialsFromEnvironment(Environment env, HttpClient client) {
+    static Credentials credentialsFromEnvironment(Environment env, HttpClient client) {
         // if using SnapStart we need to get the credentials from a local container
         // it is a precondition that SnapStart snapshot has happened before credentials get loaded
         // so we get a chance to refresh creds from the local container
@@ -52,7 +52,6 @@ public final class EnvironmentHelper {
                 String secretAccessKey = Util.jsonFieldText(json, "SecretAccessKey").get();
                 String sessionToken = Util.jsonFieldText(json, "Token").get();
                 return new CredentialsImpl(accessKeyId, secretAccessKey, Optional.of(sessionToken));
-
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }

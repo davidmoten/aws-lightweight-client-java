@@ -160,6 +160,7 @@ public final class Util {
     }
     
     public static Optional<String> jsonFieldText(String json, String fieldName) {
+        // it is assumed that the json field is valid object json 
         String key = "\"" + fieldName + "\"";
         int keyPosition = json.indexOf(key);
         if (keyPosition == -1) {
