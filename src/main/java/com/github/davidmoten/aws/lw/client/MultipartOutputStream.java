@@ -87,23 +87,27 @@ public final class MultipartOutputStream extends OutputStream {
         write(b, 0, b.length);
     }
 
-    private void submitPart() {
-        int part = nextPart;
-        nextPart++;
-        byte[] body = bytes.toByteArray();
-        bytes.reset();
-        Future<String> future = executor.submit(() -> retry(() -> s3 //
+    private String requestPart(int part, byte[] body) {
+        Response response = s3 //
                 .path(bucket, key) //
                 .method(HttpMethod.PUT) //
                 .query("partNumber", "" + part) //
                 .query("uploadId", uploadId) //
                 .requestBody(body) //
                 .readTimeout(partTimeoutMs, TimeUnit.MILLISECONDS) //
-                .responseExpectStatusCode(200) //
+                .responseExpectStatusCode(200);
+        return response //
                 .firstHeader("ETag") //
-                .get() //
-                .replace("\"", ""), //
-                "on part " + part));
+                .orElse(response.firstHeader("etag").get()) //
+                .replace("\"", "");
+    }
+
+    private void submitPart() {
+        int part = nextPart;
+        nextPart++;
+        byte[] body = bytes.toByteArray();
+        bytes.reset();
+        Future<String> future = executor.submit(() -> retry(() -> requestPart(part, body), "on part " + part));
         futures.add(future);
     }
 
