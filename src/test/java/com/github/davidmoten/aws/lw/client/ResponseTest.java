@@ -98,6 +98,17 @@ public class ResponseTest {
         Response r = new Response(map, new byte[0], 100);
         assertEquals("a", r.firstHeader("thing").get());
     }
+    
+    @Test
+    public void testFirstHeaderIsCaseInsensitive() {
+        Map<String, List<String>> map = new HashMap<>();
+        List<String> v = Arrays.asList("a", "b");
+        map.put("Thing", v);
+        Response r = new Response(map, new byte[0], 100);
+        assertEquals("a", r.firstHeader("THING").get());
+        assertEquals(v, r.headers().get("Thing"));
+        assertEquals(v, r.headersLowerCaseKey().get("thing"));
+    }
 
     @Test
     public void testFirstHeaderFullDateNoHeaders() {

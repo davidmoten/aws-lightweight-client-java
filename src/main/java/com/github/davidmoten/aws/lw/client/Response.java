@@ -5,6 +5,7 @@ import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -14,11 +15,13 @@ import com.github.davidmoten.aws.lw.client.internal.util.Preconditions;
 public final class Response {
 
     private final Map<String, List<String>> headers;
+    private final Map<String, List<String>> headersLowerCaseKey;
     private final byte[] content;
     private final int statusCode;
 
     public Response(Map<String, List<String>> headers, byte[] content, int statusCode) {
         this.headers = headers;
+        this.headersLowerCaseKey = lowerCaseKey(headers);
         this.content = content;
         this.statusCode = statusCode;
     }
@@ -26,9 +29,13 @@ public final class Response {
     public Map<String, List<String>> headers() {
         return headers;
     }
+    
+    public Map<String, List<String>> headersLowerCaseKey() {
+        return headersLowerCaseKey;
+    }
 
     public Optional<String> firstHeader(String name) {
-        List<String> h = headers.get(name);
+        List<String> h = headersLowerCaseKey.get(lowerCase(name));
         if (h == null || h.isEmpty()) {
             return Optional.empty();
         } else {
@@ -48,7 +55,7 @@ public final class Response {
      * @return headers that start with {@code x-amz-meta-} (and removes that prefix)
      */
     public Metadata metadata() {
-        return new Metadata(headers //
+        return new Metadata(headersLowerCaseKey //
                 .entrySet() //
                 .stream() //
                 .filter(x -> x.getKey() != null) //
@@ -60,6 +67,7 @@ public final class Response {
 
     public Optional<String> metadata(String name) {
         Preconditions.checkNotNull(name);
+        // value() method does conversion of name to lower case
         return metadata().value(name);
     }
 
@@ -97,5 +105,16 @@ public final class Response {
         }
     }
 
+    private static Map<String, List<String>> lowerCaseKey(Map<String, List<String>> m) {
+        return m.entrySet().stream().collect( //
+                Collectors.toMap( //
+                        entry -> lowerCase(entry.getKey()), //
+                        entry -> entry.getValue()));
+    }
+    
+    private static String lowerCase(String s) {
+        return s == null ? s : s.toLowerCase(Locale.ENGLISH);
+    }
+    
     // TODO add toString method
 }
