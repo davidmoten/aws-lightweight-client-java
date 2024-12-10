@@ -19,6 +19,7 @@ Aside from cold-start runtime improvements in AWS Lambda, the small artifact siz
 * 100% unit test coverage
 * reduces average Lambda cold start time significantly
 * S3 Multipart upload [helper](https://github.com/davidmoten/aws-lightweight-client-java/wiki/Recipes#multipart-upload-a-file)
+* SnapStart support (reacts to environment variables)
 
 **Status**: released to [Maven Central](https://search.maven.org/artifact/com.github.davidmoten/aws-lightweight-client-java)
 
