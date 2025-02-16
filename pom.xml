@@ -163,7 +163,7 @@
                 <configuration>
                     <archive>
                         <manifestEntries>
-                            <Automatic-Module-Name>com.github.davidmoten.aws-lightweight-client-java</Automatic-Module-Name>
+                            <Automatic-Module-Name>com.github.davidmoten.aws_lightweight_client_java</Automatic-Module-Name>
                         </manifestEntries>
                     </archive>
                 </configuration>
