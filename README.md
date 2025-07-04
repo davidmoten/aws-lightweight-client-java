@@ -278,9 +278,19 @@ Client s3 = Client
 Presigned URLs are generated as follows (with a specified expiry duration):
 
 ```java
-String presignedUrl = 
+String presignedUrlToGetAnObject = 
   s3
     .path(bucketName, objectName) 
+    .presignedUrl(1, TimeUnit.DAYS));
+```
+
+Presigned URLs to upload an object are generated as follows (with a specified expiry duration):
+
+```java
+String presignedUrlToUploadObject = 
+  s3
+    .path(bucketName, objectName)
+    .method(HttpMethod.PUT)
     .presignedUrl(1, TimeUnit.DAYS));
 ```
 
