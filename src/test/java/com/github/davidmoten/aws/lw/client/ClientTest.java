@@ -656,7 +656,7 @@ public class ClientTest {
                 .build();
 
         s3 //
-                .path("myBucket/myObject.txt") //
+                .path("myBucket","myObject.txt") //
                 .query("Type", "Thing") //
                 .header("my-header", "blah") //
                 .header("my-header", "blah2") //

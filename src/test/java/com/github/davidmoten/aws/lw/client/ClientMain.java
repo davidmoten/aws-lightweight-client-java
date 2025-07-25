@@ -34,6 +34,8 @@ public final class ClientMain {
                 .credentials(credentials) //
                 .build();
         Client s3 = Client.s3().from(sqs).build();
+        System.out.println(s3.path("moten-fixes", "name with spaces.txt").responseAsUtf8());
+//        System.exit(0);
         System.out.println(s3.path("moten-fixes", "Neo4j_Graph_Algorithms_r3.mobi").presignedUrl(5,
                 TimeUnit.MINUTES));
         {
