@@ -246,6 +246,7 @@ public final class Request {
             u = trimAndEnsureHasTrailingSlash(baseUrl) //
                     + pathSegments //
                             .stream() //
+                            .map(x -> Util.urlEncode(x, false)) //
                             .map(x -> trimAndRemoveLeadingAndTrailingSlashes(x)) //
                             .collect(Collectors.joining("/"));
         }

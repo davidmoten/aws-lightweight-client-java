@@ -338,7 +338,7 @@ public final class AwsSignatureVersion4 {
         if (path.isEmpty()) {
             return "/";
         } else {
-            return Util.urlEncode(path, true);
+            return path;
         }
     }
 
