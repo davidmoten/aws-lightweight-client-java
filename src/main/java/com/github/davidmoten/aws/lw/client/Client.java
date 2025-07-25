@@ -141,8 +141,28 @@ public final class Client {
      * @return request
      */
     public Request path(String... segments) {
+        return path(false, segments);
+    }
+    
+    /**
+     * Specify the path (can include query starting with ? at end of final segment).
+     * The segments you pass will be url encoded for you. If {@code encodeForwardSlashes} 
+     * is false and {@code /} is present then it will act as a parameter delimiter
+     * (won't be url encoded). 
+     * 
+     * @param encodeForwardSlashes if true then forward slashes will be encoded
+     * @param segments that will be joined together with the '/' character
+     * @return request
+     */
+    public Request path(boolean encodeForwardSlashes, String... segments) {
         Preconditions.checkNotNull(segments, "segments cannot be null");
-        return new Request(this, null, expandForwardSlashes(segments));
+        final String[] segs;
+        if (encodeForwardSlashes) {
+            segs = segments;
+        } else {
+            segs = expandForwardSlashes(segments);
+        }
+        return new Request(this, null, segs);
     }
 
     private static String[] expandForwardSlashes(String[] segments) {
