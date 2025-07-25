@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import com.github.davidmoten.aws.lw.client.internal.Clock;
 import com.github.davidmoten.aws.lw.client.internal.Environment;
@@ -130,13 +131,29 @@ public final class Client {
 
     /**
      * Specify the path (can include query starting with ? at end of final segment).
+     * The segments you pass will be url encoded for you. If a {@code /} is present
+     * then it will act as a parameter delimiter (won't be url encoded).
      * 
      * @param segments that will be joined together with the '/' character
      * @return request
      */
     public Request path(String... segments) {
         Preconditions.checkNotNull(segments, "segments cannot be null");
-        return new Request(this, null, segments);
+        return new Request(this, null, expandForwardSlashes(segments));
+    }
+
+    private static String[] expandForwardSlashes(String[] segments) {
+        return Arrays.asList(segments)
+                .stream()
+                .flatMap(item -> {
+                    if (item.contains("/")) {
+                        String[] expanded = item.split("/");
+                        return Arrays.stream(expanded);
+                    } else {
+                        return Stream.of(item);
+                    }
+                })
+                .toArray(String[]::new);
     }
 
     public Request query(String name, String value) {
