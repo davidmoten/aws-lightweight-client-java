@@ -132,7 +132,10 @@ public final class Client {
     /**
      * Specify the path (can include query starting with ? at end of final segment).
      * The segments you pass will be url encoded for you. If a {@code /} is present
-     * then it will act as a parameter delimiter (won't be url encoded).
+     * then it will act as a parameter delimiter (won't be url encoded). Note that this
+     * behaviour will not be preserved in a future (breaking) release to enable the 
+     * encoding of a {@code /} character in a segment. For this reason, favour passing
+     * the path segments as separate parameters.
      * 
      * @param segments that will be joined together with the '/' character
      * @return request
