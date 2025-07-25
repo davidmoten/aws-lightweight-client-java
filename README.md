@@ -338,7 +338,7 @@ s3
 ///////////////////////////////////
 
 String text = s3
-    .path(bucketName + "/" + objectName)
+    .path(bucketName, objectName)
     .responseAsUtf8();
 
 ///////////////////////////////////
