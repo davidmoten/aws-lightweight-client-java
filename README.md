@@ -8,7 +8,7 @@ This is a really lightweight standalone artifact (about 85K) that performs authe
 Aside from cold-start runtime improvements in AWS Lambda, the small artifact size is presumably attractive for mobile device developers (Android especially). 
 
 **Features**
-* small standalone artifact (75K)
+* small standalone artifact (88K)
 * concise fluent api
 * signs requests with AWS Signature Version 4
 * generates presigned urls
