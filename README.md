@@ -45,7 +45,7 @@ Client sqs = Client.sqs().defaultClient().build();
   
 String queueUrl = sqs
     .query("Action", "CreateQueue")
-    .query("QueueName", queueName(applicationName, key))
+    .query("QueueName", "MyQueue")
     .responseAsXml()
     .content("CreateQueueResult", "QueueUrl");
     
