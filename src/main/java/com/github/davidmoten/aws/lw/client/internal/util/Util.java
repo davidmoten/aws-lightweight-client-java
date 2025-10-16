@@ -94,7 +94,7 @@ public final class Util {
     static String urlEncode(String url, boolean keepPathSlash, String charset) {
         String encoded;
         try {
-            encoded = URLEncoder.encode(url, charset).replace("+", "%20");
+            encoded = URLEncoder.encode(url, charset).replace("+", "%20").replace("*", "%2A").replace("%7E", "~");
         } catch (UnsupportedEncodingException e) {
             throw new RuntimeException(e);
         }

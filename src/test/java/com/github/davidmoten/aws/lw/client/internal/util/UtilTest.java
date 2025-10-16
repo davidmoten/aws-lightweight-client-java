@@ -44,6 +44,22 @@ public class UtilTest {
     }
 
     @Test
+    public void testUrlEncodeAsterisk() {
+        assertEquals("%2A", Util.urlEncode("*", true));
+    }
+
+    @Test
+    public void testUrlEncodeAllSpecialChars() {
+        String nonEncodedCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.~";
+        String encodedCharactersInput = "\t\n\r !\"#$%&'()*+,/:;<=>?@[\\]^`{|}";
+        String encodedCharactersOutput = "%09%0A%0D%20%21%22%23%24%25%26%27%28%29%2A%2B%2C%2F%3A%3B%3C%3D%3E%3F%40%5B%5C%5D%5E%60%7B%7C%7D";
+
+        assertEquals(Util.urlEncode("", true), "");
+        assertEquals(nonEncodedCharacters, Util.urlEncode(nonEncodedCharacters, false));
+        assertEquals(encodedCharactersOutput, Util.urlEncode(encodedCharactersInput, false));
+    }
+
+    @Test
     public void testCreateConnectionBad() throws IOException {
         Util.createHttpConnection(new URL("https://doesnotexist.never12345"), "GET",
                 Collections.emptyMap(), 100, 100);
