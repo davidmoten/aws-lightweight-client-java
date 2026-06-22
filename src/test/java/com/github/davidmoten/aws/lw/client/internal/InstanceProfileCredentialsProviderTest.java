@@ -225,6 +225,101 @@ public class InstanceProfileCredentialsProviderTest {
         assertEquals("KEY1", creds.accessKey()); // no refresh
     }
 
+    @Test
+    public void testReturnsEmptyWhenRoleNameIsEmpty() {
+        QueueHttpClient httpClient = new QueueHttpClient();
+        httpClient.enqueue(200, "test-token");
+        httpClient.enqueue(200, ""); // empty role name
+
+        Map<String, String> map = Maps //
+                .put("AWS_EC2_METADATA_SERVICE_ENDPOINT", "http://169.254.169.254") //
+                .buildImmutable();
+        Environment env = map::get;
+        Optional<Credentials> result = InstanceProfileCredentialsProvider.credentials(env,
+                httpClient, Clock.DEFAULT);
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testReturnsEmptyWhenCredentialsMissingAccessKeyId() {
+        QueueHttpClient httpClient = new QueueHttpClient();
+        httpClient.enqueue(200, "test-token");
+        httpClient.enqueue(200, "my-role");
+        // JSON missing AccessKeyId
+        httpClient.enqueue(200, "{\"SecretAccessKey\":\"sk\",\"Token\":\"t\",\"Expiration\":\"2025-01-01T00:00:00Z\"}");
+
+        Map<String, String> map = Maps //
+                .put("AWS_EC2_METADATA_SERVICE_ENDPOINT", "http://169.254.169.254") //
+                .buildImmutable();
+        Environment env = map::get;
+        Optional<Credentials> result = InstanceProfileCredentialsProvider.credentials(env,
+                httpClient, Clock.DEFAULT);
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testReturnsEmptyWhenCredentialsMissingSecretAccessKey() {
+        QueueHttpClient httpClient = new QueueHttpClient();
+        httpClient.enqueue(200, "test-token");
+        httpClient.enqueue(200, "my-role");
+        httpClient.enqueue(200, "{\"AccessKeyId\":\"ak\",\"Token\":\"t\",\"Expiration\":\"2025-01-01T00:00:00Z\"}");
+
+        Map<String, String> map = Maps //
+                .put("AWS_EC2_METADATA_SERVICE_ENDPOINT", "http://169.254.169.254") //
+                .buildImmutable();
+        Environment env = map::get;
+        Optional<Credentials> result = InstanceProfileCredentialsProvider.credentials(env,
+                httpClient, Clock.DEFAULT);
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testReturnsEmptyWhenCredentialsMissingSessionToken() {
+        QueueHttpClient httpClient = new QueueHttpClient();
+        httpClient.enqueue(200, "test-token");
+        httpClient.enqueue(200, "my-role");
+        httpClient.enqueue(200,
+                "{\"AccessKeyId\":\"ak\",\"SecretAccessKey\":\"sk\",\"Expiration\":\"2025-01-01T00:00:00Z\"}");
+
+        Map<String, String> map = Maps //
+                .put("AWS_EC2_METADATA_SERVICE_ENDPOINT", "http://169.254.169.254") //
+                .buildImmutable();
+        Environment env = map::get;
+        Optional<Credentials> result = InstanceProfileCredentialsProvider.credentials(env,
+                httpClient, Clock.DEFAULT);
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testReturnsEmptyWhenCredentialsMissingExpiration() {
+        QueueHttpClient httpClient = new QueueHttpClient();
+        httpClient.enqueue(200, "test-token");
+        httpClient.enqueue(200, "my-role");
+        httpClient.enqueue(200, "{\"AccessKeyId\":\"ak\",\"SecretAccessKey\":\"sk\",\"Token\":\"t\"}");
+
+        Map<String, String> map = Maps //
+                .put("AWS_EC2_METADATA_SERVICE_ENDPOINT", "http://169.254.169.254") //
+                .buildImmutable();
+        Environment env = map::get;
+        Optional<Credentials> result = InstanceProfileCredentialsProvider.credentials(env,
+                httpClient, Clock.DEFAULT);
+        assertFalse(result.isPresent());
+    }
+
+    @Test
+    public void testReturnsEmptyWhenTokenFetchThrowsIOException() {
+        QueueHttpClient httpClient = new QueueHttpClient();
+        httpClient.enqueueError(new IOException("Connection refused"));
+
+        Map<String, String> map = Maps //
+                .put("AWS_EC2_METADATA_SERVICE_ENDPOINT", "http://169.254.169.254") //
+                .buildImmutable();
+        Environment env = map::get;
+        Optional<Credentials> result = InstanceProfileCredentialsProvider.credentials(env,
+                httpClient, Clock.DEFAULT);
+        assertFalse(result.isPresent());
+    }
+
     private static String imdsResponseJson(String accessKeyId, String secretAccessKey,
             String sessionToken, String expiration) {
         return "{\n"
