@@ -292,13 +292,18 @@ public class ClientTest {
     public void testDefaultClientFromSystemProperties() {
         System.setProperty("aws.accessKeyId", "123");
         System.setProperty("aws.secretKey", "abc");
-        Client client = Client.s3().region("ap-southeast-2").credentialsFromSystemProperties()
-                .build();
-        assertEquals("ap-southeast-2", client.region().get());
-        Credentials c = client.credentials();
-        assertEquals("123", c.accessKey());
-        assertEquals("abc", c.secretKey());
-        assertFalse(c.sessionToken().isPresent());
+        try {
+            Client client = Client.s3().region("ap-southeast-2").credentialsFromSystemProperties()
+                    .build();
+            assertEquals("ap-southeast-2", client.region().get());
+            Credentials c = client.credentials();
+            assertEquals("123", c.accessKey());
+            assertEquals("abc", c.secretKey());
+            assertFalse(c.sessionToken().isPresent());
+        } finally {
+            System.clearProperty("aws.accessKeyId");
+            System.clearProperty("aws.secretKey");
+        }
     }
 
     @Test

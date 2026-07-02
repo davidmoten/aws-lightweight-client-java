@@ -1,7 +1,12 @@
 package com.github.davidmoten.aws.lw.client.internal;
 
+import com.github.davidmoten.aws.lw.client.Credentials;
+import com.github.davidmoten.aws.lw.client.HttpClient;
+import com.github.davidmoten.aws.lw.client.ResponseInputStream;
+import com.github.davidmoten.aws.lw.client.internal.util.Util;
 import java.io.IOException;
 import java.io.UncheckedIOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
@@ -9,11 +14,6 @@ import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import com.github.davidmoten.aws.lw.client.Credentials;
-import com.github.davidmoten.aws.lw.client.HttpClient;
-import com.github.davidmoten.aws.lw.client.ResponseInputStream;
-import com.github.davidmoten.aws.lw.client.internal.util.Util;
 
 final class CredentialsHelper {
 
@@ -28,14 +28,50 @@ final class CredentialsHelper {
         // if using SnapStart we need to get the credentials from a local container
         // it is a precondition that SnapStart snapshot has happened before credentials get loaded
         // so we get a chance to refresh creds from the local container
+		return credentialsFromEnvironment(env, client, Clock.DEFAULT);
+	}
+
+    static Credentials credentialsFromEnvironment(Environment env, HttpClient client, Clock clock) {
+		// Attempting to load credentials in the order described in
+		// https://docs.aws.amazon.com/java/api/latest/software/amazon/awssdk/auth/credentials/DefaultCredentialsProvider.html
+        // 1. Java System Properties
+        String ak = System.getProperty("aws.accessKeyId");
+        String sk = System.getProperty("aws.secretAccessKey", System.getProperty("aws.secretKey"));
+        if (ak != null && sk != null) {
+            return Credentials.fromSystemProperties();
+        }
+
+        // 2. Environment Variables
+        ak = env.get("AWS_ACCESS_KEY_ID");
+        if (ak == null) {
+            ak = env.get("AWS_ACCESS_KEY");
+        }
+        sk = env.get("AWS_SECRET_ACCESS_KEY");
+        if (sk == null) {
+            sk = env.get("AWS_SECRET_KEY");
+        }
+        if (ak != null && sk != null) {
+            return new CredentialsImpl(ak, sk, Optional.ofNullable(env.get("AWS_SESSION_TOKEN")));
+        }
+
+        // 3. Web Identity Token credentials via STS
+        Optional<Credentials> webIdentity = STSCredentialsProvider.credentials(env, client, clock);
+        if (webIdentity.isPresent()) {
+            return webIdentity.get();
+        }
+
+        // 4. Container credentials
         String containerCredentialsUri = env.get("AWS_CONTAINER_CREDENTIALS_FULL_URI");
+        if (containerCredentialsUri == null) {
+            containerCredentialsUri = env.get("AWS_CONTAINER_CREDENTIALS_RELATIVE_URI");
+        }
         if (containerCredentialsUri != null) {
             String containerToken = env.get("AWS_CONTAINER_AUTHORIZATION_TOKEN");
             String containerTokenFile = env.get("AWS_CONTAINER_AUTHORIZATION_TOKEN_FILE");
             containerToken = resolveContainerToken(containerToken, containerTokenFile);
             try {
                 // Create a connection to the credentials URI
-                URL url = new URL(containerCredentialsUri);
+                URL url = URI.create(containerCredentialsUri).toURL();
                 Map<String, String> headers = new HashMap<>();
                 headers.put("Authorization", containerToken);
                 ResponseInputStream response = client.request(url, "GET", headers, null, CONNECT_TIMEOUT_MS,
@@ -55,12 +91,18 @@ final class CredentialsHelper {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
-        } else {
-            String accessKey = env.get("AWS_ACCESS_KEY_ID");
-            String secretKey = env.get("AWS_SECRET_ACCESS_KEY");
-            Optional<String> token = Optional.ofNullable(env.get("AWS_SESSION_TOKEN"));
-            return new CredentialsImpl(accessKey, secretKey, token);
         }
+
+        // 5. Instance profile credentials via EC2 metadata service
+        Optional<Credentials> instanceProfile = InstanceProfileCredentialsProvider.credentials(env, client, clock);
+        if (instanceProfile.isPresent()) {
+            return instanceProfile.get();
+        }
+
+        throw new RuntimeException(
+                "Unable to load AWS credentials from environment: no system properties, "
+                        + "environment variables, web identity token, container credentials, "
+                        + "or instance profile credentials were found");
     }
 
     // VisibleForTesting
