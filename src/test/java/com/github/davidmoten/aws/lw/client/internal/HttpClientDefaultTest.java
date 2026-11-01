@@ -21,8 +21,7 @@ public class HttpClientDefaultTest {
     public void testGetInputStreamThrows() throws IOException {
         HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
         when(connection.getInputStream()).thenThrow(IOException.class);
-        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-        when(connection.getResponseCode()).thenReturn(200);
+        setupHttpURLConnectionGetResponseCodeAndGetOutputStreamStubs(connection, 200);
         try {
             HttpClientDefault.request(connection, new byte[0]);
             Assert.fail();
@@ -36,8 +35,7 @@ public class HttpClientDefaultTest {
     public void testDisconnectThrows() throws IOException {
         HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
         when(connection.getInputStream()).thenThrow(IOException.class);
-        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-        when(connection.getResponseCode()).thenReturn(200);
+        setupHttpURLConnectionGetResponseCodeAndGetOutputStreamStubs(connection, 200);
         Mockito.doThrow(RuntimeException.class).when(connection).disconnect();
         try {
             HttpClientDefault.request(connection, new byte[0]);
@@ -51,9 +49,7 @@ public class HttpClientDefaultTest {
     @Test
     public void testGetInputStreamReturnsNull() throws IOException {
         HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
-        when(connection.getInputStream()).thenReturn(null);
-        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-        when(connection.getResponseCode()).thenReturn(200);
+        setupHttpURLConnectionGetResponseCodeAndGetInputStreamAnd1MoreStubs(connection, 200);
         try (ResponseInputStream response = HttpClientDefault.request(connection, new byte[0])) {
             assertEquals(200, response.statusCode());
             assertEquals(-1, response.read());
@@ -64,9 +60,7 @@ public class HttpClientDefaultTest {
     @Test
     public void testIsOKWhenNotOk() throws IOException {
         HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
-        when(connection.getInputStream()).thenReturn(null);
-        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-        when(connection.getResponseCode()).thenReturn(500);
+        setupHttpURLConnectionGetResponseCodeAndGetInputStreamAnd1MoreStubs(connection, 500);
         try (ResponseInputStream response = HttpClientDefault.request(connection, new byte[0])) {
             assertEquals(500, response.statusCode());
             assertEquals(-1, response.read());
@@ -77,9 +71,7 @@ public class HttpClientDefaultTest {
     @Test
     public void testIsOKWhenNotOkStatusCodeLessThan200() throws IOException {
         HttpURLConnection connection = Mockito.mock(HttpURLConnection.class);
-        when(connection.getInputStream()).thenReturn(null);
-        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
-        when(connection.getResponseCode()).thenReturn(100);
+        setupHttpURLConnectionGetResponseCodeAndGetInputStreamAnd1MoreStubs(connection, 100);
         try (ResponseInputStream response = HttpClientDefault.request(connection, new byte[0])) {
             assertEquals(100, response.statusCode());
             assertEquals(-1, response.read());
@@ -87,4 +79,13 @@ public class HttpClientDefaultTest {
         }
     }
 
+    private void setupHttpURLConnectionGetResponseCodeAndGetOutputStreamStubs(HttpURLConnection connection, int getResponseCodeReturnValue) throws IOException {
+        when(connection.getOutputStream()).thenReturn(new ByteArrayOutputStream());
+        when(connection.getResponseCode()).thenReturn(getResponseCodeReturnValue);
+    }
+
+    private void setupHttpURLConnectionGetResponseCodeAndGetInputStreamAnd1MoreStubs(HttpURLConnection connection, int getResponseCodeReturnValue) throws IOException {
+        setupHttpURLConnectionGetResponseCodeAndGetOutputStreamStubs(connection, getResponseCodeReturnValue);
+        when(connection.getInputStream()).thenReturn(null);
+    }
 }
